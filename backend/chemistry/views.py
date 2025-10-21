@@ -180,6 +180,26 @@ class FamilyViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, HasAppPermission]
     permission_resource = "chemistry"
 
+    @action(detail=False, methods=["get"])
+    @extend_schema(
+        summary="Listar mis familias",
+        description=(
+            "Obtiene las familias que contienen moléculas creadas por el usuario "
+            "autenticado. Nota: el modelo Family no registra created_by, por lo que "
+            "aquí se consideran familias que incluyen moléculas del usuario."
+        ),
+        tags=["Chemistry - Families"],
+    )
+    def mine(self, request):
+        """Devuelve familias relacionadas al usuario (contienen moléculas creadas por él)."""
+        qs = (
+            self.get_queryset()
+            .filter(members__molecule__created_by=request.user)
+            .distinct()
+        )
+        serializer = FamilySerializer(qs, many=True)
+        return Response(serializer.data)
+
 
 @extend_schema_view(
     list=extend_schema(

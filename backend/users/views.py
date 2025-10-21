@@ -110,6 +110,52 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = PermissionSerializer(permissions_qs, many=True)
         return Response(serializer.data)
 
+    @action(detail=True, methods=["get"], url_path="resources")
+    @extend_schema(
+        summary="Recursos de un usuario (flows y families)",
+        description=(
+            "Devuelve los flujos cuyo owner es el usuario y las familias que contienen "
+            "moléculas creadas por el usuario. Accesible para el propio usuario, "
+            "administradores o usuarios con permiso users:read."
+        ),
+        tags=["Users", "Resources"],
+    )
+    def resources(self, request, pk=None):
+        """Retorna flujos y familias asociados al usuario especificado."""
+        target_user = self.get_object()
+
+        # Control de acceso: propio usuario, superuser o permiso users:read
+        if not (
+            request.user.id == target_user.id
+            or getattr(request.user, "is_superuser", False)
+            or getattr(request.user, "has_permission", lambda *a, **k: False)(
+                "users", "read"
+            )
+        ):
+            return Response(
+                {"detail": "No tienes permisos para ver estos recursos."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # Import serializers locally to avoid circular imports
+        from chemistry.models import Family
+        from chemistry.serializers import FamilySerializer
+        from flows.models import Flow
+        from flows.serializers import FlowSerializer
+
+        # Flows cuyo owner es el usuario
+        flows_qs = Flow.objects.filter(owner=target_user)
+
+        # Families que contienen moléculas creadas por el usuario (via FamilyMember -> Molecule)
+        families_qs = Family.objects.filter(
+            members__molecule__created_by=target_user
+        ).distinct()
+
+        flows_data = FlowSerializer(flows_qs, many=True).data
+        families_data = FamilySerializer(families_qs, many=True).data
+
+        return Response({"flows": flows_data, "families": families_data})
+
     @action(detail=False, methods=["get"])
     @extend_schema(
         summary="Obtener perfil del usuario actual",
