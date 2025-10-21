@@ -8,9 +8,8 @@ alineadas con estándares ChEMBL/PubChem.
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 
-from chemistry.models import (
-    Molecule,
-)
+from chemistry import services as chem_services
+from chemistry.models import Molecule
 
 User = get_user_model()
 
@@ -30,18 +29,20 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         """Ejecuta el comando de creación de moléculas."""
-        # TODO: Verificar que existan usuarios si es necesario
-        # try:
-        #     editor = User.objects.get(username="editor")
-        #     scientist = User.objects.get(username="scientist")
-        # except User.DoesNotExist:
-        #     self.stdout.write(
-        #         self.style.ERROR(
-        #             "Error: Usuarios no encontrados. "
-        #             "Ejecuta primero: python manage.py seed_users"
-        #         )
-        #     )
-        #     return
+        # Obtener un usuario existente o crear uno por defecto para asociar como creador
+        creator = User.objects.order_by("id").first()
+        if not creator:
+            creator = User.objects.create_user(
+                username="chemistry-seeder",
+                email="seeder@example.com",
+                password="chemflow",
+            )
+            # dar permisos mínimos si tu sistema los usa
+            self.stdout.write(
+                self.style.WARNING(
+                    "Usuario 'chemistry-seeder' creado para ejecutar el seeder"
+                )
+            )
 
         # Eliminar moléculas existentes si se solicita
         if options["delete"]:
@@ -51,80 +52,38 @@ class Command(BaseCommand):
                     self.style.WARNING(f"Eliminadas {deleted[0]} moléculas existentes")
                 )
 
-        # TODO: Agregar datos reales de moléculas aquí
-        # molecules_data = [
-        #     {
-        #         "name": "...",
-        #         "inchikey": "...",
-        #         "smiles": "...",
-        #         "canonical_smiles": "...",
-        #         "molecular_formula": "...",
-        #         "created_by": editor,
-        #         "metadata": {...},
-        #         "properties": [...],
-        #     },
-        # ]
+        # Elementos a sembrar (en forma atómica para evitar hidrógenos implícitos)
+        # Usamos notación de átomos entre corchetes para controlar valencias.
+        elements = [
+            {"name": "Carbono", "smiles": "[C]"},
+            {"name": "Hidrógeno", "smiles": "[H]"},
+            {"name": "Nitrógeno", "smiles": "[N]"},
+            {"name": "Oxígeno", "smiles": "[O]"},
+            {"name": "Fósforo", "smiles": "[P]"},
+            {"name": "Azufre", "smiles": "[S]"},
+        ]
 
         created_molecules = []
-        # for mol_data in molecules_data:
-        #     properties = mol_data.pop("properties", [])
-        #
-        #     # Crear molécula
-        #     molecule, created = Molecule.objects.get_or_create(
-        #         inchikey=mol_data["inchikey"],
-        #         defaults=mol_data,
-        #     )
-        #
-        #     if created:
-        #         created_molecules.append(molecule)
-        #         self.stdout.write(
-        #             self.style.SUCCESS(f"✓ Creada molécula: {molecule.name}")
-        #         )
-        #
-        #         # Crear propiedades
-        #         for prop_data in properties:
-        #             MolecularProperty.objects.create(
-        #                 molecule=molecule,
-        #                 **prop_data,
-        #             )
-        #             self.stdout.write(f"  → Propiedad: {prop_data['property_type']}")
-        #     else:
-        #         self.stdout.write(
-        #             self.style.WARNING(f"⟳ Molécula existente: {molecule.name}")
-        #         )
-
-        # TODO: Crear familias de moléculas aquí si es necesario
-        # if created_molecules:
-        #     family, created = Family.objects.get_or_create(
-        #         name="...",
-        #         defaults={
-        #             "description": "...",
-        #             "family_hash": "...",
-        #             "provenance": "seed_data",
-        #             "frozen": False,
-        #         },
-        #     )
-        #
-        #     if created:
-        #         self.stdout.write(
-        #             self.style.SUCCESS(f"\n✓ Creada familia: {family.name}")
-        #         )
-        #
-        #         # Agregar propiedades de familia
-        #         FamilyProperty.objects.create(
-        #             family=family,
-        #             property_type="...",
-        #             value="...",
-        #             units="...",
-        #             method="...",
-        #         )
-        #
-        #         # Añadir moléculas a la familia
-        #         for molecule in created_molecules[:3]:
-        #             FamilyMember.objects.create(family=family, molecule=molecule)
-        #             self.stdout.write(f"  → Miembro: {molecule.name}")
-
-        # Resumen
+        for el in elements:
+            try:
+                mol = chem_services.create_molecule_from_smiles(
+                    smiles=el["smiles"],
+                    created_by=creator,
+                    name=el["name"],
+                    extra_metadata={"seed": True, "kind": "element"},
+                )
+                created_molecules.append(mol)
+                self.stdout.write(
+                    self.style.SUCCESS(
+                        f"✓ Creada molécula: {mol.name} ({el['smiles']})"
+                    )
+                )
+            except Exception as exc:
+                self.stdout.write(
+                    self.style.ERROR(
+                        f"✗ Error creando {el['name']} ({el['smiles']}): {exc}"
+                    )
+                )
         self.stdout.write("")
         self.stdout.write(self.style.SUCCESS("=" * 60))
         self.stdout.write(

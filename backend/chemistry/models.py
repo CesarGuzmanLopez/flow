@@ -104,7 +104,9 @@ class MolecularProperty(models.Model):
     method = models.CharField(max_length=100, blank=True)
     units = models.CharField(max_length=50, blank=True)
     relation = models.CharField(max_length=10, blank=True)
-    source_id = models.CharField(max_length=100, blank=True)
+    source_id = models.CharField(
+        max_length=100, blank=True
+    )  # ID de la fuente o referencias
     metadata = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

@@ -21,7 +21,7 @@ from notifications.domain.entities import (
     RealtimeNotification,
     WebhookNotification,
 )
-from notifications.domain.interfaces import (
+from notifications.domain.ports import (
     IEmailSender,
     INotificationRepository,
     IRealtimeSender,
