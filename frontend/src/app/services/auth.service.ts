@@ -1,19 +1,29 @@
-import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
-import { LoginRequest, LoginResponse, TokenRefreshResponse, User } from '../models';
+import { BehaviorSubject, Observable, map, tap } from 'rxjs';
+import { AutenticacinService } from '../api/api/autenticacin.service';
+import { TokenService } from '../api/api/token.service';
+import { TokenObtainPair } from '../api/model/tokenObtainPair';
+import { TokenRefresh } from '../api/model/tokenRefresh';
+import {
+  LoginRequest,
+  LoginResponse,
+  TokenRefreshResponse,
+  User,
+} from '../models';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AuthService {
-  private readonly http = inject(HttpClient);
-  private readonly apiUrl = '/api';
+  private readonly authApi = inject(AutenticacinService);
+  private readonly tokenApi = inject(TokenService);
 
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
-  private tokenSubject = new BehaviorSubject<string | null>(this.getStoredToken());
+  private tokenSubject = new BehaviorSubject<string | null>(
+    this.getStoredToken()
+  );
   public token$ = this.tokenSubject.asObservable();
 
   constructor() {
@@ -21,8 +31,14 @@ export class AuthService {
   }
 
   login(credentials: LoginRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.apiUrl}/token/`, credentials).pipe(
-      tap(response => {
+    const payload: TokenObtainPair = {
+      username: credentials.username,
+      password: credentials.password,
+    } as TokenObtainPair;
+
+    return this.authApi.tokenCreate(payload).pipe(
+      map((resp: any) => resp as LoginResponse),
+      tap((response) => {
         this.storeTokens(response.access, response.refresh);
         this.currentUserSubject.next(response.user);
         localStorage.setItem('currentUser', JSON.stringify(response.user));
@@ -40,8 +56,10 @@ export class AuthService {
 
   refreshToken(): Observable<TokenRefreshResponse> {
     const refresh = localStorage.getItem('refresh_token');
-    return this.http.post<TokenRefreshResponse>(`${this.apiUrl}/token/refresh/`, { refresh }).pipe(
-      tap(response => {
+    const payload: TokenRefresh = { refresh } as TokenRefresh;
+    return this.tokenApi.tokenRefreshCreate(payload).pipe(
+      map((resp: any) => resp as TokenRefreshResponse),
+      tap((response) => {
         localStorage.setItem('access_token', response.access);
         this.tokenSubject.next(response.access);
       })
