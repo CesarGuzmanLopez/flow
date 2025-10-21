@@ -1,0 +1,9 @@
+from typing import Dict, List, Protocol
+
+
+class ChemEngineInterface(Protocol):
+    def smiles_to_inchi(self, smiles: str) -> Dict[str, str]: ...
+
+    def calculate_properties(self, smiles: str) -> Dict[str, float]: ...
+
+    def generate_substitutions(self, smiles: str, count: int = 3) -> List[str]: ...

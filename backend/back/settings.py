@@ -24,23 +24,13 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# load .env if present (optional)
 load_dotenv()
-
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv(
     "DJANGO_SECRET_KEY",
     "django-insecure-q$(5w%1&(1!&*o1&q($ohdts9v1$@*^o6jvuc26w*apxb^-f^c",
 )
-
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DJANGO_DEBUG", "True") == "True"
 
 ALLOWED_HOSTS = (
@@ -48,10 +38,6 @@ ALLOWED_HOSTS = (
     if os.getenv("DJANGO_ALLOWED_HOSTS")
     else []
 )
-
-
-# Application definition
-
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -59,11 +45,9 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    # Third-party
     "rest_framework",
     "drf_spectacular",
     "corsheaders",
-    # Local apps
     "users",
     "flows",
     "chemistry",
@@ -99,10 +83,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "back.wsgi.application"
-
-
-# Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
     "default": {

@@ -60,10 +60,10 @@ class FlowExecutionService:
         # Emitir evento y notificar
         event = FlowStepStarted(
             event_id=secrets.token_urlsafe(16),
-            flow_id=step.flow.id,
+            flow_id=step.flow_version.flow.id,
             step_id=step.id,
             step_name=step.name,
-            user_id=step.flow.owner.id,
+            user_id=step.flow_version.flow.owner.id,
         )
 
         use_case = container.notify_step_started_use_case()
@@ -99,10 +99,10 @@ class FlowExecutionService:
         # Emitir evento y notificar
         event = FlowStepCompleted(
             event_id=secrets.token_urlsafe(16),
-            flow_id=step_execution.step.flow.id,
+            flow_id=step_execution.step.flow_version.flow.id,
             step_id=step_execution.step.id,
             step_name=step_execution.step.name,
-            user_id=step_execution.step.flow.owner.id,
+            user_id=step_execution.step.flow_version.flow.owner.id,
             duration=duration,
         )
 
@@ -142,14 +142,14 @@ class FlowExecutionService:
         # Emitir evento y notificar
         event = FlowStepFailed(
             event_id=secrets.token_urlsafe(16),
-            flow_id=step_execution.step.flow.id,
+            flow_id=step_execution.step.flow_version.flow.id,
             step_id=step_execution.step.id,
             step_name=step_execution.step.name,
-            user_id=step_execution.step.flow.owner.id,
+            user_id=step_execution.step.flow_version.flow.owner.id,
             error_message=error_message,
         )
 
-        user_email = step_execution.step.flow.owner.email
+        user_email = step_execution.step.flow_version.flow.owner.email
         use_case = container.notify_step_failed_use_case()
         use_case.execute(event=event, user_email=user_email, send_webhook=webhook_url)
 
@@ -223,7 +223,7 @@ class FlowPermissionService:
             return True
 
         # Verificar si tiene permiso flows.read
-        return user.has_app_permission("flows", "read")
+        return user.has_permission("flows", "read")
 
     @staticmethod
     def can_user_write_flow(user: User, flow: Flow) -> bool:
@@ -244,7 +244,7 @@ class FlowPermissionService:
         if flow.owner == user:
             return True
 
-        return user.has_app_permission("flows", "write")
+        return user.has_permission("flows", "write")
 
     @staticmethod
     def can_user_delete_flow(user: User, flow: Flow) -> bool:
@@ -283,4 +283,4 @@ class FlowPermissionService:
         if flow.owner == user:
             return True
 
-        return user.has_app_permission("flows", "execute")
+        return user.has_permission("flows", "execute")

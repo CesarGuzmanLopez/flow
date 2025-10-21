@@ -27,12 +27,9 @@ from users.auth import ChemflowTokenObtainPairView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    # Healthcheck
     path("api/health/", lambda request: JsonResponse({"status": "ok"})),
-    # JWT Authentication
     path("api/token/", ChemflowTokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
-    # OpenAPI schema and docs
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
         "api/docs/swagger/",

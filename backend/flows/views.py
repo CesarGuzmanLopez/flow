@@ -493,7 +493,7 @@ def step_execution_logs_stream(request, pk: str):  # type: ignore[override]
         raise Http404()
 
     # Verificar permisos de lectura del flow
-    flow = step_execution.step.flow
+    flow = step_execution.step.flow_version.flow
     if not flow_services.FlowPermissionService.can_user_read_flow(request.user, flow):
         raise Http404()
 
@@ -542,7 +542,7 @@ def step_execution_logs_append(request, pk: str):  # type: ignore[override]
         raise Http404()
 
     # Verificar permiso de ejecución/escritura en el flujo
-    flow = step_execution.step.flow
+    flow = step_execution.step.flow_version.flow
     if not flow_services.FlowPermissionService.can_user_execute_flow(
         request.user, flow
     ):

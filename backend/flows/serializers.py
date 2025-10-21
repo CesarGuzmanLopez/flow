@@ -207,7 +207,7 @@ class FlowBranchSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "head", "start_node", "created_at", "created_by"]
 
-    def get_path_length(self, obj):
+    def get_path_length(self, obj) -> int:
         """Calcula el número de pasos en la rama."""
         from . import services as flow_services
 
