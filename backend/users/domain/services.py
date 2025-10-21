@@ -16,8 +16,7 @@ from notifications.domain.events import (
     PasswordResetRequested,
     UserRegistered,
 )
-
-from ..models import UserToken
+from users.models import UserToken
 
 User = get_user_model()
 
