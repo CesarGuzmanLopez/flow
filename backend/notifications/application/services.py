@@ -8,25 +8,25 @@ orquestando entidades de dominio y adaptadores de infraestructura.
 from typing import List, Optional
 from uuid import UUID
 
-from ..domain.entities import (
+from notifications.application.dtos import (
+    NotificationResponseDTO,
+    SendEmailDTO,
+    SendRealtimeDTO,
+    SendWebhookDTO,
+)
+from notifications.domain.entities import (
     EmailNotification,
     NotificationPriority,
     NotificationStatus,
     RealtimeNotification,
     WebhookNotification,
 )
-from ..domain.ports import (
+from notifications.domain.interfaces import (
     IEmailSender,
     INotificationRepository,
     IRealtimeSender,
     ITemplateRenderer,
     IWebhookSender,
-)
-from .dtos import (
-    NotificationResponseDTO,
-    SendEmailDTO,
-    SendRealtimeDTO,
-    SendWebhookDTO,
 )
 
 

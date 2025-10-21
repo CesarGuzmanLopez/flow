@@ -12,13 +12,13 @@ from django.conf import settings
 from django.db import migrations
 
 
-def seed_roles_and_admin(apps, schema_editor):
+def seed_roles_and_admin(apps, _schema_editor):
     """
     Crea roles, permisos y usuario administrador por defecto.
 
     Args:
         apps: Registro de aplicaciones de Django
-        schema_editor: Editor de esquema para operaciones de base de datos
+        _schema_editor: Editor de esquema (no usado)
     """
     Role = apps.get_model("users", "Role")
     Permission = apps.get_model("users", "Permission")
@@ -96,16 +96,16 @@ def seed_roles_and_admin(apps, schema_editor):
         admin = User.objects.create_superuser(
             username=admin_username, email=admin_email, password=admin_password
         )
-        admin.roles.add(roles["admin"])  # type: ignore[attr-defined]
+        admin.roles.add(roles["admin"])
 
 
-def unseed_roles_and_admin(apps, schema_editor):
+def unseed_roles_and_admin(apps, _schema_editor):
     """
     Revierte la migración eliminando roles, permisos y usuario admin.
 
     Args:
         apps: Registro de aplicaciones de Django
-        schema_editor: Editor de esquema para operaciones de base de datos
+        _schema_editor: Editor de esquema (no usado)
     """
     Role = apps.get_model("users", "Role")
     # Don't delete users on reverse; only remove the roles created

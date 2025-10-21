@@ -120,8 +120,6 @@ class NotificationContainer:
             )
         return self._notification_service
 
-    # Use Cases
-
     def password_reset_use_case(self) -> SendPasswordResetEmailUseCase:
         """Obtiene el use case de reset de contraseña."""
         if self._password_reset_use_case is None:

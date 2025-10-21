@@ -7,7 +7,7 @@ Para producción, considerar usar Django templates o Jinja2.
 
 import logging
 
-from ..domain.ports import ITemplateRenderer
+from notifications.domain.ports import ITemplateRenderer
 
 logger = logging.getLogger(__name__)
 

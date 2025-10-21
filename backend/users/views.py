@@ -12,15 +12,18 @@ Define los endpoints REST API para:
 Incluye control de acceso basado en roles y permisos personalizados.
 """
 
-from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.mail import send_mail
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from .models import Permission, Role, UserToken
+from .domain.services import (
+    UserActivationService,
+    UserAuthenticationService,
+    UserTokenService,
+)
+from .models import Permission, Role
 from .permissions import HasAppPermission
 from .serializers import (
     AdminUpdateUserSerializer,
@@ -128,9 +131,7 @@ class UserViewSet(viewsets.ModelViewSet):
         if not (
             request.user.id == target_user.id
             or getattr(request.user, "is_superuser", False)
-            or getattr(request.user, "has_permission", lambda *a, **k: False)(
-                "users", "read"
-            )
+            or getattr(request.user, "has_permission", lambda: False)("users", "read")
         ):
             return Response(
                 {"detail": "No tienes permisos para ver estos recursos."},
@@ -234,20 +235,21 @@ class UserViewSet(viewsets.ModelViewSet):
         )
         serializer.is_valid(raise_exception=True)
 
-        # Verificar contraseña actual
-        if not request.user.check_password(
-            serializer.validated_data.get("old_password", "")
-        ):
+        old_password = serializer.validated_data.get("old_password", "")
+        new_password = serializer.validated_data["new_password"]
+
+        # Usar el servicio para cambiar la contraseña
+        success = UserAuthenticationService.change_password(
+            request.user, old_password, new_password
+        )
+
+        if success:
+            return Response({"detail": "Contraseña cambiada exitosamente."})
+        else:
             return Response(
                 {"old_password": "La contraseña actual es incorrecta."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-        # Cambiar contraseña
-        request.user.set_password(serializer.validated_data["new_password"])
-        request.user.save()
-
-        return Response({"detail": "Contraseña cambiada exitosamente."})
 
     @action(detail=True, methods=["post"], url_path="admin-change-password")
     @extend_schema(
@@ -277,13 +279,20 @@ class UserViewSet(viewsets.ModelViewSet):
         )
         serializer.is_valid(raise_exception=True)
 
-        # Cambiar contraseña sin verificar la actual
-        user.set_password(serializer.validated_data["new_password"])
-        user.save()
+        new_password = serializer.validated_data["new_password"]
 
-        return Response(
-            {"detail": f"Contraseña de {user.username} cambiada exitosamente."}
-        )
+        # Usar el servicio para cambiar la contraseña
+        success = UserAuthenticationService.admin_change_password(user, new_password)
+
+        if success:
+            return Response(
+                {"detail": f"Contraseña de {user.username} cambiada exitosamente."}
+            )
+        else:
+            return Response(
+                {"detail": "Error al cambiar la contraseña."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
     @action(detail=True, methods=["post"], url_path="activate")
     @extend_schema(
@@ -304,10 +313,17 @@ class UserViewSet(viewsets.ModelViewSet):
             )
 
         user = self.get_object()
-        user.is_active = True
-        user.save()
 
-        return Response(UserSerializer(user).data)
+        # Usar el servicio para activar
+        success = UserActivationService.activate_user(user)
+
+        if success:
+            return Response(UserSerializer(user).data)
+        else:
+            return Response(
+                {"detail": "El usuario ya está activo."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
     @action(detail=True, methods=["post"], url_path="deactivate")
     @extend_schema(
@@ -329,17 +345,23 @@ class UserViewSet(viewsets.ModelViewSet):
 
         user = self.get_object()
 
-        # No permitir desactivarse a sí mismo
-        if user.id == request.user.id:
+        # Verificar si el usuario puede desactivarse a sí mismo
+        if not UserActivationService.can_user_deactivate_self(request.user, user):
             return Response(
                 {"detail": "No puedes desactivarte a ti mismo."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        user.is_active = False
-        user.save()
+        # Usar el servicio para desactivar
+        success = UserActivationService.deactivate_user(user)
 
-        return Response(UserSerializer(user).data)
+        if success:
+            return Response(UserSerializer(user).data)
+        else:
+            return Response(
+                {"detail": "El usuario ya está desactivado."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
     @action(detail=False, methods=["post"], url_path="request-password-reset")
     @extend_schema(
@@ -363,41 +385,8 @@ class UserViewSet(viewsets.ModelViewSet):
 
         try:
             user = User.objects.get(email=email, is_active=True)
-
-            # Generar token de recuperación
-            token = UserToken.generate_token(
-                user=user, token_type="password_reset", expiry_hours=24
-            )
-
-            # Construir enlace de recuperación
-            reset_url = f"{settings.FRONTEND_URL}/reset-password?token={token.token}"
-
-            # Enviar email
-            subject = "Recuperación de Contraseña - ChemFlow"
-            message = f"""
-Hola {user.first_name or user.username},
-
-Recibimos una solicitud para restablecer la contraseña de tu cuenta en ChemFlow.
-
-Para crear una nueva contraseña, haz clic en el siguiente enlace:
-{reset_url}
-
-Este enlace expirará en 24 horas.
-
-Si no solicitaste este cambio, puedes ignorar este correo.
-
-Saludos,
-El equipo de ChemFlow
-            """
-
-            send_mail(
-                subject,
-                message,
-                settings.DEFAULT_FROM_EMAIL,
-                [user.email],
-                fail_silently=False,
-            )
-
+            # Usar el servicio para generar token y enviar email
+            token, reset_url = UserTokenService.generate_password_reset_token(user)
         except User.DoesNotExist:
             # Por seguridad, no revelamos si el email existe o no
             pass
@@ -429,34 +418,19 @@ El equipo de ChemFlow
         token_value = serializer.validated_data["token"]
         new_password = serializer.validated_data["new_password"]
 
-        try:
-            token = UserToken.objects.get(
-                token=token_value, token_type="password_reset"
-            )
+        # Usar el servicio para resetear la contraseña
+        success = UserTokenService.reset_password_with_token(token_value, new_password)
 
-            if not token.is_valid():
-                return Response(
-                    {"detail": "El token es inválido o ha expirado."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            # Cambiar contraseña
-            user = token.user
-            user.set_password(new_password)
-            user.save()
-
-            # Marcar token como usado
-            token.mark_as_used()
-
+        if success:
             return Response(
                 {
                     "detail": "Contraseña restablecida exitosamente. Ya puedes iniciar sesión."
                 }
             )
-
-        except UserToken.DoesNotExist:
+        else:
             return Response(
-                {"detail": "Token inválido."}, status=status.HTTP_400_BAD_REQUEST
+                {"detail": "Token inválido o expirado."},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
     @action(detail=False, methods=["post"], url_path="send-verification-email")
@@ -471,40 +445,8 @@ El equipo de ChemFlow
         """Envía email de verificación al usuario autenticado."""
         user = request.user
 
-        # Generar token de verificación
-        token = UserToken.generate_token(
-            user=user,
-            token_type="email_verification",
-            expiry_hours=48,  # 2 días
-        )
-
-        # Construir enlace de verificación
-        verify_url = f"{settings.FRONTEND_URL}/verify-email?token={token.token}"
-
-        # Enviar email
-        subject = "Verifica tu email - ChemFlow"
-        message = f"""
-Hola {user.first_name or user.username},
-
-¡Bienvenido a ChemFlow!
-
-Para completar tu registro, por favor"
-" verifica tu dirección de email haciendo clic en el siguiente enlace:
-{verify_url}
-
-Este enlace expirará en 48 horas.
-
-Saludos,
-El equipo de ChemFlow
-        """
-
-        send_mail(
-            subject,
-            message,
-            settings.DEFAULT_FROM_EMAIL,
-            [user.email],
-            fail_silently=False,
-        )
+        # Usar el servicio para generar token y enviar email
+        token, verify_url = UserTokenService.generate_email_verification_token(user)
 
         return Response({"detail": f"Email de verificación enviado a {user.email}"})
 
@@ -527,32 +469,17 @@ El equipo de ChemFlow
 
         token_value = serializer.validated_data["token"]
 
-        try:
-            token = UserToken.objects.get(
-                token=token_value, token_type="email_verification"
-            )
+        # Usar el servicio para verificar el email
+        user = UserTokenService.verify_email_with_token(token_value)
 
-            if not token.is_valid():
-                return Response(
-                    {"detail": "El token es inválido o ha expirado."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            # Marcar email como verificado (puedes agregar un campo email_verified al User)
-            user = token.user
-            user.is_active = True  # o usar un campo email_verified personalizado
-            user.save()
-
-            # Marcar token como usado
-            token.mark_as_used()
-
+        if user:
             return Response(
                 {"detail": "Email verificado exitosamente. Tu cuenta está activa."}
             )
-
-        except UserToken.DoesNotExist:
+        else:
             return Response(
-                {"detail": "Token inválido."}, status=status.HTTP_400_BAD_REQUEST
+                {"detail": "Token inválido o expirado."},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
 

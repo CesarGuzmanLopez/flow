@@ -9,8 +9,8 @@ from typing import List, Optional
 
 import requests
 
-from ..domain.entities import Notification, WebhookNotification
-from ..domain.ports import IWebhookSender
+from notifications.domain.entities import Notification, WebhookNotification
+from notifications.domain.ports import IWebhookSender
 
 logger = logging.getLogger(__name__)
 

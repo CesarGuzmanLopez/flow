@@ -10,3 +10,5 @@ mypy-extensions
 django-cors-headers
 pytest
 pytest-django
+pytest-cov
+requests

@@ -12,6 +12,7 @@ y viceversa. Incluye:
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
+from .domain.services import UserAuthenticationService
 from .models import Permission, Role, RolePermission
 
 User = get_user_model()
@@ -136,7 +137,10 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         roles = validated_data.pop("roles", [])
-        user = User.objects.create_user(**validated_data)
+        # Usar el servicio para crear el usuario
+        user, is_new = UserAuthenticationService.create_user(**validated_data)
+        if not is_new:
+            raise serializers.ValidationError({"username": "El usuario ya existe."})
         user.roles.set(roles)
         return user
 
@@ -180,7 +184,7 @@ class ChangePasswordSerializer(serializers.Serializer):
     def validate_old_password(self, value):
         """Valida que la contraseña actual sea correcta (si se proporciona)."""
         user = self.context["request"].user
-        if value and not user.check_password(value):
+        if value and not UserAuthenticationService.verify_password(user, value):
             raise serializers.ValidationError("La contraseña actual es incorrecta.")
         return value
 

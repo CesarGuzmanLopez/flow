@@ -8,13 +8,13 @@ En producción, esto se reemplazaría con Django Channels o similar.
 import logging
 from typing import List
 
-from ..domain.entities import Notification
-from ..domain.ports import IRealtimeSender
+from notifications.domain.entities import Notification
+from notifications.domain.ports import IRealtimeSender
 
 logger = logging.getLogger(__name__)
 
 
-class MockRealtimeSender(IRealtimeSender):
+class MockRealtimeSender(IRealtimeSender):  # noqa: F821
     """
     Adaptador mock para notificaciones en tiempo real.
 

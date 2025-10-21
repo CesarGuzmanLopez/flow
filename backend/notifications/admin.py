@@ -6,7 +6,7 @@ Registra modelos de notificaciones y suscripciones webhook.
 
 from django.contrib import admin
 
-from .models import NotificationLog, WebhookSubscription
+from notifications.models import NotificationLog, WebhookSubscription
 
 
 @admin.register(NotificationLog)

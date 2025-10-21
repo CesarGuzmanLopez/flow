@@ -8,8 +8,8 @@ Para producción, implementar con Django ORM.
 from typing import Dict, List, Optional
 from uuid import UUID
 
-from ..domain.entities import Notification, NotificationStatus
-from ..domain.ports import INotificationRepository
+from notifications.domain.entities import Notification, NotificationStatus
+from notifications.domain.ports import INotificationRepository
 
 
 class InMemoryNotificationRepository(INotificationRepository):

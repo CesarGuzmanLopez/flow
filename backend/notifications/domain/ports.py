@@ -9,7 +9,7 @@ from abc import ABC, abstractmethod
 from typing import List, Optional
 from uuid import UUID
 
-from .entities import Notification
+from notifications.domain.entities import Notification
 
 
 class INotificationSender(ABC):

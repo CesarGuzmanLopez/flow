@@ -8,8 +8,8 @@ Implementa IEmailSender simulando el envío de emails.
 import logging
 from typing import List
 
-from ..domain.entities import Notification
-from ..domain.ports import IEmailSender
+from notifications.domain.entities import Notification
+from notifications.domain.ports import IEmailSender
 
 logger = logging.getLogger(__name__)
 

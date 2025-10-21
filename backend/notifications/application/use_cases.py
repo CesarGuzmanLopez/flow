@@ -7,7 +7,7 @@ siguiendo el principio Single Responsibility (SRP) de SOLID.
 
 from typing import Optional
 
-from ..domain.events import (
+from notifications.domain.events import (
     EmailVerificationRequested,
     FlowCompleted,
     FlowStepCompleted,
@@ -16,6 +16,7 @@ from ..domain.events import (
     PasswordResetRequested,
     UserRegistered,
 )
+
 from .dtos import NotificationResponseDTO, SendEmailDTO, SendRealtimeDTO, SendWebhookDTO
 from .services import NotificationService
 
