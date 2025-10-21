@@ -1629,6 +1629,78 @@ paths:
               schema:
                 $ref: '#/components/schemas/Flow'
           description: ''
+  /api/flows/flows/create-cadma1/:
+    post:
+      operationId: flows_flows_create_cadma1_create
+      description: Crea un flow con el primer paso 'create_reference_family' ejecutado.
+      tags:
+      - flows
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Flow'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Flow'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Flow'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Flow'
+          description: ''
+  /api/flows/flows/create-from-definition/:
+    post:
+      operationId: flows_flows_create_from_definition_create
+      description: |-
+        Create a flow instance from a registered definition.
+
+        Body: { key: str, name?: str, params_override?: { index: dict } }
+      tags:
+      - flows
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Flow'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Flow'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Flow'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Flow'
+          description: ''
+  /api/flows/flows/definitions/:
+    get:
+      operationId: flows_flows_definitions_retrieve
+      description: List available flow definitions (predefined templates).
+      tags:
+      - flows
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Flow'
+          description: ''
   /api/flows/flows/mine/:
     get:
       operationId: flows_flows_mine_retrieve
@@ -1838,6 +1910,62 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/flows/step-executions/{id}/cancel/:
+    post:
+      operationId: flows_step_executions_cancel_create
+      description: ViewSet para gestión de ejecuciones individuales de pasos.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este step execution.
+        required: true
+      tags:
+      - flows
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StepExecution'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StepExecution'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StepExecution'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StepExecution'
+          description: ''
+  /api/flows/step-executions/{id}/status/:
+    get:
+      operationId: flows_step_executions_status_retrieve
+      description: ViewSet para gestión de ejecuciones individuales de pasos.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este step execution.
+        required: true
+      tags:
+      - flows
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StepExecution'
+          description: ''
   /api/flows/steps/:
     get:
       operationId: flows_steps_list
@@ -1992,6 +2120,116 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/flows/steps/{id}/append-step/:
+    post:
+      operationId: flows_steps_append_step_create
+      description: ViewSet para gestión de pasos (tareas) en flujos de trabajo.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este step.
+        required: true
+      tags:
+      - flows
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Step'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Step'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Step'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Step'
+          description: ''
+  /api/flows/steps/{id}/run/:
+    post:
+      operationId: flows_steps_run_create
+      description: ViewSet para gestión de pasos (tareas) en flujos de trabajo.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este step.
+        required: true
+      tags:
+      - flows
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Step'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Step'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Step'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Step'
+          description: ''
+  /api/flows/steps/catalog/:
+    get:
+      operationId: flows_steps_catalog_retrieve
+      description: ViewSet para gestión de pasos (tareas) en flujos de trabajo.
+      tags:
+      - flows
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Step'
+          description: ''
+  /api/flows/steps/execute/:
+    post:
+      operationId: flows_steps_execute_create
+      description: ViewSet para gestión de pasos (tareas) en flujos de trabajo.
+      tags:
+      - flows
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Step'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Step'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Step'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Step'
+          description: ''
   /api/flows/versions/:
     get:
       operationId: flows_versions_list
@@ -3436,7 +3674,8 @@ components:
           type: integer
           readOnly: true
         path_length:
-          type: string
+          type: integer
+          description: Calcula el número de pasos en la rama.
           readOnly: true
       required:
       - created_at
@@ -3788,7 +4027,8 @@ components:
           type: integer
           readOnly: true
         path_length:
-          type: string
+          type: integer
+          description: Calcula el número de pasos en la rama.
           readOnly: true
     PatchedFlowVersion:
       type: object

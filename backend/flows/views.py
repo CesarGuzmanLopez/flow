@@ -13,6 +13,7 @@ Define los endpoints REST API para:
 Implementa control de acceso basado en propiedad y permisos de usuario.
 """
 
+from django.db import models
 from django.http import Http404, StreamingHttpResponse
 from django.utils.timezone import now
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
@@ -22,6 +23,23 @@ from rest_framework.response import Response
 from users.permissions import HasAppPermission
 
 from . import services as flow_services
+from .domain.flujo import predefined_cadma  # noqa: F401 - ensure registration
+from .domain.flujo.builder import create_flow_from_definition
+from .domain.flujo.definitions import get_definition, list_definitions
+from .domain.services import FlowExecutionService, FlowPermissionService
+from .domain.steps import (  # noqa: F401
+    create_reference_family,  # side-effect: register step
+    create_reference_molecule_family,  # side-effect: register step
+    generate_admetsa_family_aggregates,  # noqa: F401 - side-effect import
+    generate_admetsa_properties,  # side-effect: register step
+    generate_substitution_permutations_family,  # noqa: F401 - side-effect import
+)
+from .domain.steps.interface import (
+    DataStack,
+    StepContext,
+    execute_step,
+    list_step_specs,
+)
 from .models import (
     Artifact,
     ExecutionSnapshot,
@@ -99,6 +117,48 @@ class FlowViewSet(viewsets.ModelViewSet):
         except ValueError:
             # Si ya existe, ignorar (no debería pasar en creación)
             pass
+
+    @action(detail=False, methods=["post"], url_path="create-cadma1")
+    @extend_schema(
+        summary="Crear flujo CADMA 1 con paso inicial",
+        description=(
+            "Crea un flujo 'CADMA 1' con el primer paso 'crear familia de referencia'.\n"
+            "Params del paso: { mode: 'existing'|'new', family_id?, name?, smiles_list? }"
+        ),
+        tags=["Flows"],
+    )
+    def create_cadma1(self, request):
+        """Crea un flow con el primer paso 'create_reference_family' ejecutado."""
+        user = request.user
+        params = request.data or {}
+        # Ejecutar el step lógicamente (agnóstico de flow) para producir outputs
+        ctx = StepContext(user=user, data_stack=DataStack())
+        result = execute_step("create_reference_family", ctx, params)
+
+        # Crear Flow y primera versión + Step registro
+        flow = Flow.objects.create(name="CADMA 1", description="", owner=user)
+        flow_services.initialize_main_branch(flow, user)
+        version = FlowVersion.objects.create(
+            flow=flow, version_number=1, parent_version=None, created_by=user
+        )
+        step = Step.objects.create(
+            flow_version=version,
+            name="Crear familia de referencia",
+            description="",
+            step_type="create_reference_family",
+            order=1,
+            config={"params": params, "metadata": result.metadata},
+        )
+
+        ser = FlowSerializer(flow)
+        return Response(
+            {
+                "flow": ser.data,
+                "initial_step": step.id,
+                "outputs": result.outputs,
+            },
+            status=status.HTTP_201_CREATED,
+        )
 
     def get_queryset(self):  # type: ignore[override]
         """Soporta filtrado por propiedad del usuario y query param ?mine=true.
@@ -183,6 +243,43 @@ class FlowViewSet(viewsets.ModelViewSet):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=["get"], url_path="definitions")
+    def list_definitions_action(self, request):
+        """List available flow definitions (predefined templates)."""
+        return Response({"definitions": list_definitions()})
+
+    @action(detail=False, methods=["post"], url_path="create-from-definition")
+    def create_from_definition(self, request):
+        """Create a flow instance from a registered definition.
+
+        Body: { key: str, name?: str, params_override?: { index: dict } }
+        """
+        key = request.data.get("key")
+        if not key:
+            return Response(
+                {"detail": "'key' is required"}, status=status.HTTP_400_BAD_REQUEST
+            )
+        defn = get_definition(key)
+        flow_name = request.data.get("name")
+        raw_override = request.data.get("params_override") or {}
+        # Coerce string indices to integers for builder compatibility
+        params_override = {}
+        if isinstance(raw_override, dict):
+            for k, v in raw_override.items():
+                try:
+                    idx = int(k)
+                except (TypeError, ValueError):
+                    continue
+                params_override[idx] = v
+        flow = create_flow_from_definition(
+            owner=request.user,
+            defn=defn,
+            name=flow_name,
+            params_override=params_override,
+        )
+        ser = FlowSerializer(flow)
+        return Response(ser.data, status=status.HTTP_201_CREATED)
 
 
 @extend_schema_view(
@@ -317,6 +414,160 @@ class StepViewSet(viewsets.ModelViewSet):
     def get_queryset(self):  # type: ignore[override]
         qs = super().get_queryset()
         return flow_services.filter_steps_for_user(qs, self.request.user)
+
+    @action(detail=False, methods=["get"], url_path="catalog")
+    @extend_schema(
+        summary="Catálogo de pasos disponibles",
+        description="Lista los step types registrados con sus esquemas de entrada/salida",
+        tags=["Steps"],
+    )
+    def catalog(self, request):
+        return Response({"steps": list_step_specs()})
+
+    @action(detail=True, methods=["post"], url_path="append-step")
+    @extend_schema(
+        summary="Agregar paso a la versión",
+        description=(
+            "Agrega un paso (por step_type) a la versión. Params del paso van en 'params'.\n"
+            "Si faltan datos, se pueden inferir de un contexto anterior (simplificado)."
+        ),
+        tags=["Flow Versions", "Steps"],
+    )
+    def append_step(self, request, pk=None):
+        version = self.get_object()
+        payload = request.data or {}
+        step_type = payload.get("step_type")
+        params = payload.get("params") or {}
+        order = (version.steps.aggregate(_max=models.Max("order")).get("_max") or 0) + 1
+        if not step_type:
+            return Response({"error": "step_type is required"}, status=400)
+
+        # Ejecutar paso en un contexto nuevo (se podría rehidratar desde ejecución previa)
+        ctx = StepContext(user=request.user, data_stack=DataStack())
+        result = execute_step(step_type, ctx, params)
+
+        step = Step.objects.create(
+            flow_version=version,
+            name=payload.get("name", step_type.replace("_", " ").title()),
+            description=payload.get("description", ""),
+            step_type=step_type,
+            order=order,
+            config={"params": params, "metadata": result.metadata},
+        )
+        return Response(StepSerializer(step).data, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=["post"], url_path="execute")
+    @extend_schema(
+        summary="Ejecutar step agnóstico",
+        description=(
+            "Ejecuta un step reutilizable sin pertenecer a un flujo.\n"
+            "Body: { step_type: string, params: object }"
+        ),
+        tags=["Steps"],
+    )
+    def execute(self, request):
+        payload = request.data or {}
+        step_type = payload.get("step_type")
+        params = payload.get("params") or {}
+        if not step_type:
+            return Response(
+                {"error": "step_type is required"}, status=status.HTTP_400_BAD_REQUEST
+            )
+        ctx = StepContext(user=request.user, data_stack=DataStack())
+        result = execute_step(step_type, ctx, params)
+        return Response(
+            {"outputs": result.outputs, "metadata": result.metadata},
+            status=status.HTTP_200_OK,
+        )
+
+    @action(detail=True, methods=["post"], url_path="run")
+    @extend_schema(
+        summary="Ejecutar un Step dentro de un snapshot",
+        description=(
+            "Ejecuta el Step seleccionado creando (o usando) un ExecutionSnapshot y "
+            "registrando una StepExecution con logs SSE.\n"
+            "Body opcional: { snapshot_id?: number, send_email?: boolean, webhook_url?: string }"
+        ),
+        tags=["Steps", "Executions"],
+    )
+    def run(self, request, pk=None):
+        step = self.get_object()
+        flow = step.flow_version.flow
+        if not FlowPermissionService.can_user_execute_flow(request.user, flow):
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
+        payload = request.data or {}
+        snapshot_id = payload.get("snapshot_id")
+        send_email = bool(payload.get("send_email", False))
+        webhook_url = payload.get("webhook_url")
+        override_params = payload.get("params")
+
+        snapshot = None
+        if snapshot_id:
+            try:
+                snapshot = ExecutionSnapshot.objects.get(
+                    id=snapshot_id, flow_version=step.flow_version
+                )
+            except ExecutionSnapshot.DoesNotExist:
+                return Response(
+                    {"error": "snapshot_id inválido para este Step"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        else:
+            snapshot = ExecutionSnapshot.objects.create(
+                flow_version=step.flow_version,
+                triggered_by=request.user,
+                metadata={"inputs": step.config.get("params", {})},
+            )
+
+        # Iniciar ejecución
+        step_exec = FlowExecutionService.start_step_execution(
+            step, snapshot, send_email=send_email, webhook_url=webhook_url
+        )
+        # If runtime params are provided, store them in execution inputs
+        if isinstance(override_params, dict):
+            step_exec.inputs = override_params
+            step_exec.save(update_fields=["inputs"])
+
+        # Ejecutar lógica agnóstica del step
+        try:
+            FlowExecutionService.log_step_output(
+                step_exec, f"Starting step '{step.step_type}'"
+            )
+            ctx = StepContext(user=request.user, data_stack=DataStack())
+            effective_params = (
+                override_params
+                if isinstance(override_params, dict)
+                else step.config.get("params", {})
+            )
+            result = execute_step(step.step_type, ctx, effective_params)
+            # Persistir outputs del step
+            step_exec.outputs = result.outputs or {}
+            step_exec.save(update_fields=["outputs"])
+            FlowExecutionService.complete_step_execution(
+                step_exec, webhook_url=webhook_url
+            )
+            FlowExecutionService.complete_step_logs(step_exec)
+
+            # Completar snapshot si no hay otras ejecuciones vinculadas
+            other_exists = snapshot.step_executions.exclude(id=step_exec.id).exists()
+            if not other_exists:
+                FlowExecutionService.complete_flow_execution(
+                    snapshot, webhook_url=webhook_url
+                )
+
+            return Response(
+                StepExecutionSerializer(step_exec).data,
+                status=status.HTTP_201_CREATED,
+            )
+        except Exception as e:  # noqa: BLE001 - registramos el error textual
+            FlowExecutionService.fail_step_execution(
+                step_exec, str(e), webhook_url=webhook_url
+            )
+            FlowExecutionService.complete_step_logs(step_exec)
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 @extend_schema_view(
@@ -456,6 +707,56 @@ class StepExecutionViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, HasAppPermission]
     permission_resource = "flows"
 
+    @action(detail=True, methods=["get"], url_path="status")
+    @extend_schema(
+        summary="Consultar estado de ejecución de un Step",
+        description="Retorna el estado actual, timestamps y salida de la ejecución.",
+        tags=["Step Executions"],
+    )
+    def status(self, request, pk=None):  # type: ignore[override]
+        step_exec = self.get_object()
+        flow = step_exec.step.flow_version.flow
+        if not FlowPermissionService.can_user_read_flow(request.user, flow):
+            return Response(status=status.HTTP_403_FORBIDDEN)
+        data = {
+            "id": step_exec.id,
+            "status": step_exec.status,
+            "started_at": step_exec.started_at,
+            "completed_at": step_exec.completed_at,
+            "error_message": step_exec.error_message,
+            "outputs": step_exec.outputs,
+        }
+        return Response(data)
+
+    @action(detail=True, methods=["post"], url_path="cancel")
+    @extend_schema(
+        summary="Cancelar ejecución de Step",
+        description=(
+            "Marca la ejecución como cancelada si está en estado pending/running y "
+            "cierra el stream de logs."
+        ),
+        tags=["Step Executions"],
+    )
+    def cancel(self, request, pk=None):  # type: ignore[override]
+        step_exec = self.get_object()
+        flow = step_exec.step.flow_version.flow
+        if not FlowPermissionService.can_user_execute_flow(request.user, flow):
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
+        if step_exec.status in ("pending", "running"):
+            step_exec.status = "cancelled"
+            step_exec.completed_at = now()
+            step_exec.save(update_fields=["status", "completed_at"])
+            FlowExecutionService.log_step_output(
+                step_exec, "Execution cancelled", event="cancel"
+            )
+            FlowExecutionService.complete_step_logs(step_exec)
+            return Response({"ok": True})
+        return Response(
+            {"error": f"No se puede cancelar en estado {step_exec.status}"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
 
 # ========================================================================
 # SSE: Streaming de logs de StepExecution
@@ -494,7 +795,7 @@ def step_execution_logs_stream(request, pk: str):  # type: ignore[override]
 
     # Verificar permisos de lectura del flow
     flow = step_execution.step.flow_version.flow
-    if not flow_services.FlowPermissionService.can_user_read_flow(request.user, flow):
+    if not FlowPermissionService.can_user_read_flow(request.user, flow):
         raise Http404()
 
     def event_stream():
@@ -543,9 +844,7 @@ def step_execution_logs_append(request, pk: str):  # type: ignore[override]
 
     # Verificar permiso de ejecución/escritura en el flujo
     flow = step_execution.step.flow_version.flow
-    if not flow_services.FlowPermissionService.can_user_execute_flow(
-        request.user, flow
-    ):
+    if not FlowPermissionService.can_user_execute_flow(request.user, flow):
         return Response(status=status.HTTP_403_FORBIDDEN)
 
     payload = request.data or {}

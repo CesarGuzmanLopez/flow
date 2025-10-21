@@ -47,13 +47,15 @@ class RDKitChemEngine(ChemEngineInterface):
         mol = Chem.MolFromSmiles(smiles)
         if mol is None:
             raise ValueError(f"Invalid SMILES string: {smiles}")
-        # A small set of commonly used descriptors
+        # Map to application-expected keys
         return {
             "MolWt": float(Descriptors.MolWt(mol)),
-            "logP": float(Crippen.MolLogP(mol)),
+            "LogP": float(Crippen.MolLogP(mol)),
             "TPSA": float(rdMolDescriptors.CalcTPSA(mol)),
-            "NumHAcceptors": float(rdMolDescriptors.CalcNumHBA(mol)),
-            "NumHDonors": float(rdMolDescriptors.CalcNumHBD(mol)),
+            "HBA": float(rdMolDescriptors.CalcNumHBA(mol)),
+            "HBD": float(rdMolDescriptors.CalcNumHBD(mol)),
+            # Additional simple counts (optional extension):
+            "RB": float(rdMolDescriptors.CalcNumRotatableBonds(mol)),
         }
 
     def generate_substitutions(self, smiles: str, count: int = 3) -> List[str]:

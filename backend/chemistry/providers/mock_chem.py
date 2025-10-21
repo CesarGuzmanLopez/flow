@@ -13,9 +13,26 @@ class MockChemEngine(ChemEngineInterface):
         return {"inchi": inchi, "inchikey": inchikey, "canonical_smiles": smiles}
 
     def calculate_properties(self, smiles: str) -> Dict[str, float]:
-        # fake properties
-        base = abs(hash(smiles)) % 1000
-        return {"logP": (base % 10) / 10.0, "psa": (base % 50) + 10}
+        # Fake deterministic properties covering ADMETSA set
+        base = abs(hash(smiles)) % 10000
+        # helpers
+
+        def f(mod: int, off: int = 0) -> float:
+            return float((base % mod) + off)
+
+        return {
+            "LogP": round((base % 100) / 10.0, 2),
+            "PSA": f(120, 10),
+            "AtX": f(7),
+            "HBA": f(10),
+            "HBD": f(5),
+            "RB": f(12),
+            "MR": round((base % 200) / 3.0, 2),
+            "LD50": f(300, 50),
+            "Mutagenicity": float((base % 2)),
+            "DevelopmentalToxicity": float((base // 2) % 2),
+            "SyntheticAccessibility": round((base % 90) / 10.0, 1),
+        }
 
     def generate_substitutions(self, smiles: str, count: int = 3) -> List[str]:
         # return variations

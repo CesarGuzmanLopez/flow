@@ -21,6 +21,9 @@ export interface FlowBranch {
     parent_branch?: number | null;
     readonly created_at: string;
     readonly created_by: number;
-    readonly path_length: string;
+    /**
+     * Calcula el número de pasos en la rama.
+     */
+    readonly path_length: number;
 }
 

@@ -9,6 +9,8 @@ from datetime import datetime
 from typing import Optional
 
 from django.contrib.auth import get_user_model
+from flows.models import ExecutionSnapshot, Flow, Step, StepExecution
+from flows.sse import step_log_broker
 from notifications.container import container
 from notifications.domain.events import (
     FlowCompleted,
@@ -16,9 +18,6 @@ from notifications.domain.events import (
     FlowStepFailed,
     FlowStepStarted,
 )
-
-from ..models import ExecutionSnapshot, Flow, Step, StepExecution
-from ..sse import step_log_broker
 
 User = get_user_model()
 
@@ -54,7 +53,7 @@ class FlowExecutionService:
             execution_snapshot=execution_snapshot,
             step=step,
             status="running",
-            started_at=datetime.now(),
+            inputs=step.config.get("params", {}),
         )
 
         # Emitir evento y notificar
@@ -87,8 +86,12 @@ class FlowExecutionService:
         """
         step_execution.status = "completed"
         step_execution.completed_at = datetime.now()
-        step_execution.output = output or ""
-        step_execution.save()
+        if output is not None:
+            # Store raw output text under outputs.raw if provided
+            outs = dict(step_execution.outputs or {})
+            outs["raw"] = output
+            step_execution.outputs = outs
+        step_execution.save(update_fields=["status", "completed_at", "outputs"])
 
         # Calcular duración
         duration = 0.0
@@ -135,11 +138,9 @@ class FlowExecutionService:
             webhook_url: URL de webhook para notificaciones
         """
         step_execution.status = "failed"
-        step_execution.failed_at = datetime.now()
+        step_execution.completed_at = datetime.now()
         step_execution.error_message = error_message
-        step_execution.save()
-
-        # Emitir evento y notificar
+        step_execution.save(update_fields=["status", "completed_at", "error_message"])
         event = FlowStepFailed(
             event_id=secrets.token_urlsafe(16),
             flow_id=step_execution.step.flow_version.flow.id,
@@ -166,13 +167,23 @@ class FlowExecutionService:
             webhook_url: URL de webhook para notificaciones
         """
         execution_snapshot.status = "completed"
-        execution_snapshot.completed_at = datetime.now()
-        execution_snapshot.save()
+        execution_snapshot.save(update_fields=["status"])
 
         # Calcular duración
         duration = 0.0
-        if execution_snapshot.started_at and execution_snapshot.completed_at:
-            delta = execution_snapshot.completed_at - execution_snapshot.started_at
+        # Without started/completed timestamps on snapshot, compute duration from steps if possible
+        first = (
+            StepExecution.objects.filter(execution_snapshot=execution_snapshot)
+            .order_by("started_at")
+            .first()
+        )
+        last = (
+            StepExecution.objects.filter(execution_snapshot=execution_snapshot)
+            .order_by("-completed_at")
+            .first()
+        )
+        if first and first.started_at and last and last.completed_at:
+            delta = last.completed_at - first.started_at
             duration = delta.total_seconds()
 
         # Contar steps
@@ -207,22 +218,16 @@ class FlowPermissionService:
     def can_user_read_flow(user: User, flow: Flow) -> bool:
         """
         Verifica si un usuario puede leer un flujo.
-
         Args:
             user: Usuario
             flow: Flujo
-
         Returns:
             True si puede leerlo
         """
         if user.is_superuser:
             return True
-
-        # Verificar si es el propietario
         if flow.owner == user:
             return True
-
-        # Verificar si tiene permiso flows.read
         return user.has_permission("flows", "read")
 
     @staticmethod
@@ -239,22 +244,18 @@ class FlowPermissionService:
         """
         if user.is_superuser:
             return True
-
         # Solo el propietario o usuarios con permiso flows.write
         if flow.owner == user:
             return True
-
         return user.has_permission("flows", "write")
 
     @staticmethod
     def can_user_delete_flow(user: User, flow: Flow) -> bool:
         """
         Verifica si un usuario puede eliminar un flujo.
-
         Args:
             user: Usuario
             flow: Flujo
-
         Returns:
             True si puede eliminarlo
         """
@@ -278,9 +279,7 @@ class FlowPermissionService:
         """
         if user.is_superuser:
             return True
-
         # Propietario o usuarios con permiso flows.execute
         if flow.owner == user:
             return True
-
         return user.has_permission("flows", "execute")

@@ -27,6 +27,9 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 load_dotenv()
+# Default chemistry engine to RDKit if not explicitly set in environment.
+# This ensures management commands and migrations use RDKit by default.
+os.environ.setdefault("CHEM_ENGINE", "rdkit")
 SECRET_KEY = os.getenv(
     "DJANGO_SECRET_KEY",
     "django-insecure-q$(5w%1&(1!&*o1&q($ohdts9v1$@*^o6jvuc26w*apxb^-f^c",

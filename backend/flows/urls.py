@@ -43,12 +43,12 @@ urlpatterns = [
     path("", include(router.urls)),
     # SSE stream y append de logs de StepExecution
     path(
-        "step-executions/<uuid:pk>/logs/stream/",
+        "step-executions/<pk>/logs/stream/",
         step_execution_logs_stream,
         name="step-execution-logs-stream",
     ),
     path(
-        "step-executions/<uuid:pk>/logs/append/",
+        "step-executions/<pk>/logs/append/",
         step_execution_logs_append,
         name="step-execution-logs-append",
     ),
