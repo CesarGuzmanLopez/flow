@@ -1,0 +1,286 @@
+"""
+Servicios de dominio para ejecución de flujos con notificaciones.
+
+Integra el sistema de notificaciones en la ejecución de flujos y steps.
+"""
+
+import secrets
+from datetime import datetime
+from typing import Optional
+
+from django.contrib.auth import get_user_model
+from notifications.container import container
+from notifications.domain.events import (
+    FlowCompleted,
+    FlowStepCompleted,
+    FlowStepFailed,
+    FlowStepStarted,
+)
+
+from ..models import ExecutionSnapshot, Flow, Step, StepExecution
+from ..sse import step_log_broker
+
+User = get_user_model()
+
+
+class FlowExecutionService:
+    """
+    Servicio de dominio para ejecución de flujos.
+
+    Gestiona la ejecución de flujos y steps, emitiendo eventos y notificaciones.
+    """
+
+    @staticmethod
+    def start_step_execution(
+        step: Step,
+        execution_snapshot: ExecutionSnapshot,
+        send_email: bool = False,
+        webhook_url: Optional[str] = None,
+    ) -> StepExecution:
+        """
+        Inicia la ejecución de un step.
+
+        Args:
+            step: Step a ejecutar
+            execution_snapshot: Snapshot de ejecución
+            send_email: Si debe enviar email
+            webhook_url: URL de webhook para notificaciones
+
+        Returns:
+            StepExecution creado
+        """
+        # Crear ejecución de step
+        step_execution = StepExecution.objects.create(
+            execution_snapshot=execution_snapshot,
+            step=step,
+            status="running",
+            started_at=datetime.now(),
+        )
+
+        # Emitir evento y notificar
+        event = FlowStepStarted(
+            event_id=secrets.token_urlsafe(16),
+            flow_id=step.flow.id,
+            step_id=step.id,
+            step_name=step.name,
+            user_id=step.flow.owner.id,
+        )
+
+        use_case = container.notify_step_started_use_case()
+        use_case.execute(event=event, send_email=send_email, send_webhook=webhook_url)
+
+        return step_execution
+
+    @staticmethod
+    def complete_step_execution(
+        step_execution: StepExecution,
+        output: Optional[str] = None,
+        webhook_url: Optional[str] = None,
+    ) -> None:
+        """
+        Completa la ejecución de un step.
+
+        Args:
+            step_execution: Ejecución de step
+            output: Output del step
+            webhook_url: URL de webhook para notificaciones
+        """
+        step_execution.status = "completed"
+        step_execution.completed_at = datetime.now()
+        step_execution.output = output or ""
+        step_execution.save()
+
+        # Calcular duración
+        duration = 0.0
+        if step_execution.started_at and step_execution.completed_at:
+            delta = step_execution.completed_at - step_execution.started_at
+            duration = delta.total_seconds()
+
+        # Emitir evento y notificar
+        event = FlowStepCompleted(
+            event_id=secrets.token_urlsafe(16),
+            flow_id=step_execution.step.flow.id,
+            step_id=step_execution.step.id,
+            step_name=step_execution.step.name,
+            user_id=step_execution.step.flow.owner.id,
+            duration=duration,
+        )
+
+        use_case = container.notify_step_completed_use_case()
+        use_case.execute(event=event, send_webhook=webhook_url)
+
+    @staticmethod
+    def log_step_output(
+        step_execution: StepExecution, line: str, event: str = "log"
+    ) -> None:
+        """Publica una línea de log al stream SSE del StepExecution."""
+        step_log_broker.publish(
+            step_execution.id,
+            event=event,
+            data={"line": str(line), "at": datetime.now().isoformat()},
+        )
+
+    @staticmethod
+    def fail_step_execution(
+        step_execution: StepExecution,
+        error_message: str,
+        webhook_url: Optional[str] = None,
+    ) -> None:
+        """
+        Marca un step como fallido.
+
+        Args:
+            step_execution: Ejecución de step
+            error_message: Mensaje de error
+            webhook_url: URL de webhook para notificaciones
+        """
+        step_execution.status = "failed"
+        step_execution.failed_at = datetime.now()
+        step_execution.error_message = error_message
+        step_execution.save()
+
+        # Emitir evento y notificar
+        event = FlowStepFailed(
+            event_id=secrets.token_urlsafe(16),
+            flow_id=step_execution.step.flow.id,
+            step_id=step_execution.step.id,
+            step_name=step_execution.step.name,
+            user_id=step_execution.step.flow.owner.id,
+            error_message=error_message,
+        )
+
+        user_email = step_execution.step.flow.owner.email
+        use_case = container.notify_step_failed_use_case()
+        use_case.execute(event=event, user_email=user_email, send_webhook=webhook_url)
+
+    @staticmethod
+    def complete_flow_execution(
+        execution_snapshot: ExecutionSnapshot,
+        webhook_url: Optional[str] = None,
+    ) -> None:
+        """
+        Completa la ejecución de un flujo.
+
+        Args:
+            execution_snapshot: Snapshot de ejecución
+            webhook_url: URL de webhook para notificaciones
+        """
+        execution_snapshot.status = "completed"
+        execution_snapshot.completed_at = datetime.now()
+        execution_snapshot.save()
+
+        # Calcular duración
+        duration = 0.0
+        if execution_snapshot.started_at and execution_snapshot.completed_at:
+            delta = execution_snapshot.completed_at - execution_snapshot.started_at
+            duration = delta.total_seconds()
+
+        # Contar steps
+        total_steps = StepExecution.objects.filter(
+            execution_snapshot=execution_snapshot
+        ).count()
+
+        # Emitir evento y notificar
+        event = FlowCompleted(
+            event_id=secrets.token_urlsafe(16),
+            flow_id=execution_snapshot.flow_version.flow.id,
+            flow_name=execution_snapshot.flow_version.flow.name,
+            user_id=execution_snapshot.flow_version.flow.owner.id,
+            total_steps=total_steps,
+            duration=duration,
+        )
+
+        user_email = execution_snapshot.flow_version.flow.owner.email
+        use_case = container.notify_flow_completed_use_case()
+        use_case.execute(event=event, user_email=user_email, send_webhook=webhook_url)
+
+    @staticmethod
+    def complete_step_logs(step_execution: StepExecution) -> None:
+        """Marca el stream SSE de logs del StepExecution como completado."""
+        step_log_broker.complete(step_execution.id)
+
+
+class FlowPermissionService:
+    """Servicio para verificación de permisos sobre flujos."""
+
+    @staticmethod
+    def can_user_read_flow(user: User, flow: Flow) -> bool:
+        """
+        Verifica si un usuario puede leer un flujo.
+
+        Args:
+            user: Usuario
+            flow: Flujo
+
+        Returns:
+            True si puede leerlo
+        """
+        if user.is_superuser:
+            return True
+
+        # Verificar si es el propietario
+        if flow.owner == user:
+            return True
+
+        # Verificar si tiene permiso flows.read
+        return user.has_app_permission("flows", "read")
+
+    @staticmethod
+    def can_user_write_flow(user: User, flow: Flow) -> bool:
+        """
+        Verifica si un usuario puede modificar un flujo.
+
+        Args:
+            user: Usuario
+            flow: Flujo
+
+        Returns:
+            True si puede modificarlo
+        """
+        if user.is_superuser:
+            return True
+
+        # Solo el propietario o usuarios con permiso flows.write
+        if flow.owner == user:
+            return True
+
+        return user.has_app_permission("flows", "write")
+
+    @staticmethod
+    def can_user_delete_flow(user: User, flow: Flow) -> bool:
+        """
+        Verifica si un usuario puede eliminar un flujo.
+
+        Args:
+            user: Usuario
+            flow: Flujo
+
+        Returns:
+            True si puede eliminarlo
+        """
+        if user.is_superuser:
+            return True
+
+        # Solo el propietario puede eliminar
+        return flow.owner == user
+
+    @staticmethod
+    def can_user_execute_flow(user: User, flow: Flow) -> bool:
+        """
+        Verifica si un usuario puede ejecutar un flujo.
+
+        Args:
+            user: Usuario
+            flow: Flujo
+
+        Returns:
+            True si puede ejecutarlo
+        """
+        if user.is_superuser:
+            return True
+
+        # Propietario o usuarios con permiso flows.execute
+        if flow.owner == user:
+            return True
+
+        return user.has_app_permission("flows", "execute")

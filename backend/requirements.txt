@@ -1,0 +1,12 @@
+Django>=5.2
+djangorestframework
+drf-spectacular
+djangorestframework-simplejwt
+python-dotenv
+psycopg2-binary
+mypy
+django-stubs
+mypy-extensions
+django-cors-headers
+pytest
+pytest-django
