@@ -11,7 +11,7 @@ import { MolecularProperty } from './molecularProperty';
 
 
 /**
- * Serializador para moléculas con propiedades anidadas.
+ * Serializador para moléculas con propiedades anidadas y tipado fuerte.
  */
 export interface Molecule { 
     readonly id: number;
@@ -28,5 +28,13 @@ export interface Molecule {
     readonly created_by: number | null;
     readonly updated_by: number | null;
     readonly properties: Array<MolecularProperty>;
+    /**
+     * Get structure identifiers using type-safe interface.
+     */
+    readonly structure_identifiers: { [key: string]: any; };
+    /**
+     * Get computed properties using type-safe interface.
+     */
+    readonly computed_properties: { [key: string]: any; };
 }
 

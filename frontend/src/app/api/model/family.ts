@@ -11,7 +11,7 @@ import { FamilyProperty } from './familyProperty';
 
 
 /**
- * Serializador para familias con propiedades anidadas.
+ * Serializador para familias con propiedades anidadas y tipado fuerte.
  */
 export interface Family { 
     readonly id: number;
@@ -26,5 +26,13 @@ export interface Family {
     readonly created_by: number | null;
     readonly updated_by: number | null;
     readonly properties: Array<FamilyProperty>;
+    /**
+     * Get family aggregated properties using type-safe interface.
+     */
+    readonly aggregated_properties: { [key: string]: any; };
+    /**
+     * Get member property statistics using type-safe interface.
+     */
+    readonly member_statistics: { [key: string]: any; };
 }
 
