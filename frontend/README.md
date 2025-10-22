@@ -773,4 +773,11 @@ describe('FlowsListComponent', () => {
 
 ## 📄 Licencia
 
-Privado - Todos los derechos reservados.
+MIT License - Ver [LICENSE](../LICENSE) para más detalles.
+
+Este proyecto está bajo la licencia MIT, la cual es altamente permisiva y permite:
+- ✅ Uso comercial
+- ✅ Modificación
+- ✅ Distribución
+- ✅ Uso privado
+- ⚠️ Con la única condición de incluir la licencia y copyright
