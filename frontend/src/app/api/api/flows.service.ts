@@ -1109,14 +1109,25 @@ export class FlowsService extends BaseService {
 
     /**
      * Listar flujos de trabajo
-     * Obtiene todos los flujos de trabajo (workflows) accesibles por el usuario. Los usuarios con permisos globales ven todos los flujos, mientras que los demás solo ven sus propios flujos.
+     * Obtiene todos los flujos de trabajo (workflows) accesibles por el usuario. Los usuarios con permisos globales ven todos los flujos, mientras que los demás solo ven sus propios flujos. Usa ?mine&#x3D;true para obtener solo los creados por el usuario autenticado.
+     * @param mine Filtrar solo los flujos creados por el usuario autenticado.
+     * @param ordering Qué campo usar para ordenar los resultados.
+     * @param search Un término de búsqueda.
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public flowsFlowsList(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<Flow>>;
-    public flowsFlowsList(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<Flow>>>;
-    public flowsFlowsList(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<Flow>>>;
-    public flowsFlowsList(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public flowsFlowsList(mine?: boolean, ordering?: string, search?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<Flow>>;
+    public flowsFlowsList(mine?: boolean, ordering?: string, search?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<Flow>>>;
+    public flowsFlowsList(mine?: boolean, ordering?: string, search?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<Flow>>>;
+    public flowsFlowsList(mine?: boolean, ordering?: string, search?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+
+        let localVarQueryParameters = new HttpParams({encoder: this.encoder});
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>mine, 'mine');
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>ordering, 'ordering');
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>search, 'search');
 
         let localVarHeaders = this.defaultHeaders;
 
@@ -1151,59 +1162,7 @@ export class FlowsService extends BaseService {
         return this.httpClient.request<Array<Flow>>('get', `${basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
-                responseType: <any>responseType_,
-                ...(withCredentials ? { withCredentials } : {}),
-                headers: localVarHeaders,
-                observe: observe,
-                transferCache: localVarTransferCache,
-                reportProgress: reportProgress
-            }
-        );
-    }
-
-    /**
-     * Devuelve los flows creados por el usuario autenticado.
-     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
-     * @param reportProgress flag to report request and response progress.
-     */
-    public flowsFlowsMineRetrieve(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Flow>;
-    public flowsFlowsMineRetrieve(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Flow>>;
-    public flowsFlowsMineRetrieve(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Flow>>;
-    public flowsFlowsMineRetrieve(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
-
-        let localVarHeaders = this.defaultHeaders;
-
-        // authentication (jwtAuth) required
-        localVarHeaders = this.configuration.addCredentialToHeaders('jwtAuth', 'Authorization', localVarHeaders, 'Bearer ');
-
-        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
-            'application/json'
-        ]);
-        if (localVarHttpHeaderAcceptSelected !== undefined) {
-            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
-        }
-
-        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
-
-        const localVarTransferCache: boolean = options?.transferCache ?? true;
-
-
-        let responseType_: 'text' | 'json' | 'blob' = 'json';
-        if (localVarHttpHeaderAcceptSelected) {
-            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
-                responseType_ = 'text';
-            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
-                responseType_ = 'json';
-            } else {
-                responseType_ = 'blob';
-            }
-        }
-
-        let localVarPath = `/api/flows/flows/mine/`;
-        const { basePath, withCredentials } = this.configuration;
-        return this.httpClient.request<Flow>('get', `${basePath}${localVarPath}`,
-            {
-                context: localVarHttpContext,
+                params: localVarQueryParameters,
                 responseType: <any>responseType_,
                 ...(withCredentials ? { withCredentials } : {}),
                 headers: localVarHeaders,
@@ -1874,79 +1833,6 @@ export class FlowsService extends BaseService {
 
     /**
      * ViewSet para gestión de pasos (tareas) en flujos de trabajo.
-     * @param id Un valor de entero único que identifique este step.
-     * @param step 
-     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
-     * @param reportProgress flag to report request and response progress.
-     */
-    public flowsStepsAppendStepCreate(id: number, step: Step, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Step>;
-    public flowsStepsAppendStepCreate(id: number, step: Step, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Step>>;
-    public flowsStepsAppendStepCreate(id: number, step: Step, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Step>>;
-    public flowsStepsAppendStepCreate(id: number, step: Step, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
-        if (id === null || id === undefined) {
-            throw new Error('Required parameter id was null or undefined when calling flowsStepsAppendStepCreate.');
-        }
-        if (step === null || step === undefined) {
-            throw new Error('Required parameter step was null or undefined when calling flowsStepsAppendStepCreate.');
-        }
-
-        let localVarHeaders = this.defaultHeaders;
-
-        // authentication (jwtAuth) required
-        localVarHeaders = this.configuration.addCredentialToHeaders('jwtAuth', 'Authorization', localVarHeaders, 'Bearer ');
-
-        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
-            'application/json'
-        ]);
-        if (localVarHttpHeaderAcceptSelected !== undefined) {
-            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
-        }
-
-        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
-
-        const localVarTransferCache: boolean = options?.transferCache ?? true;
-
-
-        // to determine the Content-Type header
-        const consumes: string[] = [
-            'application/json',
-            'application/x-www-form-urlencoded',
-            'multipart/form-data'
-        ];
-        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
-        if (httpContentTypeSelected !== undefined) {
-            localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
-        }
-
-        let responseType_: 'text' | 'json' | 'blob' = 'json';
-        if (localVarHttpHeaderAcceptSelected) {
-            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
-                responseType_ = 'text';
-            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
-                responseType_ = 'json';
-            } else {
-                responseType_ = 'blob';
-            }
-        }
-
-        let localVarPath = `/api/flows/steps/${this.configuration.encodeParam({name: "id", value: id, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: undefined})}/append-step/`;
-        const { basePath, withCredentials } = this.configuration;
-        return this.httpClient.request<Step>('post', `${basePath}${localVarPath}`,
-            {
-                context: localVarHttpContext,
-                body: step,
-                responseType: <any>responseType_,
-                ...(withCredentials ? { withCredentials } : {}),
-                headers: localVarHeaders,
-                observe: observe,
-                transferCache: localVarTransferCache,
-                reportProgress: reportProgress
-            }
-        );
-    }
-
-    /**
-     * ViewSet para gestión de pasos (tareas) en flujos de trabajo.
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
@@ -2130,6 +2016,79 @@ export class FlowsService extends BaseService {
             {
                 context: localVarHttpContext,
                 body: step,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                transferCache: localVarTransferCache,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * ViewSet para gestión de versiones de flujos (snapshots inmutables).
+     * @param id Un valor de entero único que identifique este flow version.
+     * @param flowVersion 
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public flowsVersionsAppendStepCreate(id: number, flowVersion: FlowVersion, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<FlowVersion>;
+    public flowsVersionsAppendStepCreate(id: number, flowVersion: FlowVersion, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<FlowVersion>>;
+    public flowsVersionsAppendStepCreate(id: number, flowVersion: FlowVersion, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<FlowVersion>>;
+    public flowsVersionsAppendStepCreate(id: number, flowVersion: FlowVersion, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        if (id === null || id === undefined) {
+            throw new Error('Required parameter id was null or undefined when calling flowsVersionsAppendStepCreate.');
+        }
+        if (flowVersion === null || flowVersion === undefined) {
+            throw new Error('Required parameter flowVersion was null or undefined when calling flowsVersionsAppendStepCreate.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        // authentication (jwtAuth) required
+        localVarHeaders = this.configuration.addCredentialToHeaders('jwtAuth', 'Authorization', localVarHeaders, 'Bearer ');
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        // to determine the Content-Type header
+        const consumes: string[] = [
+            'application/json',
+            'application/x-www-form-urlencoded',
+            'multipart/form-data'
+        ];
+        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
+        }
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/api/flows/versions/${this.configuration.encodeParam({name: "id", value: id, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: undefined})}/append-step/`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<FlowVersion>('post', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                body: flowVersion,
                 responseType: <any>responseType_,
                 ...(withCredentials ? { withCredentials } : {}),
                 headers: localVarHeaders,

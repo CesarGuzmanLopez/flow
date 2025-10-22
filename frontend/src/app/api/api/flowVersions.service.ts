@@ -166,14 +166,25 @@ export class FlowVersionsService extends BaseService {
 
     /**
      * Listar versiones de flujos
-     * Obtiene todas las versiones de flujos del sistema que el usuario puede ver.
+     * Obtiene todas las versiones de flujos del sistema que el usuario puede ver. Usa ?mine&#x3D;true para obtener solo las versiones de flujos creados por el usuario autenticado.
+     * @param mine Filtrar solo las versiones deflujos creados por el usuario autenticado.
+     * @param ordering Qué campo usar para ordenar los resultados.
+     * @param search Un término de búsqueda.
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public flowsVersionsList(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<FlowVersion>>;
-    public flowsVersionsList(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<FlowVersion>>>;
-    public flowsVersionsList(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<FlowVersion>>>;
-    public flowsVersionsList(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public flowsVersionsList(mine?: boolean, ordering?: string, search?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<FlowVersion>>;
+    public flowsVersionsList(mine?: boolean, ordering?: string, search?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<FlowVersion>>>;
+    public flowsVersionsList(mine?: boolean, ordering?: string, search?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<FlowVersion>>>;
+    public flowsVersionsList(mine?: boolean, ordering?: string, search?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+
+        let localVarQueryParameters = new HttpParams({encoder: this.encoder});
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>mine, 'mine');
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>ordering, 'ordering');
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>search, 'search');
 
         let localVarHeaders = this.defaultHeaders;
 
@@ -208,6 +219,7 @@ export class FlowVersionsService extends BaseService {
         return this.httpClient.request<Array<FlowVersion>>('get', `${basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
+                params: localVarQueryParameters,
                 responseType: <any>responseType_,
                 ...(withCredentials ? { withCredentials } : {}),
                 headers: localVarHeaders,

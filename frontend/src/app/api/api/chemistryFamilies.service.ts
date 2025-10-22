@@ -170,14 +170,25 @@ export class ChemistryFamiliesService extends BaseService {
 
     /**
      * Listar familias de moléculas
-     * Obtiene todas las familias (agregaciones) de moléculas relacionadas. Las familias agrupan moléculas por características comunes (ej: misma serie, mismo scaffold, mismo proyecto).
+     * Obtiene todas las familias (agregaciones) de moléculas relacionadas. Las familias agrupan moléculas por características comunes (ej: misma serie, mismo scaffold, mismo proyecto). Usa ?mine&#x3D;true para obtener solo las que contienen moléculas creadas por el usuario autenticado.
+     * @param mine Filtrar solo las familias que contienen moléculas creadas por el usuario autenticado.
+     * @param ordering Qué campo usar para ordenar los resultados.
+     * @param search Un término de búsqueda.
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public chemistryFamiliesList(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<Family>>;
-    public chemistryFamiliesList(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<Family>>>;
-    public chemistryFamiliesList(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<Family>>>;
-    public chemistryFamiliesList(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public chemistryFamiliesList(mine?: boolean, ordering?: string, search?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<Family>>;
+    public chemistryFamiliesList(mine?: boolean, ordering?: string, search?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<Family>>>;
+    public chemistryFamiliesList(mine?: boolean, ordering?: string, search?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<Family>>>;
+    public chemistryFamiliesList(mine?: boolean, ordering?: string, search?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+
+        let localVarQueryParameters = new HttpParams({encoder: this.encoder});
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>mine, 'mine');
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>ordering, 'ordering');
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>search, 'search');
 
         let localVarHeaders = this.defaultHeaders;
 
@@ -212,6 +223,7 @@ export class ChemistryFamiliesService extends BaseService {
         return this.httpClient.request<Array<Family>>('get', `${basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
+                params: localVarQueryParameters,
                 responseType: <any>responseType_,
                 ...(withCredentials ? { withCredentials } : {}),
                 headers: localVarHeaders,
@@ -554,14 +566,25 @@ export class ChemistryFamiliesService extends BaseService {
 
     /**
      * Listar membresías molécula-familia
-     * Obtiene todas las relaciones de pertenencia entre moléculas y familias. Una molécula puede pertenecer a múltiples familias.
+     * Obtiene todas las relaciones de pertenencia entre moléculas y familias. Una molécula puede pertenecer a múltiples familias. Usa ?mine&#x3D;true para obtener solo las asociadas a moléculas creadas por el usuario autenticado.
+     * @param mine Filtrar solo las membresías de moléculas creadas por el usuario autenticado.
+     * @param ordering Qué campo usar para ordenar los resultados.
+     * @param search Un término de búsqueda.
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public chemistryFamilyMembersList(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<FamilyMember>>;
-    public chemistryFamilyMembersList(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<FamilyMember>>>;
-    public chemistryFamilyMembersList(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<FamilyMember>>>;
-    public chemistryFamilyMembersList(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public chemistryFamilyMembersList(mine?: boolean, ordering?: string, search?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<FamilyMember>>;
+    public chemistryFamilyMembersList(mine?: boolean, ordering?: string, search?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<FamilyMember>>>;
+    public chemistryFamilyMembersList(mine?: boolean, ordering?: string, search?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<FamilyMember>>>;
+    public chemistryFamilyMembersList(mine?: boolean, ordering?: string, search?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+
+        let localVarQueryParameters = new HttpParams({encoder: this.encoder});
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>mine, 'mine');
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>ordering, 'ordering');
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>search, 'search');
 
         let localVarHeaders = this.defaultHeaders;
 
@@ -596,6 +619,7 @@ export class ChemistryFamiliesService extends BaseService {
         return this.httpClient.request<Array<FamilyMember>>('get', `${basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
+                params: localVarQueryParameters,
                 responseType: <any>responseType_,
                 ...(withCredentials ? { withCredentials } : {}),
                 headers: localVarHeaders,

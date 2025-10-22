@@ -163,14 +163,25 @@ export class ChemistryMoleculesService extends BaseService {
 
     /**
      * Listar moléculas
-     * Obtiene todas las moléculas del sistema alineadas con estándares ChEMBL/PubChem. Incluye invariantes como InChIKey, SMILES canónico y fórmula molecular.
+     * Obtiene todas las moléculas del sistema alineadas con estándares ChEMBL/PubChem. Incluye invariantes como InChIKey, SMILES canónico y fórmula molecular. Usa ?mine&#x3D;true para obtener solo las creadas por el usuario autenticado.
+     * @param mine Filtrar solo las moléculas creadas por el usuario autenticado.
+     * @param ordering Qué campo usar para ordenar los resultados.
+     * @param search Un término de búsqueda.
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public chemistryMoleculesList(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<Molecule>>;
-    public chemistryMoleculesList(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<Molecule>>>;
-    public chemistryMoleculesList(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<Molecule>>>;
-    public chemistryMoleculesList(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public chemistryMoleculesList(mine?: boolean, ordering?: string, search?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<Molecule>>;
+    public chemistryMoleculesList(mine?: boolean, ordering?: string, search?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<Molecule>>>;
+    public chemistryMoleculesList(mine?: boolean, ordering?: string, search?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<Molecule>>>;
+    public chemistryMoleculesList(mine?: boolean, ordering?: string, search?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+
+        let localVarQueryParameters = new HttpParams({encoder: this.encoder});
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>mine, 'mine');
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>ordering, 'ordering');
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>search, 'search');
 
         let localVarHeaders = this.defaultHeaders;
 
@@ -205,6 +216,7 @@ export class ChemistryMoleculesService extends BaseService {
         return this.httpClient.request<Array<Molecule>>('get', `${basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
+                params: localVarQueryParameters,
                 responseType: <any>responseType_,
                 ...(withCredentials ? { withCredentials } : {}),
                 headers: localVarHeaders,

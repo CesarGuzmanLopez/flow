@@ -166,14 +166,25 @@ export class ArtifactsService extends BaseService {
 
     /**
      * Listar artefactos
-     * Obtiene todos los artefactos (archivos, datos) generados por flujos. Los artefactos son content-addressable (identificados por hash SHA256).
+     * Obtiene todos los artefactos (archivos, datos) generados por flujos. Los artefactos son content-addressable (identificados por hash SHA256). Usa ?mine&#x3D;true para obtener solo los artefactos asociados a flujos creados por el usuario autenticado.
+     * @param mine Filtrar solo los artefactos asociados a flujos creados por el usuario autenticado.
+     * @param ordering Qué campo usar para ordenar los resultados.
+     * @param search Un término de búsqueda.
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public flowsArtifactsList(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<Artifact>>;
-    public flowsArtifactsList(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<Artifact>>>;
-    public flowsArtifactsList(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<Artifact>>>;
-    public flowsArtifactsList(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public flowsArtifactsList(mine?: boolean, ordering?: string, search?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<Artifact>>;
+    public flowsArtifactsList(mine?: boolean, ordering?: string, search?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<Artifact>>>;
+    public flowsArtifactsList(mine?: boolean, ordering?: string, search?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<Artifact>>>;
+    public flowsArtifactsList(mine?: boolean, ordering?: string, search?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+
+        let localVarQueryParameters = new HttpParams({encoder: this.encoder});
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>mine, 'mine');
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>ordering, 'ordering');
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>search, 'search');
 
         let localVarHeaders = this.defaultHeaders;
 
@@ -208,6 +219,7 @@ export class ArtifactsService extends BaseService {
         return this.httpClient.request<Array<Artifact>>('get', `${basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
+                params: localVarQueryParameters,
                 responseType: <any>responseType_,
                 ...(withCredentials ? { withCredentials } : {}),
                 headers: localVarHeaders,

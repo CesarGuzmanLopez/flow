@@ -26,7 +26,7 @@ export class ChemistryAppService {
   // ========== Molecules ==========
   listMolecules(params?: any): Observable<Molecule[]> {
     return this.moleculesApi
-      .chemistryMoleculesList('body', false, {})
+      .chemistryMoleculesList(params?.mine, params?.ordering, params?.search)
       .pipe(
         map((result) =>
           Array.isArray(result) ? result : (result as any).results ?? []
@@ -57,7 +57,7 @@ export class ChemistryAppService {
   // ========== Families ==========
   listFamilies(params?: any): Observable<Family[]> {
     return this.familiesApi
-      .chemistryFamiliesList('body', false, {})
+      .chemistryFamiliesList(params?.mine, params?.ordering, params?.search)
       .pipe(
         map((result) =>
           Array.isArray(result) ? result : (result as any).results ?? []
@@ -123,7 +123,11 @@ export class ChemistryAppService {
   // ========== Molecular Properties ==========
   listMolecularProperties(params?: any): Observable<MolecularProperty[]> {
     return this.propertiesApi
-      .chemistryMolecularPropertiesList('body', false, {})
+      .chemistryMolecularPropertiesList(
+        params?.mine,
+        params?.ordering,
+        params?.search
+      )
       .pipe(
         map((result) =>
           Array.isArray(result) ? result : (result as any).results ?? []
@@ -159,7 +163,11 @@ export class ChemistryAppService {
   // ========== Family Properties ==========
   listFamilyProperties(params?: any): Observable<FamilyProperty[]> {
     return this.propertiesApi
-      .chemistryFamilyPropertiesList('body', false, {})
+      .chemistryFamilyPropertiesList(
+        params?.mine,
+        params?.ordering,
+        params?.search
+      )
       .pipe(
         map((result) =>
           Array.isArray(result) ? result : (result as any).results ?? []

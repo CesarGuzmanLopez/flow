@@ -6,7 +6,6 @@ api/api.ts
 api/artifacts.service.ts
 api/autenticacin.service.ts
 api/branches.service.ts
-api/chemistry.service.ts
 api/chemistryFamilies.service.ts
 api/chemistryMolecules.service.ts
 api/chemistryProperties.service.ts

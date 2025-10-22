@@ -38,84 +38,16 @@ export class NotificationsService extends BaseService {
     }
 
     /**
-     * ViewSet para notificaciones de usuario.  Proporciona operaciones CRUD para notificaciones visibles al usuario.
-     * @param userNotification 
+     * Eliminar notificación
+     * Elimina una notificación específica del usuario.
+     * @param id 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public notificationsCreate(userNotification: UserNotification, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<UserNotification>;
-    public notificationsCreate(userNotification: UserNotification, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<UserNotification>>;
-    public notificationsCreate(userNotification: UserNotification, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<UserNotification>>;
-    public notificationsCreate(userNotification: UserNotification, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
-        if (userNotification === null || userNotification === undefined) {
-            throw new Error('Required parameter userNotification was null or undefined when calling notificationsCreate.');
-        }
-
-        let localVarHeaders = this.defaultHeaders;
-
-        // authentication (jwtAuth) required
-        localVarHeaders = this.configuration.addCredentialToHeaders('jwtAuth', 'Authorization', localVarHeaders, 'Bearer ');
-
-        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
-            'application/json'
-        ]);
-        if (localVarHttpHeaderAcceptSelected !== undefined) {
-            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
-        }
-
-        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
-
-        const localVarTransferCache: boolean = options?.transferCache ?? true;
-
-
-        // to determine the Content-Type header
-        const consumes: string[] = [
-            'application/json',
-            'application/x-www-form-urlencoded',
-            'multipart/form-data'
-        ];
-        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
-        if (httpContentTypeSelected !== undefined) {
-            localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
-        }
-
-        let responseType_: 'text' | 'json' | 'blob' = 'json';
-        if (localVarHttpHeaderAcceptSelected) {
-            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
-                responseType_ = 'text';
-            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
-                responseType_ = 'json';
-            } else {
-                responseType_ = 'blob';
-            }
-        }
-
-        let localVarPath = `/api/notifications/`;
-        const { basePath, withCredentials } = this.configuration;
-        return this.httpClient.request<UserNotification>('post', `${basePath}${localVarPath}`,
-            {
-                context: localVarHttpContext,
-                body: userNotification,
-                responseType: <any>responseType_,
-                ...(withCredentials ? { withCredentials } : {}),
-                headers: localVarHeaders,
-                observe: observe,
-                transferCache: localVarTransferCache,
-                reportProgress: reportProgress
-            }
-        );
-    }
-
-    /**
-     * ViewSet para notificaciones de usuario.  Proporciona operaciones CRUD para notificaciones visibles al usuario.
-     * @param id ID de la notificación
-     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
-     * @param reportProgress flag to report request and response progress.
-     */
-    public notificationsDestroy(id: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext, transferCache?: boolean}): Observable<any>;
-    public notificationsDestroy(id: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<any>>;
-    public notificationsDestroy(id: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<any>>;
-    public notificationsDestroy(id: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: undefined, context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public notificationsDestroy(id: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext, transferCache?: boolean}): Observable<any>;
+    public notificationsDestroy(id: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<any>>;
+    public notificationsDestroy(id: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<any>>;
+    public notificationsDestroy(id: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: undefined, context?: HttpContext, transferCache?: boolean}): Observable<any> {
         if (id === null || id === undefined) {
             throw new Error('Required parameter id was null or undefined when calling notificationsDestroy.');
         }
@@ -147,7 +79,7 @@ export class NotificationsService extends BaseService {
             }
         }
 
-        let localVarPath = `/api/notifications/${this.configuration.encodeParam({name: "id", value: id, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: undefined})}/`;
+        let localVarPath = `/api/notifications/${this.configuration.encodeParam({name: "id", value: id, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: undefined})}/`;
         const { basePath, withCredentials } = this.configuration;
         return this.httpClient.request<any>('delete', `${basePath}${localVarPath}`,
             {
@@ -163,14 +95,26 @@ export class NotificationsService extends BaseService {
     }
 
     /**
-     * ViewSet para notificaciones de usuario.  Proporciona operaciones CRUD para notificaciones visibles al usuario.
+     * Listar notificaciones
+     * Obtiene todas las notificaciones del usuario autenticado. Usa ?unread&#x3D;true para obtener solo las no leídas.
+     * @param ordering Qué campo usar para ordenar los resultados.
+     * @param search Un término de búsqueda.
+     * @param unread Filtrar solo las notificaciones no leídas.
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public notificationsList(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<UserNotification>>;
-    public notificationsList(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<UserNotification>>>;
-    public notificationsList(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<UserNotification>>>;
-    public notificationsList(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public notificationsList(ordering?: string, search?: string, unread?: boolean, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<UserNotification>>;
+    public notificationsList(ordering?: string, search?: string, unread?: boolean, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<UserNotification>>>;
+    public notificationsList(ordering?: string, search?: string, unread?: boolean, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<UserNotification>>>;
+    public notificationsList(ordering?: string, search?: string, unread?: boolean, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+
+        let localVarQueryParameters = new HttpParams({encoder: this.encoder});
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>ordering, 'ordering');
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>search, 'search');
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>unread, 'unread');
 
         let localVarHeaders = this.defaultHeaders;
 
@@ -205,6 +149,7 @@ export class NotificationsService extends BaseService {
         return this.httpClient.request<Array<UserNotification>>('get', `${basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
+                params: localVarQueryParameters,
                 responseType: <any>responseType_,
                 ...(withCredentials ? { withCredentials } : {}),
                 headers: localVarHeaders,
@@ -358,16 +303,17 @@ export class NotificationsService extends BaseService {
     }
 
     /**
-     * ViewSet para notificaciones de usuario.  Proporciona operaciones CRUD para notificaciones visibles al usuario.
-     * @param id ID de la notificación
+     * Actualizar notificación parcialmente
+     * Actualiza campos específicos de una notificación (ej: marcar como leída).
+     * @param id 
      * @param patchedUserNotification 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public notificationsPartialUpdate(id: number, patchedUserNotification?: PatchedUserNotification, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<UserNotification>;
-    public notificationsPartialUpdate(id: number, patchedUserNotification?: PatchedUserNotification, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<UserNotification>>;
-    public notificationsPartialUpdate(id: number, patchedUserNotification?: PatchedUserNotification, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<UserNotification>>;
-    public notificationsPartialUpdate(id: number, patchedUserNotification?: PatchedUserNotification, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public notificationsPartialUpdate(id: string, patchedUserNotification?: PatchedUserNotification, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<UserNotification>;
+    public notificationsPartialUpdate(id: string, patchedUserNotification?: PatchedUserNotification, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<UserNotification>>;
+    public notificationsPartialUpdate(id: string, patchedUserNotification?: PatchedUserNotification, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<UserNotification>>;
+    public notificationsPartialUpdate(id: string, patchedUserNotification?: PatchedUserNotification, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
         if (id === null || id === undefined) {
             throw new Error('Required parameter id was null or undefined when calling notificationsPartialUpdate.');
         }
@@ -411,7 +357,7 @@ export class NotificationsService extends BaseService {
             }
         }
 
-        let localVarPath = `/api/notifications/${this.configuration.encodeParam({name: "id", value: id, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: undefined})}/`;
+        let localVarPath = `/api/notifications/${this.configuration.encodeParam({name: "id", value: id, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: undefined})}/`;
         const { basePath, withCredentials } = this.configuration;
         return this.httpClient.request<UserNotification>('patch', `${basePath}${localVarPath}`,
             {
@@ -428,15 +374,16 @@ export class NotificationsService extends BaseService {
     }
 
     /**
-     * ViewSet para notificaciones de usuario.  Proporciona operaciones CRUD para notificaciones visibles al usuario.
-     * @param id ID de la notificación
+     * Obtener detalles de notificación
+     * Recupera la información completa de una notificación específica del usuario.
+     * @param id 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public notificationsRetrieve(id: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<UserNotification>;
-    public notificationsRetrieve(id: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<UserNotification>>;
-    public notificationsRetrieve(id: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<UserNotification>>;
-    public notificationsRetrieve(id: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public notificationsRetrieve(id: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<UserNotification>;
+    public notificationsRetrieve(id: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<UserNotification>>;
+    public notificationsRetrieve(id: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<UserNotification>>;
+    public notificationsRetrieve(id: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
         if (id === null || id === undefined) {
             throw new Error('Required parameter id was null or undefined when calling notificationsRetrieve.');
         }
@@ -469,7 +416,7 @@ export class NotificationsService extends BaseService {
             }
         }
 
-        let localVarPath = `/api/notifications/${this.configuration.encodeParam({name: "id", value: id, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: undefined})}/`;
+        let localVarPath = `/api/notifications/${this.configuration.encodeParam({name: "id", value: id, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: undefined})}/`;
         const { basePath, withCredentials } = this.configuration;
         return this.httpClient.request<UserNotification>('get', `${basePath}${localVarPath}`,
             {
@@ -538,16 +485,17 @@ export class NotificationsService extends BaseService {
     }
 
     /**
-     * ViewSet para notificaciones de usuario.  Proporciona operaciones CRUD para notificaciones visibles al usuario.
-     * @param id ID de la notificación
+     * Actualizar notificación completa
+     * Actualiza todos los campos de una notificación (solo campos como \&#39;read\&#39;).
+     * @param id 
      * @param userNotification 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public notificationsUpdate(id: number, userNotification: UserNotification, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<UserNotification>;
-    public notificationsUpdate(id: number, userNotification: UserNotification, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<UserNotification>>;
-    public notificationsUpdate(id: number, userNotification: UserNotification, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<UserNotification>>;
-    public notificationsUpdate(id: number, userNotification: UserNotification, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public notificationsUpdate(id: string, userNotification: UserNotification, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<UserNotification>;
+    public notificationsUpdate(id: string, userNotification: UserNotification, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<UserNotification>>;
+    public notificationsUpdate(id: string, userNotification: UserNotification, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<UserNotification>>;
+    public notificationsUpdate(id: string, userNotification: UserNotification, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
         if (id === null || id === undefined) {
             throw new Error('Required parameter id was null or undefined when calling notificationsUpdate.');
         }
@@ -594,7 +542,7 @@ export class NotificationsService extends BaseService {
             }
         }
 
-        let localVarPath = `/api/notifications/${this.configuration.encodeParam({name: "id", value: id, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: undefined})}/`;
+        let localVarPath = `/api/notifications/${this.configuration.encodeParam({name: "id", value: id, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: undefined})}/`;
         const { basePath, withCredentials } = this.configuration;
         return this.httpClient.request<UserNotification>('put', `${basePath}${localVarPath}`,
             {

@@ -170,14 +170,25 @@ export class ChemistryPropertiesService extends BaseService {
 
     /**
      * Listar propiedades de familias
-     * Obtiene todas las propiedades de familias de moléculas. Similar al modelo EAV de propiedades moleculares pero aplicado a nivel de familia.
+     * Obtiene todas las propiedades de familias de moléculas. Similar al modelo EAV de propiedades moleculares pero aplicado a nivel de familia. Usa ?mine&#x3D;true para obtener solo las asociadas a familias que contienen moléculas creadas por el usuario autenticado.
+     * @param mine Filtrar solo las propiedades de familias que contienen moléculas creadas por el usuario autenticado.
+     * @param ordering Qué campo usar para ordenar los resultados.
+     * @param search Un término de búsqueda.
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public chemistryFamilyPropertiesList(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<FamilyProperty>>;
-    public chemistryFamilyPropertiesList(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<FamilyProperty>>>;
-    public chemistryFamilyPropertiesList(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<FamilyProperty>>>;
-    public chemistryFamilyPropertiesList(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public chemistryFamilyPropertiesList(mine?: boolean, ordering?: string, search?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<FamilyProperty>>;
+    public chemistryFamilyPropertiesList(mine?: boolean, ordering?: string, search?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<FamilyProperty>>>;
+    public chemistryFamilyPropertiesList(mine?: boolean, ordering?: string, search?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<FamilyProperty>>>;
+    public chemistryFamilyPropertiesList(mine?: boolean, ordering?: string, search?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+
+        let localVarQueryParameters = new HttpParams({encoder: this.encoder});
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>mine, 'mine');
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>ordering, 'ordering');
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>search, 'search');
 
         let localVarHeaders = this.defaultHeaders;
 
@@ -212,6 +223,7 @@ export class ChemistryPropertiesService extends BaseService {
         return this.httpClient.request<Array<FamilyProperty>>('get', `${basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
+                params: localVarQueryParameters,
                 responseType: <any>responseType_,
                 ...(withCredentials ? { withCredentials } : {}),
                 headers: localVarHeaders,
@@ -554,14 +566,25 @@ export class ChemistryPropertiesService extends BaseService {
 
     /**
      * Listar propiedades moleculares
-     * Obtiene todas las propiedades moleculares del sistema. Usa modelo EAV (Entity-Attribute-Value) para almacenar propiedades flexibles con contexto (método, unidades, fuente).
+     * Obtiene todas las propiedades moleculares del sistema. Usa modelo EAV (Entity-Attribute-Value) para almacenar propiedades flexibles con contexto (método, unidades, fuente). Usa ?mine&#x3D;true para obtener solo las asociadas a moléculas creadas por el usuario autenticado.
+     * @param mine Filtrar solo las propiedades de moléculas creadas por el usuario autenticado.
+     * @param ordering Qué campo usar para ordenar los resultados.
+     * @param search Un término de búsqueda.
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public chemistryMolecularPropertiesList(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<MolecularProperty>>;
-    public chemistryMolecularPropertiesList(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<MolecularProperty>>>;
-    public chemistryMolecularPropertiesList(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<MolecularProperty>>>;
-    public chemistryMolecularPropertiesList(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public chemistryMolecularPropertiesList(mine?: boolean, ordering?: string, search?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<MolecularProperty>>;
+    public chemistryMolecularPropertiesList(mine?: boolean, ordering?: string, search?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<MolecularProperty>>>;
+    public chemistryMolecularPropertiesList(mine?: boolean, ordering?: string, search?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<MolecularProperty>>>;
+    public chemistryMolecularPropertiesList(mine?: boolean, ordering?: string, search?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+
+        let localVarQueryParameters = new HttpParams({encoder: this.encoder});
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>mine, 'mine');
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>ordering, 'ordering');
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>search, 'search');
 
         let localVarHeaders = this.defaultHeaders;
 
@@ -596,6 +619,7 @@ export class ChemistryPropertiesService extends BaseService {
         return this.httpClient.request<Array<MolecularProperty>>('get', `${basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
+                params: localVarQueryParameters,
                 responseType: <any>responseType_,
                 ...(withCredentials ? { withCredentials } : {}),
                 headers: localVarHeaders,

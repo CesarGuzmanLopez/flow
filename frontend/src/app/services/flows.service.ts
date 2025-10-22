@@ -45,7 +45,9 @@ export class FlowsAppService {
   }
 
   getMyFlows(): Observable<any> {
-    return this.api.flowsFlowsMineRetrieve();
+    return this.api
+      .flowsFlowsList(true)
+      .pipe(map((result) => (Array.isArray(result) ? result : [])));
   }
 
   // ========== Flow Definitions ==========
@@ -310,10 +312,6 @@ export class FlowsAppService {
 
   runStep(stepId: number, params?: any): Observable<Step> {
     return this.api.flowsStepsRunCreate(stepId, params ?? {});
-  }
-
-  appendStep(stepId: number, data: any): Observable<Step> {
-    return this.api.flowsStepsAppendStepCreate(stepId, data);
   }
 
   // ========== Step Executions ==========
