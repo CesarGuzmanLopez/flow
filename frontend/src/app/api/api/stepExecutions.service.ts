@@ -37,25 +37,14 @@ export class StepExecutionsService extends BaseService {
 
     /**
      * Listar todas las ejecuciones de pasos
-     * Obtiene todas las ejecuciones individuales de pasos a través de todos los snapshots de ejecución. Usa ?mine&#x3D;true para obtener solo las ejecuciones de pasos de flujos creados por el usuario autenticado.
-     * @param mine Filtrar solo las ejecuciones de pasos de flujos creados por el usuario autenticado.
-     * @param ordering Qué campo usar para ordenar los resultados.
-     * @param search Un término de búsqueda.
+     * Obtiene todas las ejecuciones individuales de pasos a través de todos los snapshots de ejecución.
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public flowsStepExecutionsList(mine?: boolean, ordering?: string, search?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<StepExecution>>;
-    public flowsStepExecutionsList(mine?: boolean, ordering?: string, search?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<StepExecution>>>;
-    public flowsStepExecutionsList(mine?: boolean, ordering?: string, search?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<StepExecution>>>;
-    public flowsStepExecutionsList(mine?: boolean, ordering?: string, search?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
-
-        let localVarQueryParameters = new HttpParams({encoder: this.encoder});
-        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
-          <any>mine, 'mine');
-        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
-          <any>ordering, 'ordering');
-        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
-          <any>search, 'search');
+    public flowsStepExecutionsList(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<StepExecution>>;
+    public flowsStepExecutionsList(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<StepExecution>>>;
+    public flowsStepExecutionsList(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<StepExecution>>>;
+    public flowsStepExecutionsList(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
 
         let localVarHeaders = this.defaultHeaders;
 
@@ -90,7 +79,6 @@ export class StepExecutionsService extends BaseService {
         return this.httpClient.request<Array<StepExecution>>('get', `${basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
-                params: localVarQueryParameters,
                 responseType: <any>responseType_,
                 ...(withCredentials ? { withCredentials } : {}),
                 headers: localVarHeaders,

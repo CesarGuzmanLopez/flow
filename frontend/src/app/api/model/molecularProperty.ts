@@ -24,5 +24,8 @@ export interface MolecularProperty {
     source_id?: string;
     metadata?: any | null;
     readonly created_at: string;
+    readonly updated_at: string;
+    readonly created_by: number | null;
+    readonly updated_by: number | null;
 }
 

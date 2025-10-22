@@ -46,7 +46,7 @@ export class FlowsAppService {
 
   getMyFlows(): Observable<any> {
     return this.api
-      .flowsFlowsList(true)
+      .flowsFlowsList('body')
       .pipe(map((result) => (Array.isArray(result) ? result : [])));
   }
 

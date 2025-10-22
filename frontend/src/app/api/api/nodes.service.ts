@@ -37,25 +37,14 @@ export class NodesService extends BaseService {
 
     /**
      * Listar nodos de flujos
-     * Obtiene todos los nodos (pasos) en el árbol de flujos. Los nodos pueden ser compartidos entre múltiples ramas (deduplicación por content_hash). Usa ?mine&#x3D;true para obtener solo los nodos de flujos creados por el usuario autenticado.
-     * @param mine Filtrar solo los nodos de flujos creados por el usuario autenticado.
-     * @param ordering Qué campo usar para ordenar los resultados.
-     * @param search Un término de búsqueda.
+     * Obtiene todos los nodos (pasos) en el árbol de flujos. Los nodos pueden ser compartidos entre múltiples ramas (deduplicación por content_hash).
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public flowsNodesList(mine?: boolean, ordering?: string, search?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<FlowNode>>;
-    public flowsNodesList(mine?: boolean, ordering?: string, search?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<FlowNode>>>;
-    public flowsNodesList(mine?: boolean, ordering?: string, search?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<FlowNode>>>;
-    public flowsNodesList(mine?: boolean, ordering?: string, search?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
-
-        let localVarQueryParameters = new HttpParams({encoder: this.encoder});
-        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
-          <any>mine, 'mine');
-        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
-          <any>ordering, 'ordering');
-        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
-          <any>search, 'search');
+    public flowsNodesList(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<FlowNode>>;
+    public flowsNodesList(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<FlowNode>>>;
+    public flowsNodesList(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<FlowNode>>>;
+    public flowsNodesList(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
 
         let localVarHeaders = this.defaultHeaders;
 
@@ -90,7 +79,6 @@ export class NodesService extends BaseService {
         return this.httpClient.request<Array<FlowNode>>('get', `${basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
-                params: localVarQueryParameters,
                 responseType: <any>responseType_,
                 ...(withCredentials ? { withCredentials } : {}),
                 headers: localVarHeaders,

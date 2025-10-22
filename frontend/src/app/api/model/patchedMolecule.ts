@@ -24,7 +24,9 @@ export interface PatchedMolecule {
     metadata?: any | null;
     readonly frozen?: boolean;
     readonly created_at?: string;
-    readonly created_by?: number;
+    readonly updated_at?: string;
+    readonly created_by?: number | null;
+    readonly updated_by?: number | null;
     readonly properties?: Array<MolecularProperty>;
 }
 
