@@ -1,0 +1,29 @@
+<nav class="main-nav">
+    <div class="logo">
+        <h1>ChemFlow</h1>
+    </div>
+
+    <ul class="nav-links">
+        <li><a routerLink="/dashboard" routerLinkActive="active">Dashboard</a></li>
+        <li class="section-title">Flujos</li>
+        <li><a routerLink="/flows" routerLinkActive="active">Mis Flujos</a></li>
+        <li><a routerLink="/flows/step-catalog" routerLinkActive="active">Catálogo de Pasos</a></li>
+        <li><a routerLink="/flows/branch-management" routerLinkActive="active">Gestión de Ramas</a></li>
+        <li><a routerLink="/flows/nodes" routerLinkActive="active">Nodos</a></li>
+        <li><a routerLink="/flows/executions" routerLinkActive="active">Ejecuciones</a></li>
+        <li><a routerLink="/flows/artifacts" routerLinkActive="active">Artefactos</a></li>
+        <li class="section-title">Química</li>
+        <li><a routerLink="/chemistry/molecules" routerLinkActive="active">Moléculas</a></li>
+        <li><a routerLink="/chemistry/molecules/create" routerLinkActive="active">Crear Molécula</a></li>
+        <li><a routerLink="/chemistry/families" routerLinkActive="active">Familias</a></li>
+        <li><a routerLink="/chemistry/families/create" routerLinkActive="active">Crear Familia</a></li>
+        <li class="section-title">Sistema</li>
+        <li><a routerLink="/users" routerLinkActive="active">Usuarios</a></li>
+        <li><a routerLink="/roles" routerLinkActive="active">Roles</a></li>
+        <li><a routerLink="/notifications" routerLinkActive="active">Notificaciones</a></li>
+    </ul>
+
+    <div class="nav-footer">
+        <button type="button" class="logout-btn" (click)="logout()">Cerrar Sesión</button>
+    </div>
+</nav>

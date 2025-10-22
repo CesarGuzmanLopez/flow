@@ -7,7 +7,7 @@ import { Permission, Role, User } from '../models';
 @Injectable({ providedIn: 'root' })
 export class UsersService {
   private readonly http = inject(HttpClient);
-  private readonly base = `${API_PREFIX}/users`;
+  private readonly base = `${API_PREFIX}/api/users`;
 
   getUsers(params?: any): Observable<{ results: User[]; count: number }> {
     return this.http.get<{ results: User[]; count: number }>(

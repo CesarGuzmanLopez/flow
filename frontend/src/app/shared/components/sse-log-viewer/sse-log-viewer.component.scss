@@ -1,0 +1,29 @@
+.sse-log-viewer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.status[data-status="streaming"] {
+  color: #0a0;
+}
+.status[data-status="error"] {
+  color: #a00;
+}
+.status[data-status="ended"] {
+  color: #555;
+}
+.log-box {
+  background: #0b0b0b;
+  color: #d8ffd8;
+  border-radius: 6px;
+  border: 1px solid #222;
+  padding: 8px;
+  height: 220px;
+  overflow: auto;
+  white-space: pre-wrap;
+}

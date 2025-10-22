@@ -1,0 +1,35 @@
+<section class="notifications">
+    <header class="header">
+        <h2>Notificaciones {{ unreadCount() > 0 ? '(' + unreadCount() + ')' : '' }}</h2>
+        <div class="actions">
+            <button (click)="loadNotifications()">Recargar</button>
+            <button (click)="setFilter('all')" [class.active]="activeFilter() === 'all'">Todos</button>
+            <button (click)="setFilter('unread')" [class.active]="activeFilter() === 'unread'">No leídos</button>
+            <button (click)="markAllAsRead()" [disabled]="unreadCount() === 0">Marcar como leído</button>
+        </div>
+    </header>
+
+    <div *ngIf="error()" class="error">{{ error() }}</div>
+    <div *ngIf="loading()" class="loading">Cargando…</div>
+
+    <div *ngIf="filteredNotifications().length === 0 && !loading()" class="empty">
+        No hay notificaciones
+    </div>
+
+    <ul class="list" *ngIf="filteredNotifications().length > 0">
+        <li *ngFor="let n of filteredNotifications()" [class.unread]="!n.read" [class]="'priority-' + n.priority">
+            <div class="notification" (click)="markAsRead(n.id)">
+                <div class="header-row">
+                    <span class="type">{{ n.type }}</span>
+                    <span class="date">{{ n.created_at | date:'short' }}</span>
+                    <button class="delete" (click)="deleteNotification(n.id); $event.stopPropagation()">✕</button>
+                </div>
+                <div class="body">
+                    <h4>{{ n.title }}</h4>
+                    <p>{{ n.message }}</p>
+                </div>
+                <div *ngIf="!n.read" class="unread-dot"></div>
+            </div>
+        </li>
+    </ul>
+</section>

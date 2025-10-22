@@ -1,0 +1,69 @@
+<div class="nodes-viewer-container">
+    <div class="header">
+        <h1>Visor de Nodos</h1>
+        <p class="subtitle">Estructura jerárquica de nodos en los flujos</p>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading()" class="loading">
+        <p>Cargando nodos...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error()" class="error-box">
+        <p>{{ error() }}</p>
+        <button (click)="loadNodes()">Reintentar</button>
+    </div>
+
+    <!-- Nodes Tree -->
+    <div *ngIf="!loading() && !error()" class="nodes-container">
+        <div *ngIf="nodes().length === 0" class="empty-state">
+            <p>No hay nodos disponibles</p>
+        </div>
+
+        <!-- Root Nodes Tree -->
+        <div class="tree">
+            <ng-template #nodeTemplate let-node="node" let-level="level">
+                <div class="tree-node" [style.margin-left]="level * 20 + 'px'">
+                    <div class="node-item" [class.has-children]="getChildNodes(node.id).length > 0">
+                        <!-- Expand/Collapse Toggle -->
+                        <button *ngIf="getChildNodes(node.id).length > 0" class="toggle-btn"
+                            (click)="toggleNode(node.id)">
+                            {{ isNodeExpanded(node.id) ? '▼' : '▶' }}
+                        </button>
+                        <div *ngIf="getChildNodes(node.id).length === 0" class="toggle-placeholder"></div>
+
+                        <!-- Node Info -->
+                        <div class="node-info">
+                            <span class="node-id">{{ node.id }}</span>
+                            <button class="node-name" (click)="openNode(node.id)">{{ node.name }}</button>
+                            <span class="node-status" [class]="'status-' + (node.status || 'unknown')">
+                                {{ node.status || 'N/A' }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Children -->
+                    <div *ngIf="isNodeExpanded(node.id) && getChildNodes(node.id).length > 0" class="children">
+                        <ng-container *ngFor="let child of getChildNodes(node.id)" [ngTemplateOutlet]="nodeTemplate"
+                            [ngTemplateOutletContext]="{ node: child, level: level + 1 }"></ng-container>
+                    </div>
+                </div>
+            </ng-template>
+
+            <!-- Root Level -->
+            <ng-container *ngFor="let rootNode of getRootNodes()" [ngTemplateOutlet]="nodeTemplate"
+                [ngTemplateOutletContext]="{ node: rootNode, level: 0 }"></ng-container>
+        </div>
+    </div>
+
+    <!-- Node Detail Modal -->
+    <app-modal [visible]="showNodeModal()" title="Detalle de Nodo" (close)="closeNodeModal()">
+        <div class="modal-body">
+            <app-json-viewer [data]="selectedNode()"></app-json-viewer>
+        </div>
+        <div class="modal-footer">
+            <button type="button" (click)="closeNodeModal()">Cerrar</button>
+        </div>
+    </app-modal>
+</div>

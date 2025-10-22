@@ -1,0 +1,24 @@
+@use "../../styles/_variables.scss" as *;
+
+.steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .error {
+    color: $danger;
+  }
+
+  .detail {
+    background: $bg-secondary;
+    border: 1px solid $border-color;
+    border-radius: $border-radius-sm;
+    padding: $space-md;
+  }
+}

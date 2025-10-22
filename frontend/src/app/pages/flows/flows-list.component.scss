@@ -1,0 +1,54 @@
+.flows-list {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.loading {
+  color: #555;
+}
+.error {
+  color: #b00020;
+}
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+.list li {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+.muted {
+  color: #777;
+}
+.create form {
+  display: grid;
+  gap: 12px;
+}
+.create label {
+  display: grid;
+  gap: 6px;
+}
+.create input[type="text"] {
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+.actions {
+  display: flex;
+  gap: 8px;
+}
+.actions button {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+}

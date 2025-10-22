@@ -1,0 +1,67 @@
+<div class="page-container">
+    <div class="page-header">
+        <h1>Roles Management</h1>
+        <div class="header-actions">
+            <button class="btn-secondary" (click)="loadRoles()">
+                Reload
+            </button>
+            <button class="btn-primary" (click)="openCreateModal()">
+                + Create Role
+            </button>
+        </div>
+    </div>
+
+    @if (error()) {
+    <div class="error-banner">
+        <span>⚠️ {{ error() }}</span>
+        <button (click)="error.set(null)">✕</button>
+    </div>
+    }
+
+    <div class="content">
+        <app-data-table [columns]="columns" [data]="roles()" [loading]="loading()" emptyMessage="No roles found"
+            (rowClick)="onRowClick($event)" />
+    </div>
+
+    <app-modal [visible]="showCreateModal()" (close)="closeCreateModal()" size="medium">
+        <div header>
+            <h2>Create New Role</h2>
+        </div>
+        <div content>
+            <form class="role-form" (submit)="$event.preventDefault(); createRole()">
+                <div class="form-group">
+                    <label for="name">Role Name *</label>
+                    <input id="name" type="text" [(ngModel)]="newRole().name" name="name" required />
+                </div>
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" [(ngModel)]="newRole().description" name="description"
+                        rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Permissions</label>
+                    <div class="permissions-list">
+                        @for (perm of permissions(); track perm.id) {
+                        <label class="permission-item">
+                            <input type="checkbox" [checked]="isPermissionSelected(perm.id)"
+                                (change)="togglePermission(perm.id)" />
+                            <span>{{ perm.name }}</span>
+                            @if (perm.description) {
+                            <small>{{ perm.description }}</small>
+                            }
+                        </label>
+                        }
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div footer>
+            <button class="btn-secondary" type="button" (click)="closeCreateModal()">
+                Cancel
+            </button>
+            <button class="btn-primary" type="button" (click)="createRole()">
+                Create
+            </button>
+        </div>
+    </app-modal>
+</div>

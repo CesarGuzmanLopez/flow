@@ -1,0 +1,67 @@
+.editor {
+  padding: 16px;
+}
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 16px;
+}
+.sidebar {
+  background: #fff;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  height: calc(100vh - 120px);
+  overflow: auto;
+}
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.sidebar li {
+  padding: 8px 10px;
+  cursor: pointer;
+  border-radius: 6px;
+}
+.sidebar li.active,
+.sidebar li:hover {
+  background: #f1f5f9;
+}
+.content {
+  background: #fff;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+.path {
+  list-style: none;
+  padding: 0;
+}
+.node {
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+}
+.idx {
+  width: 28px;
+  height: 28px;
+  border-radius: 14px;
+  background: #e2e8f0;
+  display: grid;
+  place-items: center;
+  font-weight: 600;
+}
+.meta .small {
+  color: #666;
+  font-size: 12px;
+}
+.append {
+  margin-top: 16px;
+}

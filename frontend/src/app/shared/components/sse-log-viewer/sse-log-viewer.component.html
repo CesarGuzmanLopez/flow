@@ -1,0 +1,7 @@
+<div class="sse-log-viewer">
+    <div class="header">
+        <span class="status" [attr.data-status]="status()">{{ status() }}</span>
+        <button type="button" (click)="clear()">Limpiar</button>
+    </div>
+    <pre id="sse-log-scroll" class="log-box">{{ lines().join('\n') }}</pre>
+</div>

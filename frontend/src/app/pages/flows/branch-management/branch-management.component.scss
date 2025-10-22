@@ -1,0 +1,243 @@
+@use "sass:color";
+@use "../../styles/_variables.scss" as *;
+
+.branch-management-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: $space-md;
+  background: $bg-primary;
+  gap: $space-md;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: $space-md;
+  border-bottom: 1px solid $border-color;
+
+  h1 {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: $text-primary;
+  }
+
+  .btn {
+    padding: $space-sm $space-md;
+    border: none;
+    border-radius: $border-radius-sm;
+    font-weight: 600;
+    cursor: pointer;
+    transition: $transition-fast;
+
+    &.btn-primary {
+      background: $primary;
+      color: white;
+
+      &:hover {
+        background: color.adjust($primary, $lightness: -10%);
+      }
+    }
+  }
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $space-lg;
+  background: $bg-secondary;
+  border-radius: $border-radius-sm;
+  color: $text-secondary;
+
+  p {
+    margin: 0;
+  }
+}
+
+.error-box {
+  padding: $space-md;
+  background: rgba($danger, 0.1);
+  border: 1px solid $danger;
+  border-radius: $border-radius-sm;
+  color: $danger;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  p {
+    margin: 0;
+  }
+
+  button {
+    padding: $space-xs $space-sm;
+    background: $danger;
+    color: white;
+    border: none;
+    border-radius: $border-radius-sm;
+    cursor: pointer;
+    transition: $transition-fast;
+
+    &:hover {
+      background: color.adjust($danger, $lightness: -10%);
+    }
+  }
+}
+
+.table-container {
+  flex: 1;
+  overflow: auto;
+  background: $bg-secondary;
+  border-radius: $border-radius-sm;
+  border: 1px solid $border-color;
+}
+
+.branches-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  thead {
+    position: sticky;
+    top: 0;
+    background: $bg-tertiary;
+    border-bottom: 2px solid $border-color;
+
+    th {
+      padding: $space-md;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      color: $text-primary;
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid $border-color;
+      transition: $transition-fast;
+
+      &:hover {
+        background: color.adjust($bg-secondary, $lightness: -5%);
+      }
+
+      td {
+        padding: $space-md;
+        color: $text-secondary;
+        font-size: 0.875rem;
+
+        &.branch-name {
+          font-weight: 600;
+          color: $text-primary;
+        }
+
+        &.actions {
+          display: flex;
+          gap: $space-sm;
+
+          .action-btn {
+            padding: $space-xs $space-sm;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            border-radius: $border-radius-sm;
+            transition: $transition-fast;
+            font-size: 1rem;
+
+            &:hover {
+              background: rgba($text-primary, 0.1);
+            }
+
+            &.delete:hover {
+              background: rgba($danger, 0.2);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $space-lg;
+  color: $text-tertiary;
+  text-align: center;
+
+  p {
+    margin: 0;
+  }
+}
+
+.form-group {
+  margin-bottom: $space-md;
+
+  label {
+    display: block;
+    margin-bottom: $space-xs;
+    font-weight: 600;
+    color: $text-primary;
+    font-size: 0.875rem;
+  }
+
+  input,
+  select {
+    width: 100%;
+    padding: $space-sm $space-md;
+    border: 1px solid $border-color;
+    border-radius: $border-radius-sm;
+    background: $bg-secondary;
+    color: $text-primary;
+    font-size: 0.875rem;
+    transition: $transition-fast;
+
+    &:focus {
+      outline: none;
+      border-color: $primary;
+      box-shadow: $shadow-sm;
+    }
+
+    &::placeholder {
+      color: $text-tertiary;
+    }
+  }
+}
+
+.form-actions {
+  display: flex;
+  gap: $space-sm;
+  justify-content: flex-end;
+  margin-top: $space-lg;
+
+  .btn {
+    padding: $space-sm $space-md;
+    border: none;
+    border-radius: $border-radius-sm;
+    font-weight: 600;
+    cursor: pointer;
+    transition: $transition-fast;
+
+    &.btn-primary {
+      background: $primary;
+      color: white;
+
+      &:hover {
+        background: color.adjust($primary, $lightness: -10%);
+      }
+    }
+
+    &.btn-secondary {
+      background: $bg-tertiary;
+      color: $text-primary;
+      border: 1px solid $border-color;
+
+      &:hover {
+        background: color.adjust($bg-tertiary, $lightness: -5%);
+      }
+    }
+  }
+}

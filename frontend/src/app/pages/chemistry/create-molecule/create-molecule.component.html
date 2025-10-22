@@ -1,0 +1,32 @@
+<section class="create-molecule">
+  <header class="header">
+    <h2>Crear Molécula</h2>
+    <button (click)="goBack()">Cancelar</button>
+  </header>
+
+  <div *ngIf="error()" class="error">{{ error() }}</div>
+  <div *ngIf="success()" class="success">Molécula creada exitosamente. Redireccionando…</div>
+
+  <form (submit)="$event.preventDefault(); submit();" class="form">
+    <label>
+      SMILES (requerido)
+      <input type="text" placeholder="ej: CCO, CC(C)O" [value]="formData().smiles"
+        (input)="onFormInput('smiles', $any($event.target).value)" required />
+    </label>
+
+    <label>
+      Nombre (opcional)
+      <input type="text" placeholder="ej: Etanol" [value]="formData().name"
+        (input)="onFormInput('name', $any($event.target).value)" />
+    </label>
+
+    <div class="actions">
+      <button type="submit" [disabled]="loading()">{{ loading() ? 'Creando…' : 'Crear' }}</button>
+    </div>
+
+    <div *ngIf="createdMolecule()" class="result">
+      <h3>Resultado</h3>
+      <app-json-viewer [data]="createdMolecule()" [title]="'Molécula creada'"></app-json-viewer>
+    </div>
+  </form>
+</section>

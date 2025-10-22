@@ -1,0 +1,95 @@
+.flow-detail {
+  display: grid;
+  gap: 20px;
+  padding: 20px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 16px;
+}
+
+.header h2 {
+  margin: 0 0 8px;
+}
+.description {
+  color: #666;
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+button {
+  padding: 8px 16px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+button:hover {
+  background: #f5f5f5;
+}
+button.danger {
+  border-color: #d32f2f;
+  color: #d32f2f;
+}
+button.danger:hover {
+  background: #ffebee;
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid #eee;
+}
+
+.tabs button {
+  border: none;
+  border-bottom: 3px solid transparent;
+  border-radius: 0;
+  padding: 12px 16px;
+}
+
+.tabs button.active {
+  border-bottom-color: #1976d2;
+  color: #1976d2;
+  font-weight: 600;
+}
+
+.loading,
+.error,
+.placeholder {
+  padding: 24px;
+  text-align: center;
+}
+
+.error {
+  color: #d32f2f;
+}
+.placeholder {
+  color: #999;
+}
+
+.overview dl {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 12px;
+  padding: 16px;
+}
+
+.overview dt {
+  font-weight: 600;
+  color: #333;
+}
+.overview dd {
+  margin: 0;
+  color: #666;
+}

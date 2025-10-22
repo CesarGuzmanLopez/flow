@@ -42,4 +42,5 @@ urlpatterns = [
     path("api/users/", include("users.urls")),
     path("api/flows/", include("flows.urls")),
     path("api/chemistry/", include("chemistry.urls")),
+    path("api/notifications/", include("notifications.urls")),
 ]

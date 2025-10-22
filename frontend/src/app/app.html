@@ -1,4 +1,6 @@
 <div class="app-root">
-  <h1>Hello, frontend</h1>
-  <router-outlet />
+  <app-nav *ngIf="!isLoginPage()"></app-nav>
+  <main class="main-content">
+    <router-outlet />
+  </main>
 </div>

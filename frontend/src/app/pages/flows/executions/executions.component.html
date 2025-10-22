@@ -1,0 +1,42 @@
+<section class="executions">
+    <header class="header">
+        <h2>Ejecuciones</h2>
+        <button type="button" (click)="loadExecutions()">Recargar</button>
+    </header>
+
+    <div *ngIf="error()" class="error">{{ error() }}</div>
+
+    <div class="layout">
+        <div class="list-panel">
+            <app-data-table [columns]="columns" [data]="executions()" [loading]="loading()"
+                emptyMessage="Sin ejecuciones" (rowClick)="onSelectExecution($event)"></app-data-table>
+            <app-paginator [total]="total()" [pageSize]="pageSize()" [currentPage]="currentPage()"
+                (pageChange)="onPageChange($event)" (pageSizeChange)="onPageSizeChange($event)"></app-paginator>
+        </div>
+
+        <div *ngIf="selectedExecution()" class="detail-panel">
+            <div class="exec-info">
+                <h3>Ejecución #{{ selectedExecution().id }}</h3>
+                <dl>
+                    <dt>Flow ID:</dt>
+                    <dd>{{ selectedExecution().flow_id }}</dd>
+                    <dt>Estado:</dt>
+                    <dd [class]="'badge ' + selectedExecution().status">{{ selectedExecution().status }}</dd>
+                    <dt>Creada:</dt>
+                    <dd>{{ selectedExecution().created_at | date:'medium' }}</dd>
+                </dl>
+            </div>
+
+            <div class="steps-panel">
+                <h4>Steps</h4>
+                <app-data-table [columns]="stepColumns" [data]="stepExecutions()"
+                    emptyMessage="Sin steps"></app-data-table>
+            </div>
+
+            <div *ngIf="selectedExecution().id" class="logs-panel">
+                <h4>Logs</h4>
+                <app-sse-log-viewer [stepExecutionId]="selectedExecution().id"></app-sse-log-viewer>
+            </div>
+        </div>
+    </div>
+</section>

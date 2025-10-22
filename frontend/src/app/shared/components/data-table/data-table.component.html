@@ -1,0 +1,36 @@
+<div class="data-table">
+    <div *ngIf="loading" class="loading">Cargando...</div>
+
+    <table *ngIf="!loading && data.length > 0">
+        <thead>
+            <tr>
+                <th *ngFor="let col of columns">{{ col.label }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let row of data" (click)="onRowClick(row)" class="clickable">
+                <td *ngFor="let col of columns">
+                    <ng-container [ngSwitch]="col.type || 'text'">
+                        <a *ngSwitchCase="'link'" [routerLink]="col.linkPrefix + getCellValue(row, col)">
+                            {{ getCellValue(row, col) }}
+                        </a>
+                        <span *ngSwitchCase="'date'">{{ formatDate(getCellValue(row, col)) }}</span>
+                        <span *ngSwitchCase="'badge'" [class]="getBadgeClass(col, getCellValue(row, col))">
+                            {{ getCellValue(row, col) }}
+                        </span>
+                        <div *ngSwitchCase="'actions'" class="actions">
+                            <button *ngFor="let act of col.actions" (click)="onAction(act.action, row, $event)">
+                                {{ act.label }}
+                            </button>
+                        </div>
+                        <span *ngSwitchDefault>{{ getCellValue(row, col) ?? '-' }}</span>
+                    </ng-container>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div *ngIf="!loading && data.length === 0" class="empty">
+        {{ emptyMessage }}
+    </div>
+</div>

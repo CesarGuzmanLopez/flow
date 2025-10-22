@@ -1,0 +1,46 @@
+<section class="editor">
+    <header class="header">
+        <h2>Editor de Flujos</h2>
+        <button type="button" (click)="loadBranches()">Refrescar</button>
+    </header>
+
+    <div *ngIf="error()" class="error">{{ error() }}</div>
+
+    <div class="layout">
+        <aside class="sidebar">
+            <h3>Ramas</h3>
+            <ul>
+                <li *ngFor="let b of branches()" [class.active]="selectedBranchId() === b.id"
+                    (click)="onSelectBranch(b.id)">
+                    {{ b.name || ('Rama #' + b.id) }}
+                </li>
+            </ul>
+        </aside>
+
+        <main class="content">
+            <h3>Camino de rama</h3>
+            <ol class="path">
+                <li *ngFor="let n of pathNodes(); let i = index">
+                    <div class="node">
+                        <div class="idx">{{ i + 1 }}</div>
+                        <div class="meta">
+                            <div class="title">{{ n.step_type || n.name || 'Nodo' }}</div>
+                            <div class="small">ID: {{ n.id }}</div>
+                        </div>
+                    </div>
+                </li>
+            </ol>
+
+            <section class="append">
+                <h4>Agregar Step</h4>
+                <label>
+                    step_type
+                    <input type="text" [value]="stepType()" (input)="stepType.set($any($event.target).value)" />
+                </label>
+                <app-json-input [label]="'params'" [value]="stepParams"
+                    (valueChange)="stepParams = $event"></app-json-input>
+                <button type="button" (click)="appendStep()" [disabled]="loading()">Agregar</button>
+            </section>
+        </main>
+    </div>
+</section>

@@ -1,0 +1,11 @@
+.app-root {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.main-content {
+  overflow-y: auto;
+  background: #f5f5f5;
+}

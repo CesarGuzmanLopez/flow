@@ -1,0 +1,5 @@
+<label class="json-input">
+  <span>{{ label }}</span>
+  <textarea [placeholder]="placeholder" [value]="text" (input)="onChange($any($event.target).value)"></textarea>
+</label>
+<div *ngIf="error" class="error">{{ error }}</div>

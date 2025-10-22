@@ -1,0 +1,11 @@
+<section class="families-list">
+    <header class="header">
+        <h2>Familias de Moléculas</h2>
+        <button type="button" (click)="loadFamilies()">Recargar</button>
+    </header>
+
+    <div *ngIf="error()" class="error">{{ error() }}</div>
+
+    <app-data-table [columns]="columns" [data]="families()" [loading]="loading()" emptyMessage="No hay familias"
+        (rowClick)="onRowClick($event)"></app-data-table>
+</section>

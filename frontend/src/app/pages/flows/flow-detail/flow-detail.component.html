@@ -1,0 +1,55 @@
+<section class="flow-detail">
+    <header class="header">
+        <div>
+            <h2>{{ flow()?.name || 'Flujo' }}</h2>
+            <p class="description">{{ flow()?.description || 'Sin descripción' }}</p>
+        </div>
+        <div class="actions">
+            <button type="button" (click)="createVersion()">Nueva Versión</button>
+            <button type="button" (click)="createBranch()">Nueva Rama</button>
+            <button type="button" class="danger" (click)="deleteFlow()">Eliminar</button>
+        </div>
+    </header>
+
+    <div *ngIf="loading()" class="loading">Cargando...</div>
+    <div *ngIf="error()" class="error">{{ error() }}</div>
+
+    <nav class="tabs">
+        <button [class.active]="activeTab() === 'overview'" (click)="setTab('overview')">Vista General</button>
+        <button [class.active]="activeTab() === 'versions'" (click)="setTab('versions')">Versiones</button>
+        <button [class.active]="activeTab() === 'branches'" (click)="setTab('branches')">Ramas</button>
+        <button [class.active]="activeTab() === 'executions'" (click)="setTab('executions')">Ejecuciones</button>
+    </nav>
+
+    <div class="tab-content">
+        <!-- Overview Tab -->
+        <div *ngIf="activeTab() === 'overview'" class="overview">
+            <dl>
+                <dt>ID</dt>
+                <dd>{{ flow()?.id }}</dd>
+                <dt>Propietario</dt>
+                <dd>{{ $any(flow())?.owner || '-' }}</dd>
+                <dt>Creado</dt>
+                <dd>{{ $any(flow())?.created_at | date:'medium' }}</dd>
+            </dl>
+        </div>
+        <!-- Versions Tab -->
+        <div *ngIf="activeTab() === 'versions'">
+            <app-data-table [columns]="versionColumns" [data]="versions()" [loading]="loading()"
+                emptyMessage="No hay versiones" (rowClick)="onVersionRowClick($event)"
+                (actionClick)="onVersionAction($event)"></app-data-table>
+        </div>
+
+        <!-- Branches Tab -->
+        <div *ngIf="activeTab() === 'branches'">
+            <app-data-table [columns]="branchColumns" [data]="branches()" [loading]="loading()"
+                emptyMessage="No hay ramas" (rowClick)="onBranchRowClick($event)"></app-data-table>
+        </div>
+
+        <!-- Executions Tab -->
+        <div *ngIf="activeTab() === 'executions'">
+            <app-data-table [columns]="executionColumns" [data]="executions()" [loading]="loading()"
+                emptyMessage="No hay ejecuciones" (rowClick)="onExecutionRowClick($event)"></app-data-table>
+        </div>
+    </div>
+</section>

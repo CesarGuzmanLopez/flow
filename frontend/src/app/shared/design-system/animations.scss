@@ -1,0 +1,383 @@
+/**
+ * Animations & Transitions Mixins
+ *
+ * Sistema centralizado de animaciones y micro-interacciones
+ * para mantener consistencia visual en toda la aplicación.
+ */
+
+// ============================================
+// TRANSICIONES SIMPLES
+// ============================================
+
+@mixin transition($properties...) {
+  transition: $properties 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@mixin transition-fast($properties...) {
+  transition: $properties 150ms cubic-bezier(0.4, 0, 1, 1);
+}
+
+@mixin transition-slow($properties...) {
+  transition: $properties 500ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+// ============================================
+// HOVER EFFECTS
+// ============================================
+
+@mixin hover-lift {
+  @include transition(transform, box-shadow);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+}
+
+@mixin hover-glow {
+  @include transition(box-shadow);
+  box-shadow: 0 0 0 0 rgba(70, 130, 180, 0);
+
+  &:hover {
+    box-shadow: 0 0 12px rgba(70, 130, 180, 0.4);
+  }
+}
+
+@mixin hover-scale {
+  @include transition(transform);
+
+  &:hover {
+    transform: scale(1.05);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+// ============================================
+// PULSE ANIMATIONS
+// ============================================
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(70, 130, 180, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(70, 130, 180, 0);
+  }
+}
+
+@mixin pulse-animation($duration: 2s) {
+  animation: pulse-glow $duration ease-in-out infinite;
+}
+
+@keyframes pulse-opacity {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@mixin pulse-opacity-animation($duration: 2s) {
+  animation: pulse-opacity $duration ease-in-out infinite;
+}
+
+// ============================================
+// LOADING SPINNERS
+// ============================================
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spin-reverse {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+@mixin spinner($size: 20px, $duration: 1s, $color: currentColor) {
+  width: $size;
+  height: $size;
+  border: 2px solid rgba($color, 0.2);
+  border-top-color: $color;
+  border-radius: 50%;
+  animation: spin $duration linear infinite;
+}
+
+@mixin spinner-reverse($size: 20px, $duration: 1s, $color: currentColor) {
+  width: $size;
+  height: $size;
+  border: 2px solid rgba($color, 0.2);
+  border-top-color: $color;
+  border-radius: 50%;
+  animation: spin-reverse $duration linear infinite;
+}
+
+// ============================================
+// FADE & SLIDE ANIMATIONS
+// ============================================
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInDown {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@mixin fade-in($duration: 300ms) {
+  animation: fadeIn $duration ease-out forwards;
+}
+
+@mixin fade-out($duration: 300ms) {
+  animation: fadeOut $duration ease-out forwards;
+}
+
+@mixin slide-in-up($duration: 300ms) {
+  animation: slideInUp $duration ease-out forwards;
+}
+
+@mixin slide-in-down($duration: 300ms) {
+  animation: slideInDown $duration ease-out forwards;
+}
+
+@mixin slide-in-left($duration: 300ms) {
+  animation: slideInLeft $duration ease-out forwards;
+}
+
+@mixin slide-in-right($duration: 300ms) {
+  animation: slideInRight $duration ease-out forwards;
+}
+
+// ============================================
+// MORPH & SHAPE ANIMATIONS
+// ============================================
+
+@keyframes morphCircleToSquare {
+  0% {
+    border-radius: 50%;
+  }
+  100% {
+    border-radius: 6px;
+  }
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@mixin breathe-animation($duration: 3s) {
+  animation: breathe $duration ease-in-out infinite;
+}
+
+// ============================================
+// SKELETON LOADING
+// ============================================
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@mixin skeleton-loading {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.1) 25%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0.1) 75%
+  );
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite;
+}
+
+// ============================================
+// DRAG & DROP FEEDBACK
+// ============================================
+
+@mixin dragging-state {
+  opacity: 0.7;
+  transform: scale(0.95);
+  z-index: 1000;
+}
+
+@mixin drag-over-state {
+  background-color: var(--bg-tertiary);
+  border: 2px dashed var(--accent-primary);
+  transform: scale(1.02);
+}
+
+// ============================================
+// FOCUS STATES (Accesibilidad)
+// ============================================
+
+@mixin focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@mixin focus-ring {
+  box-shadow: 0 0 0 3px var(--bg-primary), 0 0 0 5px var(--accent-primary);
+}
+
+// ============================================
+// SMOOTH SCROLL
+// ============================================
+
+@mixin smooth-scroll {
+  scroll-behavior: smooth;
+
+  * {
+    scroll-behavior: smooth;
+  }
+}
+
+// ============================================
+// UTILITY CLASSES
+// ============================================
+
+.animate-fade-in {
+  @include fade-in(300ms);
+}
+
+.animate-fade-out {
+  @include fade-out(300ms);
+}
+
+.animate-slide-in-up {
+  @include slide-in-up(300ms);
+}
+
+.animate-slide-in-down {
+  @include slide-in-down(300ms);
+}
+
+.animate-slide-in-left {
+  @include slide-in-left(300ms);
+}
+
+.animate-slide-in-right {
+  @include slide-in-right(300ms);
+}
+
+.animate-pulse {
+  @include pulse-opacity-animation(2s);
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+.hover-lift {
+  @include hover-lift;
+}
+
+.hover-glow {
+  @include hover-glow;
+}
+
+.hover-scale {
+  @include hover-scale;
+}
+
+.breathe {
+  @include breathe-animation(3s);
+}
+
+// ============================================
+// ACCESIBILIDAD - Respetar preferencias
+// ============================================
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

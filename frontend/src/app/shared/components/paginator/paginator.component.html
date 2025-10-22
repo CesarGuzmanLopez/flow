@@ -1,0 +1,11 @@
+<div class="paginator">
+    <span class="info">{{ startIndex }}-{{ endIndex }} de {{ total }}</span>
+    <div class="controls">
+        <button [disabled]="!canPrevious()" (click)="onPrevious()">◀ Anterior</button>
+        <span class="page">{{ currentPage }}/{{ totalPages }}</span>
+        <button [disabled]="!canNext()" (click)="onNext()">Siguiente ▶</button>
+        <select [value]="pageSize" (change)="onPageSizeChange($any($event.target).value)">
+            <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }}</option>
+        </select>
+    </div>
+</div>

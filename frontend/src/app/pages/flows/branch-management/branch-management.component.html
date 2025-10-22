@@ -1,0 +1,89 @@
+<div class="branch-management-container">
+  <div class="header">
+    <h1>Gestión de Ramas</h1>
+    <button class="btn btn-primary" (click)="onCreateClick()">
+      + Nueva Rama
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading()" class="loading">
+    <p>Cargando ramas...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error()" class="error-box">
+    <p>{{ error() }}</p>
+    <button (click)="loadBranches()">Reintentar</button>
+  </div>
+
+  <!-- Branches Table -->
+  <div *ngIf="!loading() && !error()" class="table-container">
+    <table class="branches-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Rama Padre</th>
+          <th>Creada</th>
+          <th>Actualizada</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let branch of branches()">
+          <td>{{ branch.id }}</td>
+          <td class="branch-name">{{ branch.name }}</td>
+          <td>{{ branch.parent_id || '-' }}</td>
+          <td>{{ branch.created_at | date: 'short' }}</td>
+          <td>{{ branch.updated_at | date: 'short' }}</td>
+          <td class="actions">
+            <button class="action-btn delete" (click)="onDeleteClick(branch)" title="Eliminar rama">
+              🗑️
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Empty State -->
+    <div *ngIf="branches().length === 0" class="empty-state">
+      <p>No hay ramas. Crea una nueva rama para empezar.</p>
+    </div>
+  </div>
+
+  <!-- Create Branch Modal -->
+  <app-modal [visible]="showCreateModal()" (close)="onCancelCreate()" title="Nueva Rama">
+    <form (ngSubmit)="onCreateBranch()">
+      <div class="form-group">
+        <label for="branchName">Nombre de Rama</label>
+        <input id="branchName" type="text" [(ngModel)]="branchName" [value]="branchName()"
+          (input)="branchName.set($event.target.value)" placeholder="ej: feature-new-molecule" required />
+      </div>
+
+      <div class="form-group">
+        <label for="parentBranch">Rama Padre (opcional)</label>
+        <select id="parentBranch" [(ngModel)]="selectedParentBranch"
+          (change)="onSelectParent($any($event.target).value)">
+          <option [value]="null">Selecciona rama padre</option>
+          <option *ngFor="let branch of otherBranches()" [value]="branch.id">
+            {{ branch.name }}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" (click)="onCancelCreate()">
+          Cancelar
+        </button>
+        <button type="submit" class="btn btn-primary">Crear</button>
+      </div>
+    </form>
+  </app-modal>
+
+  <!-- Confirm Delete Dialog -->
+  <app-confirm-dialog [visible]="showConfirmDelete()" (confirmed)="onConfirmDelete()"
+    (cancelled)="showConfirmDelete.set(false)" title="Eliminar Rama"
+    message="¿Estás seguro de que deseas eliminar esta rama? Esta acción no se puede deshacer."
+    [isDangerous]="true"></app-confirm-dialog>
+</div>

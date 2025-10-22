@@ -1,0 +1,33 @@
+.dashboard {
+  padding: 24px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin: 16px 0 24px;
+}
+
+.card {
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.card .value {
+  font-size: 32px;
+  font-weight: 600;
+}
+
+.card .label {
+  color: #666;
+  margin-bottom: 8px;
+}

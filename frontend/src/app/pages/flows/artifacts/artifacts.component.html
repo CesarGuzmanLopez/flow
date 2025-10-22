@@ -1,0 +1,53 @@
+<section class="artifacts">
+  <header class="header">
+    <h2>Artifacts</h2>
+    <div class="actions">
+      <button type="button" (click)="openCreate()">Nuevo</button>
+      <button type="button" [disabled]="!selected()" (click)="openEdit()">Editar</button>
+      <button type="button" [disabled]="!selected()" (click)="openDelete()">Eliminar</button>
+      <button type="button" (click)="loadArtifacts()">Recargar</button>
+    </div>
+  </header>
+
+  <div *ngIf="error()" class="error">{{ error() }}</div>
+
+  <app-data-table [columns]="columns" [data]="artifacts()" [loading]="loading()" emptyMessage="Sin artifacts"
+    (rowClick)="onRowClick($event)"></app-data-table>
+
+  <app-paginator [total]="total()" [pageSize]="pageSize()" [currentPage]="currentPage()"
+    (pageChange)="onPageChange($event)" (pageSizeChange)="onPageSizeChange($event)"></app-paginator>
+
+  <div *ngIf="selected()" class="detail">
+    <h3>Detalle Artifact #{{ selected().id }}</h3>
+    <app-json-viewer [data]="selected()"></app-json-viewer>
+    <div class="detail-actions">
+      <button type="button" (click)="download(selected().id)">Descargar</button>
+    </div>
+  </div>
+
+  <!-- Create Modal -->
+  <app-modal [visible]="showCreate()" title="Nuevo Artifact" (close)="closeModals()">
+    <div class="modal-body">
+      <app-json-input [label]="'Metadata'" [value]="formData()" (valueChange)="formData.set($event)"></app-json-input>
+    </div>
+    <div class="modal-footer">
+      <button type="button" (click)="closeModals()">Cancelar</button>
+      <button type="button" (click)="create()">Crear</button>
+    </div>
+  </app-modal>
+
+  <!-- Edit Modal -->
+  <app-modal [visible]="showEdit()" title="Editar Artifact" (close)="closeModals()">
+    <div class="modal-body">
+      <app-json-input [label]="'Metadata'" [value]="formData()" (valueChange)="formData.set($event)"></app-json-input>
+    </div>
+    <div class="modal-footer">
+      <button type="button" (click)="closeModals()">Cancelar</button>
+      <button type="button" (click)="update()">Guardar</button>
+    </div>
+  </app-modal>
+
+  <!-- Delete Confirm -->
+  <app-confirm-dialog [visible]="showDelete()" title="Eliminar Artifact" message="¿Seguro de eliminar este artifact?"
+    [isDangerous]="true" (confirmed)="remove()" (cancelled)="closeModals()"></app-confirm-dialog>
+</section>

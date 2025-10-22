@@ -1,0 +1,1 @@
+"""Initialización de infraestructura."""

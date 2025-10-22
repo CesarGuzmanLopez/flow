@@ -1,0 +1,36 @@
+<section class="dashboard">
+  <header class="header">
+    <h2>Dashboard</h2>
+    <button type="button" (click)="refresh()">Recargar</button>
+  </header>
+
+  <div *ngIf="loading()" class="loading">Cargando…</div>
+  <div *ngIf="error()" class="error">{{ error() }}</div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="value">{{ flowCount() }}</div>
+      <div class="label">Flujos</div>
+      <a routerLink="/flows">Ver flujos</a>
+    </div>
+    <div class="card">
+      <div class="value">{{ familyCount() }}</div>
+      <div class="label">Familias</div>
+      <a routerLink="/chemistry/families">Ver familias</a>
+    </div>
+    <div class="card">
+      <div class="value">{{ moleculeCount() }}</div>
+      <div class="label">Moléculas</div>
+      <a routerLink="/chemistry/molecules">Ver moléculas</a>
+    </div>
+  </div>
+
+  <section class="recent">
+    <h3>Flujos recientes</h3>
+    <ul>
+      <li *ngFor="let f of recentFlows()">
+        <a [routerLink]="['/flows', $any(f).id]">{{ $any(f).name || 'Flow #' + $any(f).id }}</a>
+      </li>
+    </ul>
+  </section>
+</section>

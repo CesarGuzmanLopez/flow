@@ -1,0 +1,19 @@
+<section class="steps-list">
+    <header class="header">
+        <h2>Pasos</h2>
+        <button type="button" (click)="load()">Recargar</button>
+    </header>
+
+    <div *ngIf="error()" class="error">{{ error() }}</div>
+
+    <app-data-table [columns]="columns" [data]="steps()" [loading]="loading()" emptyMessage="Sin pasos"
+        (rowClick)="onRowClick($event)"></app-data-table>
+
+    <app-paginator [total]="total()" [pageSize]="pageSize()" [currentPage]="currentPage()"
+        (pageChange)="onPageChange($event)" (pageSizeChange)="onPageSizeChange($event)"></app-paginator>
+
+    <div *ngIf="selected()" class="detail">
+        <h3>Detalle del paso #{{ selected().id }}</h3>
+        <app-json-viewer [data]="selected()"></app-json-viewer>
+    </div>
+</section>

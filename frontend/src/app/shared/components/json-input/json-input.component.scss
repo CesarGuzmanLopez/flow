@@ -1,0 +1,16 @@
+.json-input {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.json-input textarea {
+  min-height: 160px;
+  font-family: ui-monospace, monospace;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+.error {
+  color: #b00020;
+  margin-top: 4px;
+}

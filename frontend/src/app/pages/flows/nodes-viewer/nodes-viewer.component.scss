@@ -1,0 +1,228 @@
+@use "sass:color";
+@use "../../styles/_variables.scss" as *;
+
+.nodes-viewer-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: $space-md;
+  background: $bg-primary;
+  gap: $space-md;
+}
+
+.header {
+  margin-bottom: $space-lg;
+
+  h1 {
+    margin: 0 0 $space-xs 0;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: $text-primary;
+  }
+
+  .subtitle {
+    margin: 0;
+    font-size: 0.875rem;
+    color: $text-secondary;
+  }
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $space-lg;
+  background: $bg-secondary;
+  border-radius: $border-radius-sm;
+  color: $text-secondary;
+
+  p {
+    margin: 0;
+  }
+}
+
+.error-box {
+  padding: $space-md;
+  background: rgba($danger, 0.1);
+  border: 1px solid $danger;
+  border-radius: $border-radius-sm;
+  color: $danger;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  p {
+    margin: 0;
+  }
+
+  button {
+    padding: $space-xs $space-sm;
+    background: $danger;
+    color: white;
+    border: none;
+    border-radius: $border-radius-sm;
+    cursor: pointer;
+    transition: $transition-fast;
+
+    &:hover {
+      background: color.adjust($danger, $lightness: -10%);
+    }
+  }
+}
+
+.nodes-container {
+  flex: 1;
+  overflow: auto;
+  background: $bg-secondary;
+  border-radius: $border-radius-sm;
+  border: 1px solid $border-color;
+  padding: $space-md;
+}
+
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: $text-tertiary;
+
+  p {
+    margin: 0;
+  }
+}
+
+.tree {
+  font-family: "Monaco", "Courier New", monospace;
+  font-size: 0.875rem;
+
+  .tree-node {
+    margin-bottom: $space-xs;
+  }
+
+  .node-item {
+    display: flex;
+    align-items: center;
+    gap: $space-sm;
+    padding: $space-sm;
+    background: color.adjust($bg-secondary, $lightness: -5%);
+    border-radius: $border-radius-sm;
+    border: 1px solid $border-color;
+    transition: $transition-fast;
+
+    &:hover {
+      background: color.adjust($bg-secondary, $lightness: -10%);
+      border-color: $primary;
+    }
+
+    &.has-children {
+      border-left: 3px solid $primary;
+    }
+
+    .toggle-btn {
+      padding: 0;
+      width: 24px;
+      height: 24px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: $primary;
+      font-weight: 600;
+      transition: $transition-fast;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      &:hover {
+        color: color.adjust($primary, $lightness: -10%);
+      }
+    }
+
+    .toggle-placeholder {
+      width: 24px;
+      height: 24px;
+    }
+
+    .node-info {
+      display: flex;
+      gap: $space-md;
+      align-items: center;
+      flex: 1;
+
+      .node-id {
+        background: $primary;
+        color: white;
+        padding: $space-xs $space-sm;
+        border-radius: $border-radius-sm;
+        font-weight: 600;
+        min-width: 40px;
+        text-align: center;
+      }
+
+      .node-name {
+        color: $text-primary;
+        font-weight: 600;
+        flex: 1;
+      }
+
+      .node-status {
+        padding: $space-xs $space-sm;
+        border-radius: $border-radius-sm;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+
+        &.status-active {
+          background: rgba($success, 0.2);
+          color: $success;
+        }
+
+        &.status-pending {
+          background: rgba($warning, 0.2);
+          color: $warning;
+        }
+
+        &.status-failed,
+        &.status-error {
+          background: rgba($danger, 0.2);
+          color: $danger;
+        }
+
+        &.status-completed {
+          background: rgba($success, 0.2);
+          color: $success;
+        }
+
+        &.status-unknown {
+          background: rgba($text-tertiary, 0.2);
+          color: $text-tertiary;
+        }
+      }
+    }
+  }
+
+  .children {
+    margin-left: $space-md;
+    padding-left: $space-md;
+    border-left: 2px solid $border-color;
+    margin-top: $space-xs;
+    padding-top: $space-xs;
+  }
+}
+
+@media (max-width: 768px) {
+  .tree {
+    .tree-node {
+      margin-left: 0 !important;
+
+      .node-info {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+
+    .children {
+      margin-left: $space-sm !important;
+      padding-left: $space-sm !important;
+    }
+  }
+}

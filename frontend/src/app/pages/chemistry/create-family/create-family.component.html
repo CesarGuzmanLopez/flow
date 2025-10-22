@@ -1,0 +1,95 @@
+<div class="create-family-container">
+  <div class="header">
+    <h1>Crear Familia</h1>
+    <p class="subtitle">Crea nuevas familias de moléculas relacionadas</p>
+  </div>
+
+  <div class="modes">
+    <button class="mode-btn" [class.active]="mode() === 'new'" (click)="setMode('new')">Nueva</button>
+    <button class="mode-btn" [class.active]="mode() === 'existing'" (click)="setMode('existing')">Existente</button>
+    <button class="mode-btn" [class.active]="mode() === 'reference'" (click)="setMode('reference')">Desde Molécula
+      Ref.</button>
+  </div>
+
+  <!-- Error/Success Messages -->
+  <div *ngIf="error()" class="error-box">{{ error() }}</div>
+  <div *ngIf="success()" class="success-box">¡Familia creada exitosamente! Redirigiendo...</div>
+
+  <div class="form-container">
+    <!-- New Family Mode -->
+    <div *ngIf="mode() === 'new'" class="form-section">
+      <h2>Nueva Familia</h2>
+
+      <div class="form-group">
+        <label for="familyName">Nombre de Familia *</label>
+        <input id="familyName" type="text" [value]="familyName()" (input)="familyName.set($any($event.target).value)"
+          placeholder="ej: Serie Bencénica A" required />
+      </div>
+
+      <div class="form-group">
+        <label for="familyDescription">Descripción</label>
+        <textarea id="familyDescription" [value]="familyDescription()"
+          (input)="familyDescription.set($any($event.target).value)" placeholder="Describe esta familia de moléculas..."
+          rows="4"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="referenceSMILES">SMILES de Molécula de Referencia (opcional)</label>
+        <input id="referenceSMILES" type="text" [value]="referenceMoleculeSMILES()"
+          (input)="referenceMoleculeSMILES.set($any($event.target).value)" placeholder="ej: c1ccccc1" />
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-primary" (click)="onCreateNewFamily()" [disabled]="loading()">{{ loading() ? 'Creando...'
+          : 'Crear Familia' }}</button>
+      </div>
+    </div>
+
+    <!-- Existing Family Mode -->
+    <div *ngIf="mode() === 'existing'" class="form-section">
+      <h2>Agregar a Familia Existente</h2>
+
+      <div class="form-group">
+        <label for="selectFamily">Selecciona Familia</label>
+        <select id="selectFamily" [value]="selectedFamilyId()"
+          (change)="onSelectExistingFamily($any($event.target).value)">
+          <option [value]="null">-- Selecciona --</option>
+          <option *ngFor="let fam of families()" [value]="fam.id">{{ fam.name }}</option>
+        </select>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-primary" (click)="onAddMoleculesToExisting()"
+          [disabled]="loading() || !selectedFamilyId()">{{ loading() ? 'Procesando...' : 'Agregar Moléculas' }}</button>
+      </div>
+    </div>
+
+    <!-- Reference Molecule Mode -->
+    <div *ngIf="mode() === 'reference'" class="form-section">
+      <h2>Crear desde Molécula de Referencia</h2>
+
+      <div class="form-group">
+        <label for="referenceMolecule">Selecciona Molécula *</label>
+        <select id="referenceMolecule" [value]="referenceMoleculeId()"
+          (change)="onSelectReferenceMolecule($any($event.target).value)">
+          <option [value]="null">-- Selecciona una molécula --</option>
+          <option *ngFor="let mol of molecules()" [value]="mol.id">{{ mol.name }} (ID: {{ mol.id }})</option>
+        </select>
+      </div>
+
+      <p class="info-text">Crea una nueva familia usando una molécula existente como referencia. Se generarán
+        automáticamente agregados y propiedades.</p>
+
+      <div class="form-actions">
+        <button class="btn btn-primary" (click)="onCreateFromReferenceMolecule()"
+          [disabled]="loading() || !referenceMoleculeId()">{{ loading() ? 'Creando...' : 'Crear Familia' }}</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="loading()" class="loading-overlay">
+    <div class="spinner"></div>
+  </div>
+</div>
+<div *ngIf="mode() === 'reference'" class="form-section">

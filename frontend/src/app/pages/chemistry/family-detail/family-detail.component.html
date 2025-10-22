@@ -1,0 +1,121 @@
+<div class="page-container">
+  <div class="page-header">
+    <div class="header-left">
+      <button class="btn-secondary" (click)="goBack()">
+        ← Back to Families
+      </button>
+      <h1>{{ loading() ? 'Loading...' : family()?.name || 'Family Details' }}</h1>
+    </div>
+    <div class="header-actions">
+      <button class="btn" (click)="computeAdmetsa()" [disabled]="loading()">Calcular ADMETSA</button>
+      <button class="btn" (click)="computeAggregates()" [disabled]="loading()">Calcular Agregados</button>
+      <button class="btn-danger" (click)="openDeleteModal()" [disabled]="loading()">
+        Eliminar
+      </button>
+    </div>
+  </div>
+
+  @if (error()) {
+  <div class="error-banner">
+    <span>⚠️ {{ error() }}</span>
+    <button (click)="error.set(null)">✕</button>
+  </div>
+  }
+
+  @if (loading()) {
+  <div class="loading">Loading family details...</div>
+  } @else if (family()) {
+  <div class="detail-content">
+    <section class="info-section">
+      <h2>Family Information</h2>
+      <div class="info-grid">
+        <div class="info-item">
+          <label>ID</label>
+          <span>{{ family().id }}</span>
+        </div>
+        <div class="info-item">
+          <label>Name</label>
+          <span>{{ family().name }}</span>
+        </div>
+        <div class="info-item">
+          <label>Provenance</label>
+          <span>{{ family().provenance || 'N/A' }}</span>
+        </div>
+        <div class="info-item">
+          <label>Description</label>
+          <span>{{ family().description || 'N/A' }}</span>
+        </div>
+        <div class="info-item">
+          <label>Created</label>
+          <span>{{ family().created_at | date:'medium' }}</span>
+        </div>
+        <div class="info-item">
+          <label>Updated</label>
+          <span>{{ family().updated_at | date:'medium' }}</span>
+        </div>
+        <div class="info-item">
+          <label>Created By</label>
+          <span>{{ family().created_by || 'Unknown' }}</span>
+        </div>
+        <div class="info-item">
+          <label>Member Count</label>
+          <span>{{ members().length }}</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="members-section">
+      <div class="section-header">
+        <h2>Family Members</h2>
+        <div class="section-actions">
+          <button class="btn" (click)="openAddMember()">Añadir molécula</button>
+        </div>
+      </div>
+      <app-data-table [columns]="membersColumns" [data]="members()" [loading]="false"
+        emptyMessage="No molecules in this family" (rowClick)="openRemoveMember($event)" />
+    </section>
+
+    <section class="properties-section">
+      <div class="section-header">
+        <h2>Aggregate Properties</h2>
+      </div>
+      <app-data-table [columns]="propertiesColumns" [data]="properties()" [loading]="false"
+        emptyMessage="No aggregate properties calculated" />
+    </section>
+  </div>
+  }
+
+  <app-modal [visible]="showDeleteModal()" (close)="closeDeleteModal()" size="small">
+    <div header>
+      <h2>Confirm Delete</h2>
+    </div>
+    <div content>
+      <p>Are you sure you want to delete this family?</p>
+      <p><strong>{{ family()?.name }}</strong></p>
+      <p class="warning">This will also remove all member relationships. This action cannot be undone.</p>
+    </div>
+    <div footer>
+      <button class="btn-secondary" (click)="closeDeleteModal()">Cancel</button>
+      <button class="btn-danger" (click)="confirmDelete()">Delete</button>
+    </div>
+  </app-modal>
+
+  <!-- Add Member Modal -->
+  <app-modal [visible]="showAddMember()" (close)="showAddMember.set(false)" title="Añadir molécula a familia">
+    <div class="modal-body">
+      <label>ID de molécula
+        <input type="number" [value]="addMemberForm().molecule_id || ''"
+          (input)="addMemberForm.set({ molecule_id: +$any($event.target).value || null })" />
+      </label>
+    </div>
+    <div class="modal-footer">
+      <button type="button" (click)="showAddMember.set(false)">Cancelar</button>
+      <button type="button" (click)="addMember()">Añadir</button>
+    </div>
+  </app-modal>
+
+  <!-- Remove Member Confirm -->
+  <app-confirm-dialog [visible]="showRemoveMember()" title="Quitar molécula de familia"
+    message="¿Desea remover esta molécula de la familia?" [isDangerous]="true" (confirmed)="removeMember()"
+    (cancelled)="showRemoveMember.set(false)"></app-confirm-dialog>
+</div>

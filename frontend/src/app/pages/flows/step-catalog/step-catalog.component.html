@@ -1,0 +1,95 @@
+<div class="step-catalog-container">
+  <div class="header">
+    <h1>Catálogo de Pasos</h1>
+    <p class="subtitle">Explora pasos disponibles, busca y ejecuta</p>
+  </div>
+
+  <div class="toolbar">
+    <input type="text" class="search-input" placeholder="Buscar por nombre, proveedor o descripción..."
+      [value]="searchText()" (input)="onSearch($event.target.value)" />
+  </div>
+  <div class="toolbar">
+    <input type="text" class="search-input" placeholder="Buscar por nombre, proveedor o descripción..."
+      [value]="searchText()" (input)="onSearch($any($event.target).value)" />
+  </div>
+
+  <div class="content">
+    <!-- Loading State -->
+    <div *ngIf="loading()" class="loading">
+      <p>Cargando catálogo...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error()" class="error-box">
+      <p>{{ error() }}</p>
+      <button (click)="loadCatalog()">Reintentar</button>
+    </div>
+
+    <!-- Main Layout: List + Detail -->
+    <div *ngIf="!loading() && !error()" class="layout">
+      <!-- Steps List -->
+      <div class="list-panel">
+        <div class="list-header">
+          <h3>Pasos ({{ filteredSteps().length }})</h3>
+        </div>
+        <div class="steps-list">
+          <div *ngFor="let step of paginatedSteps()" class="step-card" [class.active]="selectedStep() === step"
+            (click)="onSelectStep(step)">
+            <div class="step-name">{{ step.name }}</div>
+            <div class="step-provider" *ngIf="step.description">
+              {{ step.description }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Paginator -->
+        <app-paginator [currentPage]="currentPage()" [pageSize]="pageSize()" [total]="filteredSteps().length"
+          (pageChange)="onPageChange($event)" (pageSizeChange)="onPageSizeChange($event)"></app-paginator>
+      </div>
+
+      <!-- Step Detail Panel -->
+      <div class="detail-panel">
+        <div *ngIf="selectedStep(); else noSelection" class="detail-content">
+          <div class="detail-header">
+            <h2>{{ selectedStep()!.name }}</h2>
+          </div>
+
+          <div class="info-section">
+            <div class="info-row" *ngIf="selectedStep() && selectedStep().description">
+              <label>Descripción:</label>
+              <p>{{ selectedStep()!.description }}</p>
+            </div>
+
+            <div class="info-row" *ngIf="selectedStep() && selectedStep().status">
+              <label>Estado:</label>
+              <span class="badge">{{ selectedStep()!.status }}</span>
+            </div>
+          </div>
+
+          <!-- Inputs/Outputs Schema (if available) -->
+          <div class="schema-section" *ngIf="selectedStep() && selectedStep().inputs">
+            <h3>Entradas</h3>
+            <pre class="schema">{{ selectedStep()!.inputs | json }}</pre>
+          </div>
+
+          <div class="schema-section" *ngIf="selectedStep() && selectedStep().outputs">
+            <h3>Salidas</h3>
+            <pre class="schema">{{ selectedStep()!.outputs | json }}</pre>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="actions">
+            <button class="btn btn-primary" (click)="onExecuteStep()">Ejecutar Paso</button>
+            <button class="btn btn-secondary" (click)="onAppendStep()">Agregar a Rama</button>
+          </div>
+        </div>
+
+        <ng-template #noSelection>
+          <div class="no-selection">
+            <p>Selecciona un paso para ver detalles</p>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+</div>

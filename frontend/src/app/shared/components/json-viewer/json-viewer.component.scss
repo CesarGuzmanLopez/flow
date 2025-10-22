@@ -1,0 +1,43 @@
+.json-viewer {
+  background: #1e293b;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: #0f172a;
+  border-bottom: 1px solid #334155;
+}
+
+.title {
+  color: #94a3b8;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.copy-btn {
+  padding: 4px 8px;
+  border: 1px solid #475569;
+  background: transparent;
+  color: #94a3b8;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.copy-btn:hover {
+  background: #334155;
+}
+
+.content {
+  padding: 12px;
+  margin: 0;
+  color: #e2e8f0;
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-x: auto;
+}

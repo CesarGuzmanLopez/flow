@@ -1,0 +1,8 @@
+<app-modal [visible]="visible" (close)="onCancel()" size="small">
+    <h3>{{ title }}</h3>
+    <p>{{ message }}</p>
+    <div class="actions">
+        <button (click)="onCancel()">{{ cancelText }}</button>
+        <button [class.danger]="isDangerous" (click)="onConfirm()">{{ confirmText }}</button>
+    </div>
+</app-modal>

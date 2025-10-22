@@ -9,7 +9,7 @@ import { Molecule, Protocol, Reaction } from '../models';
 })
 export class ChemistryService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${API_PREFIX}/chemistry`;
+  private readonly apiUrl = `${API_PREFIX}/api/chemistry`;
 
   // Molecule operations
   getMolecules(

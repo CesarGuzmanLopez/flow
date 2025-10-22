@@ -1,0 +1,61 @@
+<section class="flows-list">
+    <header class="header">
+        <h2>Flujos</h2>
+        <button type="button" (click)="refresh()">Recargar</button>
+    </header>
+
+    <div *ngIf="loading()" class="loading">Cargando…</div>
+    <div *ngIf="error()" class="error">{{ error() }}</div>
+
+    <ul class="list">
+        <li *ngFor="let f of flows()">
+            <a [routerLink]="['/flows', $any(f).id]">
+                {{ $any(f).name || 'Flow #' + $any(f).id }}
+            </a>
+            <small class="muted">ID: {{ $any(f).id }}</small>
+        </li>
+    </ul>
+
+    <section class="create">
+        <h3>Crear desde definición</h3>
+        <form (submit)="$event.preventDefault(); createFromDefinition();">
+            <label>
+                Definición (key)
+                <input type="text" [value]="defKey()" (input)="defKey.set($any($event.target).value)"
+                    placeholder="cadma" />
+            </label>
+            <label>
+                Nombre
+                <input type="text" [value]="flowName()" (input)="flowName.set($any($event.target).value)"
+                    placeholder="Nombre del flujo" />
+            </label>
+
+            <app-json-input [label]="'Parámetros (params_override)'" [value]="paramsOverride"
+                (valueChange)="paramsOverride = $event"></app-json-input>
+
+            <div class="actions">
+                <button type="submit" [disabled]="loading()">Crear</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="create">
+        <h3>Crear flujo manual</h3>
+        <form (submit)="$event.preventDefault(); createFlow();">
+            <label>
+                Nombre
+                <input type="text" [value]="newFlowName()" (input)="newFlowName.set($any($event.target).value)"
+                    placeholder="Nombre del flujo" required />
+            </label>
+            <label>
+                Descripción
+                <textarea [value]="newFlowDescription()" (input)="newFlowDescription.set($any($event.target).value)"
+                    placeholder="Descripción opcional"></textarea>
+            </label>
+
+            <div class="actions">
+                <button type="submit" [disabled]="loading() || !newFlowName().trim()">Crear</button>
+            </div>
+        </form>
+    </section>
+</section>

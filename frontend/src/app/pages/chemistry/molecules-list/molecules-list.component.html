@@ -1,0 +1,11 @@
+<section class="molecules-list">
+    <header class="header">
+        <h2>Moléculas</h2>
+        <button type="button" (click)="loadMolecules()">Recargar</button>
+    </header>
+
+    <div *ngIf="error()" class="error">{{ error() }}</div>
+
+    <app-data-table [columns]="columns" [data]="molecules()" [loading]="loading()" emptyMessage="No hay moléculas"
+        (rowClick)="onRowClick($event)"></app-data-table>
+</section>

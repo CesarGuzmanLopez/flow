@@ -1,0 +1,90 @@
+<section class="user-detail">
+  <header class="header">
+    <button (click)="goBack()">← Volver</button>
+    <h2>{{ user()?.username || 'Usuario' }}</h2>
+    <div class="actions">
+      <button (click)="toggleEdit()" [disabled]="loading()">{{ isEditing() ? 'Cancelar' : 'Editar' }}</button>
+      <button (click)="openChangePassword()" [disabled]="loading()">Cambiar contraseña</button>
+      <button (click)="openActivate()" [disabled]="loading() || user()?.is_active">Activar</button>
+      <button (click)="openDeactivate()" [disabled]="loading() || !user()?.is_active">Desactivar</button>
+      <button class="danger" (click)="openDeleteModal()" [disabled]="loading()">Eliminar</button>
+    </div>
+  </header>
+
+  <div *ngIf="error()" class="error">{{ error() }}</div>
+  <div *ngIf="loading()" class="loading">Cargando…</div>
+
+  <div *ngIf="user() && !isEditing()" class="info">
+    <dl>
+      <dt>ID:</dt>
+      <dd>{{ user().id }}</dd>
+      <dt>Usuario:</dt>
+      <dd>{{ user().username }}</dd>
+      <dt>Email:</dt>
+      <dd>{{ user().email }}</dd>
+      <dt>Nombre:</dt>
+      <dd>{{ user().first_name }} {{ user().last_name }}</dd>
+      <dt>Activo:</dt>
+      <dd>{{ user().is_active ? 'Sí' : 'No' }}</dd>
+      <dt>Staff:</dt>
+      <dd>{{ user().is_staff ? 'Sí' : 'No' }}</dd>
+    </dl>
+  </div>
+
+  <form *ngIf="isEditing()" (submit)="$event.preventDefault(); saveChanges();" class="edit-form">
+    <label>
+      Usuario
+      <input type="text" [value]="editForm().username" (input)="onEditInput('username', $any($event.target).value)" />
+    </label>
+    <label>
+      Email
+      <input type="email" [value]="editForm().email" (input)="onEditInput('email', $any($event.target).value)" />
+    </label>
+    <label>
+      Nombre
+      <input type="text" [value]="editForm().first_name"
+        (input)="onEditInput('first_name', $any($event.target).value)" />
+    </label>
+    <label>
+      Apellido
+      <input type="text" [value]="editForm().last_name" (input)="onEditInput('last_name', $any($event.target).value)" />
+    </label>
+    <label>
+      <input type="checkbox" [checked]="editForm().is_active" (change)="onToggle('is_active')" />
+      Activo
+    </label>
+    <label>
+      <input type="checkbox" [checked]="editForm().is_staff" (change)="onToggle('is_staff')" />
+      Staff
+    </label>
+    <button type="submit" [disabled]="loading()">Guardar</button>
+  </form>
+
+  <app-confirm-dialog [visible]="showDeleteModal()" title="Eliminar Usuario"
+    message="¿Está seguro? Esto no se puede deshacer." confirmText="Eliminar" cancelText="Cancelar" [isDangerous]="true"
+    (confirmed)="confirmDelete()" (cancelled)="closeDeleteModal()"></app-confirm-dialog>
+</section>
+
+
+<!-- Change Password Modal -->
+<app-modal [visible]="showChangePassword()" title="Cambiar contraseña" (close)="showChangePassword.set(false)">
+  <div class="modal-body">
+    <label>Nueva contraseña
+      <input type="password" [value]="changePasswordForm().password"
+        (input)="changePasswordForm.set({ password: $any($event.target).value })" />
+    </label>
+  </div>
+  <div class="modal-footer">
+    <button type="button" (click)="showChangePassword.set(false)">Cancelar</button>
+    <button type="button" (click)="submitChangePassword()">Aplicar</button>
+  </div>
+</app-modal>
+
+<!-- Activate/Deactivate confirms -->
+<app-confirm-dialog [visible]="showActivate()" title="Activar usuario" message="¿Activar este usuario?"
+  confirmText="Activar" cancelText="Cancelar" (confirmed)="confirmActivate()"
+  (cancelled)="showActivate.set(false)"></app-confirm-dialog>
+
+<app-confirm-dialog [visible]="showDeactivate()" title="Desactivar usuario" message="¿Desactivar este usuario?"
+  confirmText="Desactivar" cancelText="Cancelar" [isDangerous]="true" (confirmed)="confirmDeactivate()"
+  (cancelled)="showDeactivate.set(false)"></app-confirm-dialog>

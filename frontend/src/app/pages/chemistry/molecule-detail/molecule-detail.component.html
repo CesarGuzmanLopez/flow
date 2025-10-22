@@ -1,0 +1,143 @@
+<div class="page-container">
+  <div class="page-header">
+    <div class="header-left">
+      <button class="btn-secondary" (click)="goBack()">
+        ← Back to Molecules
+      </button>
+      <h1>{{ loading() ? 'Loading...' : molecule()?.name || 'Molecule Details' }}</h1>
+    </div>
+    <div class="header-actions">
+      <button class="btn-danger" (click)="openDeleteModal()" [disabled]="loading()">
+        Delete
+      </button>
+    </div>
+  </div>
+
+  @if (error()) {
+  <div class="error-banner">
+    <span>⚠️ {{ error() }}</span>
+    <button (click)="error.set(null)">✕</button>
+  </div>
+  }
+
+  @if (loading()) {
+  <div class="loading">Loading molecule details...</div>
+  } @else if (molecule()) {
+  <div class="detail-content">
+    <section class="info-section">
+      <h2>Molecule Information</h2>
+      <div class="info-grid">
+        <div class="info-item">
+          <label>ID</label>
+          <span>{{ molecule().id }}</span>
+        </div>
+        <div class="info-item">
+          <label>Name</label>
+          <span>{{ molecule().name }}</span>
+        </div>
+        <div class="info-item">
+          <label>SMILES</label>
+          <span class="code">{{ molecule().smiles }}</span>
+        </div>
+        <div class="info-item">
+          <label>InChI</label>
+          <span class="code">{{ molecule().inchi || 'N/A' }}</span>
+        </div>
+        <div class="info-item">
+          <label>InChI Key</label>
+          <span class="code">{{ molecule().inchi_key || 'N/A' }}</span>
+        </div>
+        <div class="info-item">
+          <label>Created</label>
+          <span>{{ molecule().created_at | date:'medium' }}</span>
+        </div>
+        <div class="info-item">
+          <label>Updated</label>
+          <span>{{ molecule().updated_at | date:'medium' }}</span>
+        </div>
+        <div class="info-item">
+          <label>Created By</label>
+          <span>{{ molecule().created_by || 'Unknown' }}</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="properties-section">
+      <div class="section-header">
+        <h2>Molecular Properties</h2>
+        <div class="section-actions">
+          <button class="btn" (click)="openCreateProperty()">Add Property</button>
+        </div>
+      </div>
+      <app-data-table [columns]="propertiesColumns" [data]="properties()" [loading]="false"
+        emptyMessage="No properties calculated yet" (actionClick)="onPropertyAction($event)" />
+    </section>
+  </div>
+  }
+
+  <app-modal [visible]="showDeleteModal()" (close)="closeDeleteModal()" size="small">
+    <div header>
+      <h2>Confirm Delete</h2>
+    </div>
+    <div content>
+      <p>Are you sure you want to delete this molecule?</p>
+      <p><strong>{{ molecule()?.name }}</strong></p>
+      <p class="warning">This action cannot be undone.</p>
+    </div>
+    <div footer>
+      <button class="btn-secondary" (click)="closeDeleteModal()">Cancel</button>
+      <button class="btn-danger" (click)="confirmDelete()">Delete</button>
+    </div>
+  </app-modal>
+
+  <!-- Create Property Modal -->
+  <app-modal [visible]="showCreateProperty()" (close)="showCreateProperty.set(false)" title="Add Molecular Property">
+    <div class="modal-body">
+      <label>Property Type
+        <input type="text" [value]="propertyForm().property_type"
+          (input)="updatePropertyType($any($event.target).value)" required />
+      </label>
+      <label>Value
+        <input type="text" [value]="propertyForm().value" (input)="updatePropertyValue($any($event.target).value)" />
+      </label>
+      <label>Units
+        <input type="text" [value]="propertyForm().units" (input)="updatePropertyUnits($any($event.target).value)" />
+      </label>
+      <label>Method
+        <input type="text" [value]="propertyForm().method" (input)="updatePropertyMethod($any($event.target).value)" />
+      </label>
+    </div>
+    <div class="modal-footer">
+      <button type="button" (click)="showCreateProperty.set(false)">Cancel</button>
+      <button type="button" (click)="createProperty()">Add</button>
+    </div>
+  </app-modal>
+
+  <!-- Edit Property Modal -->
+  <app-modal [visible]="showEditProperty()" (close)="showEditProperty.set(false)" title="Edit Molecular Property">
+    <div class="modal-body">
+      <label>Property Type
+        <input type="text" [value]="propertyForm().property_type"
+          (input)="updatePropertyType($any($event.target).value)" required />
+      </label>
+      <label>Value
+        <input type="text" [value]="propertyForm().value" (input)="updatePropertyValue($any($event.target).value)" />
+      </label>
+      <label>Units
+        <input type="text" [value]="propertyForm().units" (input)="updatePropertyUnits($any($event.target).value)" />
+      </label>
+      <label>Method
+        <input type="text" [value]="propertyForm().method" (input)="updatePropertyMethod($any($event.target).value)" />
+      </label>
+    </div>
+    <div class="modal-footer">
+      <button type="button" (click)="showEditProperty.set(false)">Cancel</button>
+      <button type="button" (click)="editProperty()">Save</button>
+    </div>
+  </app-modal>
+
+  <!-- Delete Property Confirm -->
+  <app-confirm-dialog [visible]="showDeleteProperty()" title="Delete Molecular Property"
+    message="Are you sure you want to delete this property?" [isDangerous]="true" (confirmed)="deleteProperty()"
+    (cancelled)="showDeleteProperty.set(false)"></app-confirm-dialog>
+</div>

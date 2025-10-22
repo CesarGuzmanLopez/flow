@@ -16,7 +16,7 @@ import {
 })
 export class FlowService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${API_PREFIX}/flows`;
+  private readonly apiUrl = `${API_PREFIX}/api/flows`;
 
   // Flow CRUD
   getFlows(params?: any): Observable<{ results: Flow[]; count: number }> {
