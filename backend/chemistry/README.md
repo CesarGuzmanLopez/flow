@@ -177,6 +177,83 @@ Modelo EAV (Entity-Attribute-Value) para propiedades flexibles.
 - `source_id`: Referencia externa
 - `relation`: Tipo de relación con la entidad
 
+## 🔐 Ownership y deduplicación (comportamiento esperado)
+
+- Identificador primario interno: cada `Molecule` tiene un `id` entero (PK) usado por el sistema.
+- Identificador químico único: la combinación canónica (`canonical_smiles` / `inchikey`) representa la identidad química global.
+- Requisito funcional: dos usuarios pueden "poseer" la misma molécula química (mismo `inchikey`) pero deben poder añadir propiedades propias sin interferir entre sí.
+
+Patrón recomendado (seguro y escalable):
+
+1. Entidad canonical `Molecule` (única por `inchikey`).
+2. Tabla intermedia `MoleculeOwnership` (o `UserMolecule`) que vincula `user ↔ molecule`. Esta tabla registra la pertenencia, permisos y metadatos de usuario (notas, tags, favorito, etc.).
+3. Propiedades (`MolecularProperty` / `FamilyProperty`) apuntan a `Molecule` y contienen `created_by` y audit fields:
+   - Si una propiedad es personal, `created_by = user` y puede ser filtrada por `?mine=true`.
+   - Si se quiere una propiedad compartida/global, `created_by` puede ser el sistema o un usuario con permisos de publicar.
+
+Comportamiento típico:
+
+- Al crear desde SMILES: el servicio intenta buscar `Molecule` por `inchikey`.
+  - Si existe: crea o actualiza una `MoleculeOwnership` para el usuario (no clona la molécula).
+  - Si no existe: crea `Molecule` + `MoleculeOwnership`.
+- Al listar `/api/chemistry/molecules/mine/`: devuelve `Molecule` JOIN `MoleculeOwnership` WHERE ownership.user = current_user.
+- Al añadir propiedad: la API crea `MolecularProperty` con `molecule_id` (referencia a la `Molecule` canonical) y `created_by = current_user`. Así distintos usuarios pueden tener properties distintas sobre la misma `Molecule`.
+
+Modelo de ejemplo (simplificado):
+
+```python
+from django.db import models
+from django.conf import settings
+
+class Molecule(models.Model):
+  name = models.CharField(max_length=255)
+  canonical_smiles = models.TextField(unique=True)
+  inchikey = models.CharField(max_length=255, unique=True)
+  # campos adicionales...
+
+class MoleculeOwnership(models.Model):
+  user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+  molecule = models.ForeignKey(Molecule, on_delete=models.CASCADE, related_name="owners")
+  nickname = models.CharField(max_length=255, blank=True)   # nombre local del usuario
+  notes = models.TextField(blank=True)
+  is_favorite = models.BooleanField(default=False)
+
+  class Meta:
+    unique_together = ("user", "molecule")
+```
+
+Servicio de utilidad (patrón):
+
+```python
+def get_or_create_molecule_for_user(smiles: str, user, **molecule_kwargs):
+  # 1) obtener identificadores (smiles -> inchi/inchikey) vía engine
+  ids = engine.smiles_to_inchi(smiles)
+  inchikey = ids.inchikey
+
+  # 2) buscar molecule canonical
+  molecule, created = Molecule.objects.get_or_create(
+    inchikey=inchikey,
+    defaults={**molecule_kwargs, "canonical_smiles": ids.canonical_smiles},
+  )
+
+  # 3) asegurar ownership
+  MoleculeOwnership.objects.get_or_create(user=user, molecule=molecule)
+
+  return molecule
+```
+
+Ventajas del patrón:
+
+- Evita duplicación de moléculas en DB.
+- Permite propiedades personales por usuario sin duplicar la entidad química.
+- Facilita búsquedas globales por `inchikey` y el reuso de cálculos costosos.
+- Mantiene historial/auditoría por `created_by` en propiedades.
+
+Consideraciones:
+
+- Si quieres que un usuario tenga una copia totalmente independiente (p. ej. editar estructura): ofrecer “fork” que duplica `Molecule` (marca `forked_from`) — esto complica búsquedas y agregados, úsalo sólo si realmente necesario.
+- Las APIs deben exponer claramente: `/mine/` (basado en ownership) y endpoints globales (lectura pública según permisos).
+
 ## 🌐 Endpoints API
 
 ### Moléculas
