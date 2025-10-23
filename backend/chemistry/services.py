@@ -124,7 +124,6 @@ def create_molecule_from_smiles(
         raise ValidationError(f"Property calculation failed: {e}")
     except Exception as e:
         logger.error(f"Error creating molecule from SMILES '{smiles}': {e}")
-        # Keep message compatible with tests expecting this wording
         raise ValidationError(f"Invalid SMILES or chemistry engine error: {e}")
 
 
