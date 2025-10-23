@@ -1,0 +1,5191 @@
+openapi: 3.0.3
+info:
+  title: ChemFlow API
+  version: 0.1.0
+  description: API schema for ChemFlow
+paths:
+  /api/chemistry/families/:
+    get:
+      operationId: chemistry_families_list
+      description: Obtiene la lista de familias de moléculas.
+      summary: Listar familias
+      tags:
+      - chemistry
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Family'
+          description: ''
+    post:
+      operationId: chemistry_families_create
+      description: Crea una nueva familia de moléculas.
+      summary: Crear familia
+      tags:
+      - chemistry
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Family'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Family'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Family'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Family'
+          description: ''
+  /api/chemistry/families/{id}/:
+    get:
+      operationId: chemistry_families_retrieve
+      description: ViewSet para familias de moléculas.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este family.
+        required: true
+      tags:
+      - chemistry
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Family'
+          description: ''
+    put:
+      operationId: chemistry_families_update
+      description: ViewSet para familias de moléculas.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este family.
+        required: true
+      tags:
+      - chemistry
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Family'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Family'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Family'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Family'
+          description: ''
+    patch:
+      operationId: chemistry_families_partial_update
+      description: ViewSet para familias de moléculas.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este family.
+        required: true
+      tags:
+      - chemistry
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedFamily'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedFamily'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedFamily'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Family'
+          description: ''
+    delete:
+      operationId: chemistry_families_destroy
+      description: ViewSet para familias de moléculas.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este family.
+        required: true
+      tags:
+      - chemistry
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/chemistry/families/{id}/add_property/:
+    post:
+      operationId: chemistry_families_add_property_create
+      description: Agrega una propiedad a la familia.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este family.
+        required: true
+      tags:
+      - chemistry
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Family'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Family'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Family'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Family'
+          description: ''
+  /api/chemistry/families/{id}/generate_admetsa/:
+    post:
+      operationId: chemistry_families_generate_admetsa_create
+      description: Genera propiedades ADMETSA para la familia.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este family.
+        required: true
+      tags:
+      - chemistry
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Family'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Family'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Family'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Family'
+          description: ''
+  /api/chemistry/families/from_smiles/:
+    post:
+      operationId: chemistry_families_from_smiles_create
+      description: Crea una familia desde lista de SMILES.
+      tags:
+      - chemistry
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Family'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Family'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Family'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Family'
+          description: ''
+  /api/chemistry/families/mine/:
+    get:
+      operationId: chemistry_families_mine_retrieve
+      description: Obtiene familias relacionadas con moléculas del usuario autenticado.
+      tags:
+      - chemistry
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Family'
+          description: ''
+  /api/chemistry/family-members/:
+    get:
+      operationId: chemistry_family_members_list
+      description: Obtiene la lista de relaciones molécula-familia.
+      summary: Listar miembros de familias
+      tags:
+      - chemistry
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FamilyMember'
+          description: ''
+    post:
+      operationId: chemistry_family_members_create
+      description: Agrega una molécula a una familia.
+      summary: Agregar miembro a familia
+      tags:
+      - chemistry
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FamilyMember'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FamilyMember'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FamilyMember'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyMember'
+          description: ''
+  /api/chemistry/family-members/{id}/:
+    get:
+      operationId: chemistry_family_members_retrieve
+      description: ViewSet para membresías de familias (relaciones molécula-familia).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este family member.
+        required: true
+      tags:
+      - chemistry
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyMember'
+          description: ''
+    put:
+      operationId: chemistry_family_members_update
+      description: ViewSet para membresías de familias (relaciones molécula-familia).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este family member.
+        required: true
+      tags:
+      - chemistry
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FamilyMember'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FamilyMember'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FamilyMember'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyMember'
+          description: ''
+    patch:
+      operationId: chemistry_family_members_partial_update
+      description: ViewSet para membresías de familias (relaciones molécula-familia).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este family member.
+        required: true
+      tags:
+      - chemistry
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedFamilyMember'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedFamilyMember'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedFamilyMember'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyMember'
+          description: ''
+    delete:
+      operationId: chemistry_family_members_destroy
+      description: ViewSet para membresías de familias (relaciones molécula-familia).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este family member.
+        required: true
+      tags:
+      - chemistry
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/chemistry/family-properties/:
+    get:
+      operationId: chemistry_family_properties_list
+      description: Obtiene la lista de propiedades de familias.
+      summary: Listar propiedades de familias
+      tags:
+      - chemistry
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FamilyProperty'
+          description: ''
+    post:
+      operationId: chemistry_family_properties_create
+      description: Crea una nueva propiedad para una familia.
+      summary: Crear propiedad de familia
+      tags:
+      - chemistry
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FamilyProperty'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FamilyProperty'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FamilyProperty'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyProperty'
+          description: ''
+  /api/chemistry/family-properties/{id}/:
+    get:
+      operationId: chemistry_family_properties_retrieve
+      description: ViewSet para propiedades de familias (EAV).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este family property.
+        required: true
+      tags:
+      - chemistry
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyProperty'
+          description: ''
+    put:
+      operationId: chemistry_family_properties_update
+      description: ViewSet para propiedades de familias (EAV).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este family property.
+        required: true
+      tags:
+      - chemistry
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FamilyProperty'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FamilyProperty'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FamilyProperty'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyProperty'
+          description: ''
+    patch:
+      operationId: chemistry_family_properties_partial_update
+      description: ViewSet para propiedades de familias (EAV).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este family property.
+        required: true
+      tags:
+      - chemistry
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedFamilyProperty'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedFamilyProperty'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedFamilyProperty'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyProperty'
+          description: ''
+    delete:
+      operationId: chemistry_family_properties_destroy
+      description: ViewSet para propiedades de familias (EAV).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este family property.
+        required: true
+      tags:
+      - chemistry
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/chemistry/molecular-properties/:
+    get:
+      operationId: chemistry_molecular_properties_list
+      description: Obtiene la lista de propiedades moleculares.
+      summary: Listar propiedades moleculares
+      tags:
+      - chemistry
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MolecularProperty'
+          description: ''
+    post:
+      operationId: chemistry_molecular_properties_create
+      description: Crea una nueva propiedad para una molécula.
+      summary: Crear propiedad molecular
+      tags:
+      - chemistry
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MolecularProperty'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MolecularProperty'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MolecularProperty'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MolecularProperty'
+          description: ''
+  /api/chemistry/molecular-properties/{id}/:
+    get:
+      operationId: chemistry_molecular_properties_retrieve
+      description: ViewSet para propiedades moleculares (EAV).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este molecular property.
+        required: true
+      tags:
+      - chemistry
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MolecularProperty'
+          description: ''
+    put:
+      operationId: chemistry_molecular_properties_update
+      description: ViewSet para propiedades moleculares (EAV).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este molecular property.
+        required: true
+      tags:
+      - chemistry
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MolecularProperty'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MolecularProperty'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MolecularProperty'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MolecularProperty'
+          description: ''
+    patch:
+      operationId: chemistry_molecular_properties_partial_update
+      description: ViewSet para propiedades moleculares (EAV).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este molecular property.
+        required: true
+      tags:
+      - chemistry
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedMolecularProperty'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedMolecularProperty'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedMolecularProperty'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MolecularProperty'
+          description: ''
+    delete:
+      operationId: chemistry_molecular_properties_destroy
+      description: ViewSet para propiedades moleculares (EAV).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este molecular property.
+        required: true
+      tags:
+      - chemistry
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/chemistry/molecules/:
+    get:
+      operationId: chemistry_molecules_list
+      description: Obtiene la lista de moléculas disponibles en el sistema.
+      summary: Listar moléculas
+      tags:
+      - chemistry
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Molecule'
+          description: ''
+    post:
+      operationId: chemistry_molecules_create
+      description: Crea una nueva molécula con sus propiedades básicas.
+      summary: Crear molécula
+      tags:
+      - chemistry
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Molecule'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Molecule'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Molecule'
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Molecule'
+          description: ''
+  /api/chemistry/molecules/{id}/:
+    get:
+      operationId: chemistry_molecules_retrieve
+      description: Obtiene los detalles de una molécula específica.
+      summary: Obtener molécula
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este molecule.
+        required: true
+      tags:
+      - chemistry
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Molecule'
+          description: ''
+    put:
+      operationId: chemistry_molecules_update
+      description: Actualiza una molécula existente.
+      summary: Actualizar molécula
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este molecule.
+        required: true
+      tags:
+      - chemistry
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Molecule'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Molecule'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Molecule'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Molecule'
+          description: ''
+    patch:
+      operationId: chemistry_molecules_partial_update
+      description: Actualiza parcialmente una molécula existente.
+      summary: Actualizar parcialmente molécula
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este molecule.
+        required: true
+      tags:
+      - chemistry
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedMolecule'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedMolecule'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedMolecule'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Molecule'
+          description: ''
+    delete:
+      operationId: chemistry_molecules_destroy
+      description: Elimina una molécula del sistema.
+      summary: Eliminar molécula
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este molecule.
+        required: true
+      tags:
+      - chemistry
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/chemistry/molecules/{id}/add_property/:
+    post:
+      operationId: chemistry_molecules_add_property_create
+      description: Agrega una propiedad a la molécula.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este molecule.
+        required: true
+      tags:
+      - chemistry
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Molecule'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Molecule'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Molecule'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Molecule'
+          description: ''
+  /api/chemistry/molecules/from_smiles/:
+    post:
+      operationId: chemistry_molecules_from_smiles_create
+      description: Crea una molécula desde notación SMILES.
+      tags:
+      - chemistry
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Molecule'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Molecule'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Molecule'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Molecule'
+          description: ''
+  /api/chemistry/molecules/mine/:
+    get:
+      operationId: chemistry_molecules_mine_retrieve
+      description: Endpoint personalizado para obtener moléculas del usuario autenticado.
+      tags:
+      - chemistry
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Molecule'
+          description: ''
+  /api/flows/artifacts/:
+    get:
+      operationId: flows_artifacts_list
+      description: Obtiene todos los artefactos (archivos, datos) generados por flujos.
+        Los artefactos son content-addressable (identificados por hash SHA256).
+      summary: Listar artefactos
+      tags:
+      - Artifacts
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Artifact'
+          description: ''
+    post:
+      operationId: flows_artifacts_create
+      description: Registra un nuevo artefacto en el sistema. El contenido debe ser
+        almacenado en storage externo (S3/MinIO) y se registra el hash SHA256.
+      summary: Crear artefacto
+      tags:
+      - Artifacts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Artifact'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Artifact'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Artifact'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Artifact'
+          description: ''
+  /api/flows/artifacts/{id}/:
+    get:
+      operationId: flows_artifacts_retrieve
+      description: Recupera metadata de un artefacto específico, incluyendo hash,
+        tipo de contenido y ubicación de almacenamiento.
+      summary: Obtener detalles de artefacto
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este artifact.
+        required: true
+      tags:
+      - Artifacts
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Artifact'
+          description: ''
+    put:
+      operationId: flows_artifacts_update
+      description: Actualiza metadata de un artefacto (no el contenido, que es inmutable).
+      summary: Actualizar artefacto completo
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este artifact.
+        required: true
+      tags:
+      - Artifacts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Artifact'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Artifact'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Artifact'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Artifact'
+          description: ''
+    patch:
+      operationId: flows_artifacts_partial_update
+      description: Actualiza campos específicos de metadata de un artefacto.
+      summary: Actualizar artefacto parcialmente
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este artifact.
+        required: true
+      tags:
+      - Artifacts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedArtifact'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedArtifact'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedArtifact'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Artifact'
+          description: ''
+    delete:
+      operationId: flows_artifacts_destroy
+      description: Elimina el registro de un artefacto (no borra el contenido en storage).
+      summary: Eliminar artefacto
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este artifact.
+        required: true
+      tags:
+      - Artifacts
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/flows/artifacts/{id}/download/:
+    get:
+      operationId: flows_artifacts_download_retrieve
+      description: Obtiene la URL de descarga del archivo del artefacto.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este artifact.
+        required: true
+      tags:
+      - flows
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Artifact'
+          description: ''
+  /api/flows/branches/:
+    get:
+      operationId: flows_branches_list
+      description: Obtiene todas las ramas en la estructura de árbol de flujos. Cada
+        rama representa una línea de desarrollo independiente sin posibilidad de merge.
+      summary: Listar ramas de flujos
+      tags:
+      - Branches
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FlowBranch'
+          description: ''
+    post:
+      operationId: flows_branches_create
+      description: Crea una rama bifurcando desde un nodo existente de otra rama.
+        Implementa algoritmo de árbol sin merges ni ciclos.
+      summary: Crear nueva rama
+      tags:
+      - Branches
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBranch'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CreateBranch'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreateBranch'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateBranch'
+          description: ''
+  /api/flows/branches/{id}/:
+    get:
+      operationId: flows_branches_retrieve
+      description: Recupera información de una rama específica, incluyendo su nodo
+        head (último paso) y nodo de inicio.
+      summary: Obtener detalles de una rama
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este flow branch.
+        required: true
+      tags:
+      - Branches
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlowBranch'
+          description: ''
+    put:
+      operationId: flows_branches_update
+      description: ViewSet para gestión de ramas en el árbol de flujos (sin merges).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este flow branch.
+        required: true
+      tags:
+      - flows
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FlowBranch'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FlowBranch'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FlowBranch'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlowBranch'
+          description: ''
+    patch:
+      operationId: flows_branches_partial_update
+      description: ViewSet para gestión de ramas en el árbol de flujos (sin merges).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este flow branch.
+        required: true
+      tags:
+      - flows
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedFlowBranch'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedFlowBranch'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedFlowBranch'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlowBranch'
+          description: ''
+    delete:
+      operationId: flows_branches_destroy
+      description: Elimina una rama y todas sus sub-ramas recursivamente. Los nodos
+        compartidos con otras ramas no se eliminan. No se puede eliminar la rama principal.
+      summary: Eliminar rama
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este flow branch.
+        required: true
+      tags:
+      - Branches
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/flows/branches/{id}/add-step/:
+    post:
+      operationId: flows_branches_add_step_create
+      description: Añade un paso a la rama.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este flow branch.
+        required: true
+      tags:
+      - flows
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddStep'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AddStep'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AddStep'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddStep'
+          description: ''
+  /api/flows/branches/{id}/path/:
+    get:
+      operationId: flows_branches_path_retrieve
+      description: Retorna el camino de nodos de la rama.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este flow branch.
+        required: true
+      tags:
+      - flows
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlowBranch'
+          description: ''
+  /api/flows/executions/:
+    get:
+      operationId: flows_executions_list
+      description: Obtiene todos los snapshots de ejecución de flujos. Cada snapshot
+        representa una ejecución completa de un flujo con sus inputs, outputs y metadata.
+      summary: Listar ejecuciones de flujos
+      tags:
+      - Executions
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExecutionSnapshot'
+          description: ''
+    post:
+      operationId: flows_executions_create
+      description: Crea un nuevo snapshot de ejecución para un flujo. Típicamente
+        se usa a través del endpoint execute de FlowVersion.
+      summary: Crear snapshot de ejecución
+      tags:
+      - Executions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExecutionSnapshot'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ExecutionSnapshot'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ExecutionSnapshot'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExecutionSnapshot'
+          description: ''
+  /api/flows/executions/{id}/:
+    get:
+      operationId: flows_executions_retrieve
+      description: Recupera información completa de un snapshot de ejecución, incluyendo
+        la versión del flujo ejecutada, usuario que la disparó y timestamp.
+      summary: Obtener detalles de ejecución
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este execution snapshot.
+        required: true
+      tags:
+      - Executions
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExecutionSnapshot'
+          description: ''
+    put:
+      operationId: flows_executions_update
+      description: ViewSet para gestión de snapshots de ejecución de flujos.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este execution snapshot.
+        required: true
+      tags:
+      - flows
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExecutionSnapshot'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ExecutionSnapshot'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ExecutionSnapshot'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExecutionSnapshot'
+          description: ''
+    patch:
+      operationId: flows_executions_partial_update
+      description: ViewSet para gestión de snapshots de ejecución de flujos.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este execution snapshot.
+        required: true
+      tags:
+      - flows
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedExecutionSnapshot'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedExecutionSnapshot'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedExecutionSnapshot'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExecutionSnapshot'
+          description: ''
+    delete:
+      operationId: flows_executions_destroy
+      description: ViewSet para gestión de snapshots de ejecución de flujos.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este execution snapshot.
+        required: true
+      tags:
+      - flows
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/flows/executions/{id}/steps/:
+    get:
+      operationId: flows_executions_steps_retrieve
+      description: Obtiene las ejecuciones de pasos de un snapshot.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este execution snapshot.
+        required: true
+      tags:
+      - flows
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExecutionSnapshot'
+          description: ''
+  /api/flows/flows/:
+    get:
+      operationId: flows_flows_list
+      description: Obtiene todos los flujos de trabajo (workflows) accesibles por
+        el usuario. Los usuarios con permisos globales ven todos los flujos, mientras
+        que los demás solo ven sus propios flujos.
+      summary: Listar flujos de trabajo
+      tags:
+      - Flows
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Flow'
+          description: ''
+    post:
+      operationId: flows_flows_create
+      description: Crea un nuevo flujo de trabajo. Automáticamente inicializa una
+        rama principal vacía para el flujo. El usuario autenticado se asigna como
+        propietario.
+      summary: Crear un nuevo flujo
+      tags:
+      - Flows
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Flow'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Flow'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Flow'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Flow'
+          description: ''
+  /api/flows/flows/{id}/:
+    get:
+      operationId: flows_flows_retrieve
+      description: Recupera la información completa de un flujo específico por su
+        ID.
+      summary: Obtener detalles de un flujo
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este flow.
+        required: true
+      tags:
+      - Flows
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Flow'
+          description: ''
+    put:
+      operationId: flows_flows_update
+      description: Actualiza todos los campos de un flujo existente (PUT completo).
+      summary: Actualizar flujo completo
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este flow.
+        required: true
+      tags:
+      - Flows
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Flow'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Flow'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Flow'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Flow'
+          description: ''
+    patch:
+      operationId: flows_flows_partial_update
+      description: Actualiza campos específicos de un flujo existente (PATCH parcial).
+      summary: Actualizar flujo parcialmente
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este flow.
+        required: true
+      tags:
+      - Flows
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedFlow'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedFlow'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedFlow'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Flow'
+          description: ''
+    delete:
+      operationId: flows_flows_destroy
+      description: Elimina permanentemente un flujo y todas sus versiones, ramas y
+        nodos asociados.
+      summary: Eliminar un flujo
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este flow.
+        required: true
+      tags:
+      - Flows
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/flows/flows/{id}/create-branch/:
+    post:
+      operationId: flows_flows_create_branch_create
+      description: Crea una nueva rama en el flujo.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este flow.
+        required: true
+      tags:
+      - flows
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Flow'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Flow'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Flow'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Flow'
+          description: ''
+  /api/flows/flows/{id}/create_version/:
+    post:
+      operationId: flows_flows_create_version_create
+      description: Create a new version for a flow
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este flow.
+        required: true
+      tags:
+      - flows
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Flow'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Flow'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Flow'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Flow'
+          description: ''
+  /api/flows/flows/{id}/versions/:
+    get:
+      operationId: flows_flows_versions_retrieve
+      description: Obtiene todas las versiones de un flujo.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este flow.
+        required: true
+      tags:
+      - flows
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Flow'
+          description: ''
+  /api/flows/flows/create-cadma1/:
+    post:
+      operationId: flows_flows_create_cadma1_create
+      description: Crea un flow con el primer paso 'create_reference_family' ejecutado.
+      tags:
+      - flows
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Flow'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Flow'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Flow'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Flow'
+          description: ''
+  /api/flows/flows/create-from-definition/:
+    post:
+      operationId: flows_flows_create_from_definition_create
+      description: |-
+        Create a flow instance from a registered definition.
+
+        Body: { key: str, name?: str, params_override?: { index: dict } }
+      tags:
+      - flows
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Flow'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Flow'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Flow'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Flow'
+          description: ''
+  /api/flows/flows/definitions/:
+    get:
+      operationId: flows_flows_definitions_retrieve
+      description: List available flow definitions (predefined templates).
+      tags:
+      - flows
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Flow'
+          description: ''
+  /api/flows/flows/mine/:
+    get:
+      operationId: flows_flows_mine_retrieve
+      description: Devuelve los flows creados por el usuario autenticado.
+      tags:
+      - flows
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Flow'
+          description: ''
+  /api/flows/nodes/:
+    get:
+      operationId: flows_nodes_list
+      description: Obtiene todos los nodos (pasos) en el árbol de flujos. Los nodos
+        pueden ser compartidos entre múltiples ramas (deduplicación por content_hash).
+      summary: Listar nodos de flujos
+      tags:
+      - Nodes
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FlowNode'
+          description: ''
+  /api/flows/nodes/{id}/:
+    get:
+      operationId: flows_nodes_retrieve
+      description: Recupera información de un nodo específico, incluyendo su contenido,
+        padre y hash de contenido. Solo lectura.
+      summary: Obtener detalles de nodo
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este flow node.
+        required: true
+      tags:
+      - Nodes
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlowNode'
+          description: ''
+  /api/flows/step-executions/:
+    get:
+      operationId: flows_step_executions_list
+      description: Obtiene todas las ejecuciones individuales de pasos a través de
+        todos los snapshots de ejecución.
+      summary: Listar todas las ejecuciones de pasos
+      tags:
+      - Step Executions
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StepExecution'
+          description: ''
+    post:
+      operationId: flows_step_executions_create
+      description: ViewSet para gestión de ejecuciones individuales de pasos.
+      tags:
+      - flows
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StepExecution'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StepExecution'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StepExecution'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StepExecution'
+          description: ''
+  /api/flows/step-executions/{id}/:
+    get:
+      operationId: flows_step_executions_retrieve
+      description: Recupera información detallada de la ejecución de un paso específico,
+        incluyendo inputs, outputs, estado (success/failure), logs y artefactos producidos.
+      summary: Obtener detalles de ejecución de paso
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este step execution.
+        required: true
+      tags:
+      - Step Executions
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StepExecution'
+          description: ''
+    put:
+      operationId: flows_step_executions_update
+      description: ViewSet para gestión de ejecuciones individuales de pasos.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este step execution.
+        required: true
+      tags:
+      - flows
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StepExecution'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StepExecution'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StepExecution'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StepExecution'
+          description: ''
+    patch:
+      operationId: flows_step_executions_partial_update
+      description: ViewSet para gestión de ejecuciones individuales de pasos.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este step execution.
+        required: true
+      tags:
+      - flows
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedStepExecution'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedStepExecution'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedStepExecution'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StepExecution'
+          description: ''
+    delete:
+      operationId: flows_step_executions_destroy
+      description: ViewSet para gestión de ejecuciones individuales de pasos.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este step execution.
+        required: true
+      tags:
+      - flows
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/flows/step-executions/{id}/cancel/:
+    post:
+      operationId: flows_step_executions_cancel_create
+      description: ViewSet para gestión de ejecuciones individuales de pasos.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este step execution.
+        required: true
+      tags:
+      - flows
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StepExecution'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StepExecution'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StepExecution'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StepExecution'
+          description: ''
+  /api/flows/step-executions/{id}/status/:
+    get:
+      operationId: flows_step_executions_status_retrieve
+      description: ViewSet para gestión de ejecuciones individuales de pasos.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este step execution.
+        required: true
+      tags:
+      - flows
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StepExecution'
+          description: ''
+  /api/flows/steps/:
+    get:
+      operationId: flows_steps_list
+      description: Obtiene todos los pasos (tareas) definidos en los flujos del sistema.
+      summary: Listar pasos de flujos
+      tags:
+      - Steps
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Step'
+          description: ''
+    post:
+      operationId: flows_steps_create
+      description: Crea un nuevo paso (tarea) en un flujo, definiendo su configuración,
+        inputs esperados y outputs generados.
+      summary: Crear un paso
+      tags:
+      - Steps
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Step'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Step'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Step'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Step'
+          description: ''
+  /api/flows/steps/{id}/:
+    get:
+      operationId: flows_steps_retrieve
+      description: Recupera la información completa de un paso específico de un flujo.
+      summary: Obtener detalles de un paso
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este step.
+        required: true
+      tags:
+      - Steps
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Step'
+          description: ''
+    put:
+      operationId: flows_steps_update
+      description: Actualiza todos los campos de un paso existente.
+      summary: Actualizar paso completo
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este step.
+        required: true
+      tags:
+      - Steps
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Step'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Step'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Step'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Step'
+          description: ''
+    patch:
+      operationId: flows_steps_partial_update
+      description: Actualiza campos específicos de un paso existente.
+      summary: Actualizar paso parcialmente
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este step.
+        required: true
+      tags:
+      - Steps
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedStep'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedStep'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedStep'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Step'
+          description: ''
+    delete:
+      operationId: flows_steps_destroy
+      description: Elimina un paso de un flujo.
+      summary: Eliminar un paso
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este step.
+        required: true
+      tags:
+      - Steps
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/flows/steps/{id}/append-step/:
+    post:
+      operationId: flows_steps_append_step_create
+      description: ViewSet para gestión de pasos (tareas) en flujos de trabajo.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este step.
+        required: true
+      tags:
+      - flows
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Step'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Step'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Step'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Step'
+          description: ''
+  /api/flows/steps/{id}/run/:
+    post:
+      operationId: flows_steps_run_create
+      description: ViewSet para gestión de pasos (tareas) en flujos de trabajo.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este step.
+        required: true
+      tags:
+      - flows
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Step'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Step'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Step'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Step'
+          description: ''
+  /api/flows/steps/catalog/:
+    get:
+      operationId: flows_steps_catalog_retrieve
+      description: ViewSet para gestión de pasos (tareas) en flujos de trabajo.
+      tags:
+      - flows
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Step'
+          description: ''
+  /api/flows/steps/execute/:
+    post:
+      operationId: flows_steps_execute_create
+      description: ViewSet para gestión de pasos (tareas) en flujos de trabajo.
+      tags:
+      - flows
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Step'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Step'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Step'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Step'
+          description: ''
+  /api/flows/versions/:
+    get:
+      operationId: flows_versions_list
+      description: Obtiene todas las versiones de flujos del sistema que el usuario
+        puede ver.
+      summary: Listar versiones de flujos
+      tags:
+      - Flow Versions
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FlowVersion'
+          description: ''
+    post:
+      operationId: flows_versions_create
+      description: Crea una nueva versión (snapshot) de un flujo. Las versiones pueden
+        ser congeladas para hacerlas inmutables.
+      summary: Crear versión de flujo
+      tags:
+      - Flow Versions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FlowVersion'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FlowVersion'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FlowVersion'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlowVersion'
+          description: ''
+  /api/flows/versions/{id}/:
+    get:
+      operationId: flows_versions_retrieve
+      description: Recupera los detalles de una versión específica de un flujo.
+      summary: Obtener versión de flujo
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este flow version.
+        required: true
+      tags:
+      - Flow Versions
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlowVersion'
+          description: ''
+    put:
+      operationId: flows_versions_update
+      description: Actualiza una versión de flujo (solo si no está congelada).
+      summary: Actualizar versión de flujo
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este flow version.
+        required: true
+      tags:
+      - Flow Versions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FlowVersion'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FlowVersion'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FlowVersion'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlowVersion'
+          description: ''
+    patch:
+      operationId: flows_versions_partial_update
+      description: Actualiza campos específicos de una versión (solo si no está congelada).
+      summary: Actualizar versión parcialmente
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este flow version.
+        required: true
+      tags:
+      - Flow Versions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedFlowVersion'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedFlowVersion'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedFlowVersion'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlowVersion'
+          description: ''
+    delete:
+      operationId: flows_versions_destroy
+      description: Elimina una versión de flujo (típicamente no permitido si está
+        congelada).
+      summary: Eliminar versión de flujo
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este flow version.
+        required: true
+      tags:
+      - Flow Versions
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/flows/versions/{id}/execute/:
+    post:
+      operationId: flows_versions_execute_create
+      description: Ejecuta una versión de flujo creando un snapshot de ejecución.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este flow version.
+        required: true
+      tags:
+      - flows
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FlowVersion'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FlowVersion'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FlowVersion'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlowVersion'
+          description: ''
+  /api/flows/versions/{id}/freeze/:
+    post:
+      operationId: flows_versions_freeze_create
+      description: Congela una versión de flujo (la hace inmutable).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este flow version.
+        required: true
+      tags:
+      - flows
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FlowVersion'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FlowVersion'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FlowVersion'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlowVersion'
+          description: ''
+  /api/notifications/:
+    get:
+      operationId: notifications_list
+      description: |-
+        ViewSet para notificaciones de usuario.
+
+        Proporciona operaciones CRUD para notificaciones visibles al usuario.
+      tags:
+      - notifications
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserNotification'
+          description: ''
+    post:
+      operationId: notifications_create
+      description: |-
+        ViewSet para notificaciones de usuario.
+
+        Proporciona operaciones CRUD para notificaciones visibles al usuario.
+      tags:
+      - notifications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserNotification'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserNotification'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserNotification'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserNotification'
+          description: ''
+  /api/notifications/{id}/:
+    get:
+      operationId: notifications_retrieve
+      description: |-
+        ViewSet para notificaciones de usuario.
+
+        Proporciona operaciones CRUD para notificaciones visibles al usuario.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: ID de la notificación
+        required: true
+      tags:
+      - notifications
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserNotification'
+          description: ''
+    put:
+      operationId: notifications_update
+      description: |-
+        ViewSet para notificaciones de usuario.
+
+        Proporciona operaciones CRUD para notificaciones visibles al usuario.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: ID de la notificación
+        required: true
+      tags:
+      - notifications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserNotification'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserNotification'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserNotification'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserNotification'
+          description: ''
+    patch:
+      operationId: notifications_partial_update
+      description: |-
+        ViewSet para notificaciones de usuario.
+
+        Proporciona operaciones CRUD para notificaciones visibles al usuario.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: ID de la notificación
+        required: true
+      tags:
+      - notifications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUserNotification'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUserNotification'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUserNotification'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserNotification'
+          description: ''
+    delete:
+      operationId: notifications_destroy
+      description: |-
+        ViewSet para notificaciones de usuario.
+
+        Proporciona operaciones CRUD para notificaciones visibles al usuario.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: ID de la notificación
+        required: true
+      tags:
+      - notifications
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/notifications/{id}/mark_as_read/:
+    post:
+      operationId: notifications_mark_as_read_create
+      description: Marca una notificación específica como leída.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - notifications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserNotification'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserNotification'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserNotification'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserNotification'
+          description: ''
+  /api/notifications/mark_all_as_read/:
+    post:
+      operationId: notifications_mark_all_as_read_create
+      description: Marca todas las notificaciones del usuario como leídas.
+      tags:
+      - notifications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserNotification'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserNotification'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserNotification'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserNotification'
+          description: ''
+  /api/notifications/unread_count/:
+    get:
+      operationId: notifications_unread_count_retrieve
+      description: Retorna el conteo de notificaciones no leídas.
+      tags:
+      - notifications
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserNotification'
+          description: ''
+  /api/schema/:
+    get:
+      operationId: schema_retrieve
+      description: |-
+        OpenApi3 schema for this API. Format can be selected via content negotiation.
+
+        - YAML: application/vnd.oai.openapi
+        - JSON: application/vnd.oai.openapi+json
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - json
+          - yaml
+      - in: query
+        name: lang
+        schema:
+          type: string
+          enum:
+          - af
+          - ar
+          - ar-dz
+          - ast
+          - az
+          - be
+          - bg
+          - bn
+          - br
+          - bs
+          - ca
+          - ckb
+          - cs
+          - cy
+          - da
+          - de
+          - dsb
+          - el
+          - en
+          - en-au
+          - en-gb
+          - eo
+          - es
+          - es-ar
+          - es-co
+          - es-mx
+          - es-ni
+          - es-ve
+          - et
+          - eu
+          - fa
+          - fi
+          - fr
+          - fy
+          - ga
+          - gd
+          - gl
+          - he
+          - hi
+          - hr
+          - hsb
+          - hu
+          - hy
+          - ia
+          - id
+          - ig
+          - io
+          - is
+          - it
+          - ja
+          - ka
+          - kab
+          - kk
+          - km
+          - kn
+          - ko
+          - ky
+          - lb
+          - lt
+          - lv
+          - mk
+          - ml
+          - mn
+          - mr
+          - ms
+          - my
+          - nb
+          - ne
+          - nl
+          - nn
+          - os
+          - pa
+          - pl
+          - pt
+          - pt-br
+          - ro
+          - ru
+          - sk
+          - sl
+          - sq
+          - sr
+          - sr-latn
+          - sv
+          - sw
+          - ta
+          - te
+          - tg
+          - th
+          - tk
+          - tr
+          - tt
+          - udm
+          - ug
+          - uk
+          - ur
+          - uz
+          - vi
+          - zh-hans
+          - zh-hant
+      tags:
+      - schema
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/vnd.oai.openapi:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/yaml:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/vnd.oai.openapi+json:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/token/:
+    post:
+      operationId: token_create
+      description: "\n        Autentica un usuario y retorna tokens JWT junto con\
+        \ información del perfil.\n        \n        **Características:**\n      \
+        \  - Valida credenciales (username/password)\n        - Genera access token\
+        \ (válido 60 minutos)\n        - Genera refresh token (válido 7 días)\n  \
+        \      - Incluye datos completos del usuario (roles, permisos, perfil)\n \
+        \       \n        **Uso del access token:**\n        Incluir en el header\
+        \ de requests subsecuentes:\n        ```\n        Authorization: Bearer {access_token}\n\
+        \        ```\n        \n        **Renovación:**\n        Cuando el access\
+        \ token expire, usar el endpoint `/api/token/refresh/`\n        con el refresh\
+        \ token para obtener un nuevo access token sin necesidad\n        de volver\
+        \ a autenticarse.\n        "
+      summary: Login de usuario
+      tags:
+      - Autenticación
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+            examples:
+              LoginConUsernameYPassword:
+                value:
+                  username: admin
+                  password: admin123
+                summary: Login con username y password
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                EjemploDeRespuestaExitosa:
+                  value:
+                    access: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                    refresh: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                    user:
+                      id: 1
+                      username: admin
+                      email: admin@chemflow.com
+                      first_name: Carlos
+                      last_name: Administrador
+                      universidad: Universidad Nacional
+                      roles:
+                      - id: 1
+                        name: admin
+                        permissions:
+                        - resource: users
+                          action: read
+                          name: 'Users: Read'
+                          codename: users_read
+                  summary: Ejemplo de respuesta exitosa
+          description: Autenticación exitosa
+        '401':
+          description: Credenciales inválidas
+  /api/token/refresh/:
+    post:
+      operationId: token_refresh_create
+      description: |-
+        Takes a refresh type JSON web token and returns an access type JSON web
+        token if the refresh token is valid.
+      tags:
+      - token
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefresh'
+          description: ''
+  /api/users/permissions/:
+    get:
+      operationId: users_permissions_list
+      description: Obtiene todos los permisos definidos en el sistema (resource:action).
+        Solo lectura. Los permisos se crean típicamente via seed o migraciones.
+      summary: Listar permisos disponibles
+      tags:
+      - Permissions
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Permission'
+          description: ''
+  /api/users/permissions/{id}/:
+    get:
+      operationId: users_permissions_retrieve
+      description: Recupera información de un permiso específico, incluyendo su recurso,
+        acción, codename y descripción.
+      summary: Obtener detalles de permiso
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este permission.
+        required: true
+      tags:
+      - Permissions
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Permission'
+          description: ''
+  /api/users/roles/:
+    get:
+      operationId: users_roles_list
+      description: 'Obtiene todos los roles del sistema RBAC. Los roles agrupan permisos
+        y se asignan a usuarios (ej: admin, scientist, viewer).'
+      summary: Listar roles
+      tags:
+      - Roles
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Role'
+          description: ''
+    post:
+      operationId: users_roles_create
+      description: Crea un nuevo rol en el sistema. Se pueden asignar permisos específicos
+        al momento de creación o posteriormente.
+      summary: Crear nuevo rol
+      tags:
+      - Roles
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Role'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Role'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Role'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Role'
+          description: ''
+  /api/users/roles/{id}/:
+    get:
+      operationId: users_roles_retrieve
+      description: Recupera información completa de un rol, incluyendo todos los permisos
+        asociados.
+      summary: Obtener detalles de rol
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este role.
+        required: true
+      tags:
+      - Roles
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Role'
+          description: ''
+    put:
+      operationId: users_roles_update
+      description: Actualiza todos los campos de un rol, incluyendo su lista de permisos.
+      summary: Actualizar rol completo
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este role.
+        required: true
+      tags:
+      - Roles
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Role'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Role'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Role'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Role'
+          description: ''
+    patch:
+      operationId: users_roles_partial_update
+      description: Actualiza campos específicos de un rol.
+      summary: Actualizar rol parcialmente
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este role.
+        required: true
+      tags:
+      - Roles
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedRole'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedRole'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedRole'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Role'
+          description: ''
+    delete:
+      operationId: users_roles_destroy
+      description: Elimina un rol del sistema. Los usuarios que tenían este rol perderán
+        los permisos asociados.
+      summary: Eliminar rol
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este role.
+        required: true
+      tags:
+      - Roles
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/users/users/:
+    get:
+      operationId: users_users_list
+      description: Obtiene todos los usuarios del sistema. Requiere permisos administrativos
+        (users:read) para ver usuarios distintos al propio.
+      summary: Listar usuarios
+      tags:
+      - Users
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+          description: ''
+    post:
+      operationId: users_users_create
+      description: Registra un nuevo usuario en el sistema. Solo administradores con
+        permisos users:write pueden crear usuarios. Se requiere username y password.
+      summary: Crear nuevo usuario
+      tags:
+      - Users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserCreate'
+          description: ''
+  /api/users/users/{id}/:
+    get:
+      operationId: users_users_retrieve
+      description: Recupera información completa de un usuario específico, incluyendo
+        sus roles asignados y universidad asociada.
+      summary: Obtener detalles de usuario
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este user.
+        required: true
+      tags:
+      - Users
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    put:
+      operationId: users_users_update
+      description: Actualiza todos los campos de un usuario existente. Requiere permisos
+        users:write.
+      summary: Actualizar usuario completo
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este user.
+        required: true
+      tags:
+      - Users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/User'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    patch:
+      operationId: users_users_partial_update
+      description: Actualiza campos específicos de un usuario. Requiere permisos users:write.
+      summary: Actualizar usuario parcialmente
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este user.
+        required: true
+      tags:
+      - Users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    delete:
+      operationId: users_users_destroy
+      description: 'Elimina un usuario del sistema. Requiere permisos users:write.
+        Cuidado: esto puede afectar integridad referencial con flujos y moléculas.'
+      summary: Eliminar usuario
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este user.
+        required: true
+      tags:
+      - Users
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/users/users/{id}/activate/:
+    post:
+      operationId: users_users_activate_create
+      description: Activa un usuario desactivado.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este user.
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/User'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/users/users/{id}/admin-change-password/:
+    post:
+      operationId: users_users_admin_change_password_create
+      description: Permite a administradores cambiar contraseñas de usuarios.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este user.
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/User'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/users/users/{id}/admin-update/:
+    patch:
+      operationId: users_users_admin_update_partial_update
+      description: Permite a administradores actualizar usuarios completamente.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este user.
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/users/users/{id}/deactivate/:
+    post:
+      operationId: users_users_deactivate_create
+      description: Desactiva un usuario.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este user.
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/User'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/users/users/{id}/permissions/:
+    get:
+      operationId: users_users_permissions_retrieve
+      description: Obtiene todos los permisos de un usuario a través de sus roles.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este user.
+        required: true
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/users/users/{id}/resources/:
+    get:
+      operationId: users_users_resources_retrieve
+      description: Retorna flujos y familias asociados al usuario especificado.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este user.
+        required: true
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/users/users/change-password/:
+    post:
+      operationId: users_users_change_password_create
+      description: Cambia la contraseña del usuario autenticado.
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/User'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/users/users/me/:
+    get:
+      operationId: users_users_me_retrieve
+      description: Obtiene información del usuario autenticado.
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/users/users/me/update/:
+    patch:
+      operationId: users_users_me_update_partial_update
+      description: Actualiza el perfil del usuario autenticado.
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/users/users/request-password-reset/:
+    post:
+      operationId: users_users_request_password_reset_create
+      description: Solicita recuperación de contraseña vía email.
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/User'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/users/users/reset-password/:
+    post:
+      operationId: users_users_reset_password_create
+      description: Confirma la recuperación de contraseña con token.
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/User'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/users/users/send-verification-email/:
+    post:
+      operationId: users_users_send_verification_email_create
+      description: Envía email de verificación al usuario autenticado.
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/User'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/users/users/verify-email/:
+    post:
+      operationId: users_users_verify_email_create
+      description: Verifica el email del usuario con el token.
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/User'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+components:
+  schemas:
+    AddStep:
+      type: object
+      description: Serializer para añadir un paso a una rama.
+      properties:
+        content:
+          description: Contenido del paso
+      required:
+      - content
+    Artifact:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        sha256:
+          type: string
+          maxLength: 64
+        filename:
+          type: string
+          maxLength: 255
+        content_type:
+          type: string
+          maxLength: 100
+        size:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        storage_path:
+          type: string
+          maxLength: 500
+        metadata: {}
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        created_by:
+          type: integer
+          readOnly: true
+      required:
+      - content_type
+      - created_at
+      - created_by
+      - filename
+      - id
+      - sha256
+      - size
+      - storage_path
+    CreateBranch:
+      type: object
+      description: Serializer para crear una nueva rama.
+      properties:
+        name:
+          type: string
+          description: Nombre de la nueva rama
+          maxLength: 200
+        from_branch:
+          type: string
+          description: Rama padre desde la cual ramificar
+          maxLength: 200
+        at_step:
+          type: integer
+          minimum: 1
+          description: Número de paso (1-indexed) donde iniciar la nueva rama
+      required:
+      - at_step
+      - from_branch
+      - name
+    ExecutionSnapshot:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        flow_version:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        triggered_by:
+          type: integer
+          readOnly: true
+        metadata: {}
+        status:
+          $ref: '#/components/schemas/ExecutionSnapshotStatusEnum'
+        step_executions:
+          type: array
+          items:
+            $ref: '#/components/schemas/StepExecution'
+          readOnly: true
+      required:
+      - created_at
+      - flow_version
+      - id
+      - step_executions
+      - triggered_by
+    ExecutionSnapshotStatusEnum:
+      enum:
+      - running
+      - completed
+      - failed
+      - partial
+      type: string
+      description: |-
+        * `running` - Running
+        * `completed` - Completed
+        * `failed` - Failed
+        * `partial` - Partial
+    Family:
+      type: object
+      description: Serializador para familias con propiedades anidadas y tipado fuerte.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+        family_hash:
+          type: string
+          maxLength: 128
+        provenance:
+          type: string
+          maxLength: 200
+        frozen:
+          type: boolean
+        metadata: {}
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        created_by:
+          type: integer
+          readOnly: true
+          nullable: true
+        updated_by:
+          type: integer
+          readOnly: true
+          nullable: true
+        properties:
+          type: array
+          items:
+            $ref: '#/components/schemas/FamilyProperty'
+          readOnly: true
+        aggregated_properties:
+          type: object
+          additionalProperties: {}
+          description: Get family aggregated properties using type-safe interface.
+          readOnly: true
+        member_statistics:
+          type: object
+          additionalProperties: {}
+          description: Get member property statistics using type-safe interface.
+          readOnly: true
+      required:
+      - aggregated_properties
+      - created_at
+      - created_by
+      - family_hash
+      - id
+      - member_statistics
+      - properties
+      - provenance
+      - updated_at
+      - updated_by
+    FamilyMember:
+      type: object
+      description: Serializador para membresía molécula-familia.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        family:
+          type: integer
+        molecule:
+          type: integer
+      required:
+      - family
+      - id
+      - molecule
+    FamilyProperty:
+      type: object
+      description: Serializador para propiedades de familias EAV.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        family:
+          type: integer
+        property_type:
+          type: string
+          maxLength: 200
+        value:
+          type: string
+        is_invariant:
+          type: boolean
+        method:
+          type: string
+          maxLength: 100
+        units:
+          type: string
+          maxLength: 50
+        relation:
+          type: string
+          maxLength: 10
+        source_id:
+          type: string
+          maxLength: 100
+        metadata: {}
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        created_by:
+          type: integer
+          readOnly: true
+          nullable: true
+        updated_by:
+          type: integer
+          readOnly: true
+          nullable: true
+      required:
+      - created_at
+      - created_by
+      - family
+      - id
+      - method
+      - property_type
+      - updated_at
+      - updated_by
+      - value
+    Flow:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+        owner:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        current_version:
+          allOf:
+          - $ref: '#/components/schemas/FlowVersion'
+          readOnly: true
+        versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlowVersion'
+          readOnly: true
+      required:
+      - created_at
+      - current_version
+      - id
+      - name
+      - owner
+      - updated_at
+      - versions
+    FlowBranch:
+      type: object
+      description: Serializer para ramas del flujo.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        flow:
+          type: integer
+        name:
+          type: string
+          maxLength: 200
+        head:
+          type: integer
+          readOnly: true
+        start_node:
+          type: integer
+          readOnly: true
+        parent_branch:
+          type: integer
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        created_by:
+          type: integer
+          readOnly: true
+        path_length:
+          type: integer
+          description: Calcula el número de pasos en la rama.
+          readOnly: true
+      required:
+      - created_at
+      - created_by
+      - flow
+      - head
+      - id
+      - name
+      - path_length
+      - start_node
+    FlowNode:
+      type: object
+      description: Serializer para nodos del árbol de flujo.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        flow:
+          type: integer
+        parent:
+          type: integer
+          nullable: true
+        content: {}
+        content_hash:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        created_by:
+          type: integer
+          readOnly: true
+      required:
+      - content
+      - content_hash
+      - created_at
+      - created_by
+      - flow
+      - id
+    FlowVersion:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        flow:
+          type: integer
+        version_number:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        parent_version:
+          type: integer
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        created_by:
+          type: integer
+          readOnly: true
+        metadata: {}
+        is_frozen:
+          type: boolean
+        steps:
+          type: array
+          items:
+            $ref: '#/components/schemas/Step'
+          readOnly: true
+      required:
+      - created_at
+      - created_by
+      - flow
+      - id
+      - steps
+      - version_number
+    MolecularProperty:
+      type: object
+      description: Serializador para propiedades moleculares EAV.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        molecule:
+          type: integer
+        property_type:
+          type: string
+          maxLength: 200
+        value:
+          type: string
+        is_invariant:
+          type: boolean
+        method:
+          type: string
+          maxLength: 100
+        units:
+          type: string
+          maxLength: 50
+        relation:
+          type: string
+          maxLength: 10
+        source_id:
+          type: string
+          maxLength: 100
+        metadata: {}
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        created_by:
+          type: integer
+          readOnly: true
+          nullable: true
+        updated_by:
+          type: integer
+          readOnly: true
+          nullable: true
+      required:
+      - created_at
+      - created_by
+      - id
+      - method
+      - molecule
+      - property_type
+      - updated_at
+      - updated_by
+      - value
+    Molecule:
+      type: object
+      description: Serializador para moléculas con propiedades anidadas y tipado fuerte.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 200
+        inchikey:
+          type: string
+          nullable: true
+          maxLength: 27
+        smiles:
+          type: string
+        inchi:
+          type: string
+        canonical_smiles:
+          type: string
+        molecular_formula:
+          type: string
+          maxLength: 200
+        metadata: {}
+        frozen:
+          type: boolean
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        created_by:
+          type: integer
+          readOnly: true
+          nullable: true
+        updated_by:
+          type: integer
+          readOnly: true
+          nullable: true
+        properties:
+          type: array
+          items:
+            $ref: '#/components/schemas/MolecularProperty'
+          readOnly: true
+        structure_identifiers:
+          type: object
+          additionalProperties: {}
+          description: Get structure identifiers using type-safe interface.
+          readOnly: true
+        computed_properties:
+          type: object
+          additionalProperties: {}
+          description: Get computed properties using type-safe interface.
+          readOnly: true
+      required:
+      - computed_properties
+      - created_at
+      - created_by
+      - frozen
+      - id
+      - properties
+      - structure_identifiers
+      - updated_at
+      - updated_by
+    PatchedArtifact:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        sha256:
+          type: string
+          maxLength: 64
+        filename:
+          type: string
+          maxLength: 255
+        content_type:
+          type: string
+          maxLength: 100
+        size:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        storage_path:
+          type: string
+          maxLength: 500
+        metadata: {}
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        created_by:
+          type: integer
+          readOnly: true
+    PatchedExecutionSnapshot:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        flow_version:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        triggered_by:
+          type: integer
+          readOnly: true
+        metadata: {}
+        status:
+          $ref: '#/components/schemas/ExecutionSnapshotStatusEnum'
+        step_executions:
+          type: array
+          items:
+            $ref: '#/components/schemas/StepExecution'
+          readOnly: true
+    PatchedFamily:
+      type: object
+      description: Serializador para familias con propiedades anidadas y tipado fuerte.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+        family_hash:
+          type: string
+          maxLength: 128
+        provenance:
+          type: string
+          maxLength: 200
+        frozen:
+          type: boolean
+        metadata: {}
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        created_by:
+          type: integer
+          readOnly: true
+          nullable: true
+        updated_by:
+          type: integer
+          readOnly: true
+          nullable: true
+        properties:
+          type: array
+          items:
+            $ref: '#/components/schemas/FamilyProperty'
+          readOnly: true
+        aggregated_properties:
+          type: object
+          additionalProperties: {}
+          description: Get family aggregated properties using type-safe interface.
+          readOnly: true
+        member_statistics:
+          type: object
+          additionalProperties: {}
+          description: Get member property statistics using type-safe interface.
+          readOnly: true
+    PatchedFamilyMember:
+      type: object
+      description: Serializador para membresía molécula-familia.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        family:
+          type: integer
+        molecule:
+          type: integer
+    PatchedFamilyProperty:
+      type: object
+      description: Serializador para propiedades de familias EAV.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        family:
+          type: integer
+        property_type:
+          type: string
+          maxLength: 200
+        value:
+          type: string
+        is_invariant:
+          type: boolean
+        method:
+          type: string
+          maxLength: 100
+        units:
+          type: string
+          maxLength: 50
+        relation:
+          type: string
+          maxLength: 10
+        source_id:
+          type: string
+          maxLength: 100
+        metadata: {}
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        created_by:
+          type: integer
+          readOnly: true
+          nullable: true
+        updated_by:
+          type: integer
+          readOnly: true
+          nullable: true
+    PatchedFlow:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+        owner:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        current_version:
+          allOf:
+          - $ref: '#/components/schemas/FlowVersion'
+          readOnly: true
+        versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlowVersion'
+          readOnly: true
+    PatchedFlowBranch:
+      type: object
+      description: Serializer para ramas del flujo.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        flow:
+          type: integer
+        name:
+          type: string
+          maxLength: 200
+        head:
+          type: integer
+          readOnly: true
+        start_node:
+          type: integer
+          readOnly: true
+        parent_branch:
+          type: integer
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        created_by:
+          type: integer
+          readOnly: true
+        path_length:
+          type: integer
+          description: Calcula el número de pasos en la rama.
+          readOnly: true
+    PatchedFlowVersion:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        flow:
+          type: integer
+        version_number:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        parent_version:
+          type: integer
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        created_by:
+          type: integer
+          readOnly: true
+        metadata: {}
+        is_frozen:
+          type: boolean
+        steps:
+          type: array
+          items:
+            $ref: '#/components/schemas/Step'
+          readOnly: true
+    PatchedMolecularProperty:
+      type: object
+      description: Serializador para propiedades moleculares EAV.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        molecule:
+          type: integer
+        property_type:
+          type: string
+          maxLength: 200
+        value:
+          type: string
+        is_invariant:
+          type: boolean
+        method:
+          type: string
+          maxLength: 100
+        units:
+          type: string
+          maxLength: 50
+        relation:
+          type: string
+          maxLength: 10
+        source_id:
+          type: string
+          maxLength: 100
+        metadata: {}
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        created_by:
+          type: integer
+          readOnly: true
+          nullable: true
+        updated_by:
+          type: integer
+          readOnly: true
+          nullable: true
+    PatchedMolecule:
+      type: object
+      description: Serializador para moléculas con propiedades anidadas y tipado fuerte.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 200
+        inchikey:
+          type: string
+          nullable: true
+          maxLength: 27
+        smiles:
+          type: string
+        inchi:
+          type: string
+        canonical_smiles:
+          type: string
+        molecular_formula:
+          type: string
+          maxLength: 200
+        metadata: {}
+        frozen:
+          type: boolean
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        created_by:
+          type: integer
+          readOnly: true
+          nullable: true
+        updated_by:
+          type: integer
+          readOnly: true
+          nullable: true
+        properties:
+          type: array
+          items:
+            $ref: '#/components/schemas/MolecularProperty'
+          readOnly: true
+        structure_identifiers:
+          type: object
+          additionalProperties: {}
+          description: Get structure identifiers using type-safe interface.
+          readOnly: true
+        computed_properties:
+          type: object
+          additionalProperties: {}
+          description: Get computed properties using type-safe interface.
+          readOnly: true
+    PatchedRole:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 100
+        description:
+          type: string
+        permissions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Permission'
+          readOnly: true
+        permission_ids:
+          type: array
+          items:
+            type: integer
+            writeOnly: true
+          writeOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedStep:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        flow_version:
+          type: integer
+        name:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+        step_type:
+          type: string
+          maxLength: 100
+        order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        config: {}
+        dependencies:
+          type: array
+          items:
+            type: integer
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedStepExecution:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        step:
+          type: integer
+        execution_snapshot:
+          type: integer
+        started_at:
+          type: string
+          format: date-time
+          readOnly: true
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+        status:
+          $ref: '#/components/schemas/StepExecutionStatusEnum'
+        inputs: {}
+        outputs: {}
+        error_message:
+          type: string
+        execution_artifacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/StepExecutionArtifact'
+          readOnly: true
+    PatchedUser:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          title: Nombre de usuario
+          description: Obligatorio. Longitud máxima 150 caracteres alfanuméricos.
+            Letras, dígitos y @/./+/-/_ únicamente.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          title: Dirección de correo electrónico
+          maxLength: 254
+        first_name:
+          type: string
+          title: Nombre
+          maxLength: 150
+        last_name:
+          type: string
+          title: Apellido
+          maxLength: 150
+        university:
+          type: string
+          maxLength: 255
+        is_active:
+          type: boolean
+          title: Activo
+          description: Indica si el usuario debe ser tratado como un usuario activo.
+            Desactive este campo en lugar de eliminar usuarios.
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/Role'
+          readOnly: true
+        role_ids:
+          type: array
+          items:
+            type: integer
+            writeOnly: true
+          writeOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedUserNotification:
+      type: object
+      description: Serializer para notificaciones de usuario.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        type:
+          $ref: '#/components/schemas/TypeEnum'
+        title:
+          type: string
+          maxLength: 255
+        message:
+          type: string
+        priority:
+          $ref: '#/components/schemas/PriorityEnum'
+        read:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        read_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        metadata: {}
+    Permission:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 100
+        codename:
+          type: string
+          maxLength: 100
+        resource:
+          type: string
+          maxLength: 100
+        action:
+          type: string
+          maxLength: 50
+        description:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - action
+      - codename
+      - created_at
+      - id
+      - name
+      - resource
+    PriorityEnum:
+      enum:
+      - low
+      - normal
+      - high
+      - urgent
+      type: string
+      description: |-
+        * `low` - Baja
+        * `normal` - Normal
+        * `high` - Alta
+        * `urgent` - Urgente
+    Role:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 100
+        description:
+          type: string
+        permissions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Permission'
+          readOnly: true
+        permission_ids:
+          type: array
+          items:
+            type: integer
+            writeOnly: true
+          writeOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - name
+      - permissions
+      - updated_at
+    Step:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        flow_version:
+          type: integer
+        name:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+        step_type:
+          type: string
+          maxLength: 100
+        order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        config: {}
+        dependencies:
+          type: array
+          items:
+            type: integer
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - flow_version
+      - id
+      - name
+      - order
+      - step_type
+      - updated_at
+    StepExecution:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        step:
+          type: integer
+        execution_snapshot:
+          type: integer
+        started_at:
+          type: string
+          format: date-time
+          readOnly: true
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+        status:
+          $ref: '#/components/schemas/StepExecutionStatusEnum'
+        inputs: {}
+        outputs: {}
+        error_message:
+          type: string
+        execution_artifacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/StepExecutionArtifact'
+          readOnly: true
+      required:
+      - execution_artifacts
+      - execution_snapshot
+      - id
+      - started_at
+      - step
+    StepExecutionArtifact:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        step_execution:
+          type: integer
+        artifact:
+          allOf:
+          - $ref: '#/components/schemas/Artifact'
+          readOnly: true
+        artifact_type:
+          type: string
+          maxLength: 100
+      required:
+      - artifact
+      - artifact_type
+      - id
+      - step_execution
+    StepExecutionStatusEnum:
+      enum:
+      - pending
+      - running
+      - completed
+      - failed
+      - cancelled
+      type: string
+      description: |-
+        * `pending` - Pending
+        * `running` - Running
+        * `completed` - Completed
+        * `failed` - Failed
+        * `cancelled` - Cancelled
+    TokenObtainPair:
+      type: object
+      properties:
+        username:
+          type: string
+          writeOnly: true
+        password:
+          type: string
+          writeOnly: true
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+          readOnly: true
+      required:
+      - access
+      - password
+      - refresh
+      - username
+    TokenRefresh:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+          writeOnly: true
+      required:
+      - access
+      - refresh
+    TypeEnum:
+      enum:
+      - info
+      - success
+      - warning
+      - error
+      - flow_update
+      - system
+      type: string
+      description: |-
+        * `info` - Información
+        * `success` - Éxito
+        * `warning` - Advertencia
+        * `error` - Error
+        * `flow_update` - Actualización de Flujo
+        * `system` - Sistema
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          title: Nombre de usuario
+          description: Obligatorio. Longitud máxima 150 caracteres alfanuméricos.
+            Letras, dígitos y @/./+/-/_ únicamente.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          title: Dirección de correo electrónico
+          maxLength: 254
+        first_name:
+          type: string
+          title: Nombre
+          maxLength: 150
+        last_name:
+          type: string
+          title: Apellido
+          maxLength: 150
+        university:
+          type: string
+          maxLength: 255
+        is_active:
+          type: boolean
+          title: Activo
+          description: Indica si el usuario debe ser tratado como un usuario activo.
+            Desactive este campo en lugar de eliminar usuarios.
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/Role'
+          readOnly: true
+        role_ids:
+          type: array
+          items:
+            type: integer
+            writeOnly: true
+          writeOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - roles
+      - updated_at
+      - username
+    UserCreate:
+      type: object
+      properties:
+        username:
+          type: string
+          title: Nombre de usuario
+          description: Obligatorio. Longitud máxima 150 caracteres alfanuméricos.
+            Letras, dígitos y @/./+/-/_ únicamente.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          title: Dirección de correo electrónico
+          maxLength: 254
+        first_name:
+          type: string
+          title: Nombre
+          maxLength: 150
+        last_name:
+          type: string
+          title: Apellido
+          maxLength: 150
+        university:
+          type: string
+          maxLength: 255
+        password:
+          type: string
+          writeOnly: true
+        password2:
+          type: string
+          writeOnly: true
+        role_ids:
+          type: array
+          items:
+            type: integer
+            writeOnly: true
+          writeOnly: true
+      required:
+      - password
+      - password2
+      - username
+    UserNotification:
+      type: object
+      description: Serializer para notificaciones de usuario.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        type:
+          $ref: '#/components/schemas/TypeEnum'
+        title:
+          type: string
+          maxLength: 255
+        message:
+          type: string
+        priority:
+          $ref: '#/components/schemas/PriorityEnum'
+        read:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        read_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        metadata: {}
+      required:
+      - created_at
+      - id
+      - message
+      - read_at
+      - title
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
