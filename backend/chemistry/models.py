@@ -38,9 +38,23 @@ class Molecule(models.Model):
     # Flexible metadata and lifecycle
     metadata = models.JSONField(default=dict, blank=True)
     frozen = models.BooleanField(default=False)
+
+    # Audit fields
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="molecules"
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="created_molecules",
+        null=True,
+        blank=True,
+    )
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="updated_molecules",
+        null=True,
+        blank=True,
     )
 
     class Meta:
@@ -59,7 +73,24 @@ class Family(models.Model):
     provenance = models.CharField(max_length=200)
     frozen = models.BooleanField(default=True)
     metadata = models.JSONField(default=dict, blank=True)
+
+    # Audit fields
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="created_families",
+        null=True,
+        blank=True,
+    )
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="updated_families",
+        null=True,
+        blank=True,
+    )
 
     class Meta:
         ordering = ["name", "created_at"]
@@ -82,7 +113,24 @@ class FamilyProperty(models.Model):
     relation = models.CharField(max_length=10, blank=True)
     source_id = models.CharField(max_length=100, blank=True)
     metadata = models.JSONField(default=dict, blank=True)
+
+    # Audit fields
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="created_family_properties",
+        null=True,
+        blank=True,
+    )
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="updated_family_properties",
+        null=True,
+        blank=True,
+    )
 
     class Meta:
         unique_together = ["family", "property_type", "method"]
@@ -108,7 +156,24 @@ class MolecularProperty(models.Model):
         max_length=100, blank=True
     )  # ID de la fuente o referencias
     metadata = models.JSONField(default=dict, blank=True)
+
+    # Audit fields
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="created_molecular_properties",
+        null=True,
+        blank=True,
+    )
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="updated_molecular_properties",
+        null=True,
+        blank=True,
+    )
 
     class Meta:
         unique_together = ["molecule", "property_type", "method"]

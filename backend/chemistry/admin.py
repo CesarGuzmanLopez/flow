@@ -22,7 +22,7 @@ from .models import (
 class MoleculeAdmin(admin.ModelAdmin):
     """Configuración del admin para moléculas."""
 
-    list_display = ("id", "name", "inchikey", "created_by", "created_at", "frozen")
+    list_display = ("id", "name", "inchikey", "created_at", "frozen")
     list_filter = ("frozen",)
     search_fields = ("name", "inchikey", "smiles", "inchi")
 
