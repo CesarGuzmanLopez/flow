@@ -18,7 +18,7 @@ export interface MolecularProperty {
     property_type: string;
     value: string;
     is_invariant?: boolean;
-    method: string;
+    method?: string;
     units?: string;
     relation?: string;
     source_id?: string;

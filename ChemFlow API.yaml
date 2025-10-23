@@ -4002,7 +4002,6 @@ components:
       - created_by
       - family
       - id
-      - method
       - property_type
       - updated_at
       - updated_by
@@ -4204,7 +4203,6 @@ components:
       - created_at
       - created_by
       - id
-      - method
       - molecule
       - property_type
       - updated_at
