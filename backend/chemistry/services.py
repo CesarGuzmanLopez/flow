@@ -529,6 +529,158 @@ __all__.extend(
 )
 
 
+def create_or_get_molecule(*, payload: dict, created_by: Any) -> tuple[Molecule, bool]:
+    """
+    Create or retrieve a Molecule following strict rules:
+
+    Rules summary:
+    - If only `inchikey` provided: try to find existing molecule. If found,
+      attach caller as owner/co-owner (via `created_by` if empty or `metadata.collaborators`) and
+      return (molecule, False). If not found -> ValidationError (can't create with only inchikey).
+    - If `smiles` provided: compute structure identifiers with provider (RDKit via providers.engine).
+      If an `inchikey` was provided too, it must match the computed one or we raise ValidationError.
+      We then create or get the molecule deterministically by InChIKey when available.
+    - Never trust an inchikey from the client as source of truth. The provider output is authoritative.
+
+    Returns: (molecule, created_flag)
+    """
+    if not created_by:
+        raise ValueError("created_by is required")
+
+    inchikey = (payload.get("inchikey") or "").strip() or None
+    smiles = (payload.get("smiles") or "").strip() or None
+    name = payload.get("name")
+    extra_metadata = payload.get("extra_metadata") or {}
+
+    # Case: only inchikey (no smiles) -> lookup existing only
+    if inchikey and not smiles:
+        try:
+            mol = Molecule.objects.get(inchikey__iexact=inchikey)
+            # If no creator, assign
+            if mol.created_by is None:
+                mol.created_by = created_by
+                mol.save(update_fields=["created_by", "updated_at"])
+            else:
+                # Add collaborator id to metadata if different
+                try:
+                    collabs = list(mol.metadata.get("collaborators", []))
+                except Exception:
+                    collabs = []
+                uid = getattr(created_by, "id", None)
+                if (
+                    uid
+                    and uid != getattr(mol.created_by, "id", None)
+                    and uid not in collabs
+                ):
+                    collabs.append(uid)
+                    mol.metadata = dict(mol.metadata or {})
+                    mol.metadata["collaborators"] = collabs
+                    mol.save(update_fields=["metadata", "updated_at"])
+            return mol, False
+        except Molecule.DoesNotExist:
+            from django.core.exceptions import ValidationError
+
+            raise ValidationError(
+                "Cannot create molecule with only InChIKey; SMILES or additional structural data is required"
+            )
+
+    # Case: SMILES provided (primary creation path)
+    if smiles:
+        try:
+            structure_info = providers.engine.smiles_to_inchi(
+                smiles, return_dataclass=True
+            )
+        except Exception as e:
+            from .types import InvalidSmilesError
+
+            # Normalize provider errors to ValidationError
+            raise InvalidSmilesError(str(e))
+
+        # If client provided inchikey, ensure it matches provider-computed one
+        if inchikey and structure_info.inchikey and inchikey != structure_info.inchikey:
+            from django.core.exceptions import ValidationError
+
+            raise ValidationError(
+                "Provided InChIKey does not match one computed from SMILES"
+            )
+
+        # Name requirement: if we cannot infer a sensible name (molecular_formula) and client didn't provide one,
+        # require explicit name from caller to avoid ambiguous creations.
+        if not name and not (
+            structure_info.molecular_formula
+            and structure_info.molecular_formula.strip()
+        ):
+            from django.core.exceptions import ValidationError
+
+            raise ValidationError(
+                "A 'name' is required when SMILES does not provide a molecular formula; please include 'name' in payload"
+            )
+
+        # Compute provider properties/descriptors if available
+        try:
+            properties = providers.engine.calculate_properties(
+                smiles, return_dataclass=True
+            )
+            properties_dict = properties.to_dict()
+        except Exception:
+            properties_dict = {}
+
+        metadata = dict(extra_metadata or {})
+        if properties_dict:
+            metadata.setdefault("descriptors", properties_dict)
+
+        defaults = {
+            "name": name or structure_info.molecular_formula or "",
+            "smiles": smiles,
+            "canonical_smiles": structure_info.canonical_smiles,
+            "inchi": structure_info.inchi,
+            "molecular_formula": structure_info.molecular_formula or "",
+            "created_by": created_by,
+            "metadata": metadata,
+        }
+
+        # If we have an inchikey from provider, use get_or_create to ensure idempotency
+        if structure_info.inchikey:
+            mol, created = Molecule.objects.get_or_create(
+                inchikey=structure_info.inchikey, defaults=defaults
+            )
+            # If molecule existed, ensure collaborators/ownership recorded
+            if not created:
+                if mol.created_by is None:
+                    mol.created_by = created_by
+                    mol.save(update_fields=["created_by", "updated_at"])
+                else:
+                    try:
+                        collabs = list(mol.metadata.get("collaborators", []))
+                    except Exception:
+                        collabs = []
+                    uid = getattr(created_by, "id", None)
+                    if (
+                        uid
+                        and uid != getattr(mol.created_by, "id", None)
+                        and uid not in collabs
+                    ):
+                        collabs.append(uid)
+                        mol.metadata = dict(mol.metadata or {})
+                        mol.metadata["collaborators"] = collabs
+                        mol.save(update_fields=["metadata", "updated_at"])
+            return mol, bool(created)
+
+        # If provider didn't produce an inchikey, create a new molecule row (no uniqueness guarantee)
+        mol = Molecule.objects.create(**defaults)
+        return mol, True
+
+    # No inchikey and no smiles -> invalid
+    from django.core.exceptions import ValidationError
+
+    raise ValidationError(
+        "Payload must include at least 'smiles' or an existing 'inchikey'"
+    )
+
+
+__all__.append("create_or_get_molecule")
+
+
 def rehydrate_molecule_properties(molecule: Molecule) -> MolecularProperties:
     """
     Rehydrate molecular properties from database in a type-safe manner.

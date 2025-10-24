@@ -12,6 +12,7 @@ a servicios especializados a través de acciones tipadas.
 """
 
 from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.views import SpectacularAPIView
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
@@ -30,6 +31,9 @@ from .serializers import (
     MolecularPropertySerializer,
     MoleculeSerializer,
 )
+
+# Expose a simple schema view for inclusion in URL config if desired
+schema_view = SpectacularAPIView.as_view()
 
 
 class BaseChemistryViewSet(viewsets.ModelViewSet):
@@ -102,6 +106,53 @@ class MoleculeViewSet(BaseChemistryViewSet):
             qs = qs.filter(created_by=user)
 
         return qs
+
+    @extend_schema(
+        summary="Crear o recuperar molécula",
+        description=(
+            "Crea una molécula nueva o recupera una existente siguiendo las reglas del dominio. "
+            "Reglas principales: soporte para payloads con `smiles` (preferido) o solo `inchikey` (solo búsqueda). "
+            "La verificación y creación se delega a la capa de servicios; el backend no confía en InChIKey del frontend."
+        ),
+        request={
+            "type": "object",
+            "properties": {
+                "smiles": {"type": "string"},
+                "inchikey": {"type": "string"},
+                "name": {"type": "string"},
+                "extra_metadata": {"type": "object"},
+            },
+            "additionalProperties": False,
+        },
+        responses={
+            200: MoleculeSerializer,
+            201: MoleculeSerializer,
+            400: {"type": "object"},
+        },
+    )
+    def create(self, request, *args, **kwargs):
+        """Create a molecule following domain rules by delegating to services.create_or_get_molecule."""
+        from django.core.exceptions import ValidationError
+
+        payload = request.data if isinstance(request.data, dict) else dict(request.data)
+        try:
+            molecule, created = chem_services.create_or_get_molecule(
+                payload=payload, created_by=request.user
+            )
+            serializer = MoleculeSerializer(molecule, context={"request": request})
+            status_code = status.HTTP_201_CREATED if created else status.HTTP_200_OK
+            headers = {}
+            if created:
+                # If we created the resource, include Location header
+                headers["Location"] = f"/api/chemistry/molecules/{molecule.id}/"
+            return Response(serializer.data, status=status_code, headers=headers)
+        except ValidationError as e:
+            # e may be a dict or string
+            msg = e.message if hasattr(e, "message") else str(e)
+            return Response({"error": msg}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            # Generic fallback (provider errors etc.)
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["get"])
     @extend_schema(
