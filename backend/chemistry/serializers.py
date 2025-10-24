@@ -22,6 +22,10 @@ from .services import (
     rehydrate_family_properties,
     rehydrate_molecule_properties,
 )
+from .services.properties import (
+    PropertyAlreadyExistsError,
+    validate_property_uniqueness,
+)
 
 
 class MolecularPropertySerializer(serializers.ModelSerializer):
@@ -70,16 +74,38 @@ class MolecularPropertySerializer(serializers.ModelSerializer):
         return super().to_internal_value(data)
 
     def create(self, validated_data):
-        """Crear propiedad molecular con valores por defecto y auditoría."""
+        """Crear propiedad molecular con validación de unicidad."""
         request = self.context.get("request")
         user = getattr(request, "user", None)
+
         # Defaults for optional context fields
         validated_data.setdefault("method", "")
         validated_data.setdefault("units", "")
         validated_data.setdefault("relation", "")
         validated_data.setdefault("source_id", "")
+
+        # Check for duplicate using composite key
+        existing = validate_property_uniqueness(
+            model_class=MolecularProperty,
+            entity_field="molecule",
+            entity_id=validated_data["molecule"].id,
+            property_type=validated_data["property_type"],
+            method=validated_data["method"],
+            relation=validated_data["relation"],
+            source_id=validated_data["source_id"],
+        )
+
+        if existing:
+            raise PropertyAlreadyExistsError(
+                property_type=validated_data["property_type"],
+                method=validated_data["method"],
+                relation=validated_data["relation"],
+                source_id=validated_data["source_id"],
+            )
+
         if user and user.is_authenticated:
             validated_data.setdefault("created_by", user)
+
         return MolecularProperty.objects.create(**validated_data)
 
 
@@ -193,16 +219,38 @@ class FamilyPropertySerializer(serializers.ModelSerializer):
         return super().to_internal_value(data)
 
     def create(self, validated_data):
-        """Crear propiedad de familia con valores por defecto y auditoría."""
+        """Crear propiedad de familia con validación de unicidad."""
         request = self.context.get("request")
         user = getattr(request, "user", None)
+
         # Defaults for optional context fields
         validated_data.setdefault("method", "")
         validated_data.setdefault("units", "")
         validated_data.setdefault("relation", "")
         validated_data.setdefault("source_id", "")
+
+        # Check for duplicate using composite key
+        existing = validate_property_uniqueness(
+            model_class=FamilyProperty,
+            entity_field="family",
+            entity_id=validated_data["family"].id,
+            property_type=validated_data["property_type"],
+            method=validated_data["method"],
+            relation=validated_data["relation"],
+            source_id=validated_data["source_id"],
+        )
+
+        if existing:
+            raise PropertyAlreadyExistsError(
+                property_type=validated_data["property_type"],
+                method=validated_data["method"],
+                relation=validated_data["relation"],
+                source_id=validated_data["source_id"],
+            )
+
         if user and user.is_authenticated:
             validated_data.setdefault("created_by", user)
+
         return FamilyProperty.objects.create(**validated_data)
 
 

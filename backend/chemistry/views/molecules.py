@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from users.permissions import HasAppPermission
 
 from .. import services as chem_services
-from ..models import MolecularProperty, Molecule
+from ..models import Molecule
 from ..serializers import (
     AddPropertySerializer,
     CreateMoleculeFromSmilesSerializer,
@@ -15,6 +15,11 @@ from ..serializers import (
     MolecularPropertySerializer,
     MoleculeSerializer,
     MoleculeUpdateSerializer,
+)
+from ..services.properties import (
+    InvariantPropertyError,
+    PropertyAlreadyExistsError,
+    create_or_update_molecular_property,
 )
 
 logger = logging.getLogger(__name__)
@@ -174,51 +179,64 @@ class MoleculeViewSet(BaseChemistryViewSet):
 
     @action(detail=True, methods=["post"])
     def add_property(self, request, pk=None):
+        """Add property to molecule with strict duplicate prevention.
+
+        This endpoint creates a NEW property only. If a property with the same
+        composite key already exists, it returns a 400 error suggesting PATCH/PUT.
+
+        Composite key: (molecule, property_type, method, relation, source_id)
+        """
         molecule = self.get_object()
         serializer = AddPropertySerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = dict(serializer.validated_data)
-        data.setdefault("method", "")
-        data.setdefault("units", "")
-        data.setdefault("relation", "")
-        data.setdefault("source_id", "")
-        data.setdefault("metadata", {})
-
-        # Permit creating new property types via this endpoint. The previous
-        # behavior rejected unknown property_type values; that made the API
-        # brittle because descriptors (which used to populate types) are not
-        # created by default anymore.
-        prop_type = data["property_type"]
-
-        lookup = {
-            "molecule": molecule,
-            "property_type": prop_type,
-            "method": data.get("method", ""),
-        }
-        defaults = {
-            "value": data.get("value"),
-            "is_invariant": data.get("is_invariant", False),
-            "units": data.get("units", ""),
-            "relation": data.get("relation", ""),
-            "source_id": data.get("source_id", ""),
-            "metadata": data.get("metadata", {}),
-        }
 
         try:
-            molecular_property, created = MolecularProperty.objects.update_or_create(
-                defaults=defaults, **lookup
+            # Use force_create=True to reject duplicates
+            prop, created = create_or_update_molecular_property(
+                molecule=molecule,
+                property_type=data["property_type"],
+                value=data["value"],
+                method=data.get("method", ""),
+                relation=data.get("relation", ""),
+                source_id=data.get("source_id", ""),
+                units=data.get("units", ""),
+                is_invariant=data.get("is_invariant", False),
+                metadata=data.get("metadata", {}),
+                created_by=request.user,
+                force_create=True,  # ← Reject duplicates
+            )
+
+            return Response(
+                MolecularPropertySerializer(prop).data, status=status.HTTP_201_CREATED
+            )
+
+        except PropertyAlreadyExistsError as e:
+            return Response(
+                {
+                    "error": str(e),
+                    "detail": (
+                        "A property with this composite key already exists. "
+                        "Use PATCH /api/chemistry/molecular-properties/{id}/ "
+                        "or PUT /api/chemistry/molecular-properties/{id}/ to update it."
+                    ),
+                    "property_type": e.property_type,
+                    "method": e.method,
+                    "relation": e.relation,
+                    "source_id": e.source_id,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except InvariantPropertyError as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_400_BAD_REQUEST,
             )
         except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-        if created and getattr(molecular_property, "created_by", None) is None:
-            molecular_property.created_by = request.user
-            molecular_property.save(update_fields=["created_by", "updated_at"])
-
-        resp_status = status.HTTP_201_CREATED if created else status.HTTP_200_OK
-        return Response(
-            MolecularPropertySerializer(molecular_property).data, status=resp_status
-        )
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
 
 # MolecularPropertyViewSet has been moved to views/properties.py to keep

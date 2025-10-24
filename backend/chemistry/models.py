@@ -133,7 +133,12 @@ class FamilyProperty(models.Model):
     )
 
     class Meta:
-        unique_together = ["family", "property_type", "method"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["family", "property_type", "method", "relation", "source_id"],
+                name="unique_family_property_key",
+            )
+        ]
         ordering = ["property_type", "created_at"]
 
     def __str__(self):
@@ -176,7 +181,12 @@ class MolecularProperty(models.Model):
     )
 
     class Meta:
-        unique_together = ["molecule", "property_type", "method"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["molecule", "property_type", "method", "relation", "source_id"],
+                name="unique_molecular_property_key",
+            )
+        ]
         ordering = ["property_type", "created_at"]
 
     def __str__(self):

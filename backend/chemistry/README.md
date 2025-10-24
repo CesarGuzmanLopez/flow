@@ -379,12 +379,399 @@ curl -X POST /api/chemistry/molecular-properties/ \
   }'
 ```
 
-## 🔧 Uso desde Otros Módulos
+## � Sistema de Propiedades con Unicidad Compuesta
+
+### Llave Primaria Compuesta
+
+Las propiedades moleculares y de familia utilizan un sistema de **unicidad compuesta** basado en 5 campos:
+
+```
+(entity, property_type, method, relation, source_id)
+```
+
+Donde:
+- **entity**: `molecule` o `family` (referencia a la entidad padre)
+- **property_type**: Tipo de propiedad (ej. "MolWt", "LogP", "Solubility")
+- **method**: Método de obtención/cálculo (ej. "rdkit", "experimental", "predicted_qsar")
+- **relation**: Contexto/relación (ej. "atom:12", "conformer:3", "aggregated:mean", "")
+- **source_id**: Identificador de la fuente (ej. "pubchem:CID12345", "doi:10.xxx", "flow_run:uuid")
+
+### Significado de los Campos
+
+#### `property_type`
+Identifica QUÉ propiedad se está midiendo/calculando.
+- Ejemplos: "MolWt", "LogP", "TPSA", "Solubility", "pKa", "BindingAffinity"
+
+#### `method`
+Identifica CÓMO se obtuvo el valor.
+- Ejemplos: "rdkit", "experimental_lcms", "predicted_qsar", "dft_b3lyp", "manual"
+- Permite distinguir valores de la misma propiedad obtenidos por diferentes métodos
+
+#### `relation`
+Identifica A QUÉ PARTE o CONTEXTO de la entidad se refiere el valor.
+- `""` (vacío): aplica a la molécula/familia completa (scope global)
+- `"atom:12"`: valor específico del átomo en posición 12
+- `"fragment:benzene"`: valor para un fragmento molecular
+- `"conformer:3"`: valor para el conformador 3
+- `"aggregated:mean"`: valor agregado (media) de múltiples mediciones
+- `"replicate:2"`: segunda réplica experimental
+- Este campo fue diseñado para identificar **qué flujo o proceso generó la propiedad**
+
+#### `source_id`
+Identifica DE DÓNDE proviene el dato (trazabilidad/provenance).
+- `""` (vacío): sin trazabilidad externa
+- `"pubchem:CID12345"`: dato importado de PubChem
+- `"doi:10.1000/xyz"`: dato de publicación científica
+- `"flow_run:7f6a-uuid"`: dato generado por ejecución de flujo
+- `"experiment:LCMS_2025_10_24"`: dato experimental
+
+### Reglas de Negocio
+
+#### 1. Creación vs Actualización
+
+**Al intentar crear** una propiedad con una llave compuesta existente:
+- ❌ La creación **falla** con error `400 Bad Request`
+- 💡 El sistema sugiere usar `PATCH` o `PUT` para actualizar
+
+```python
+# Ejemplo: Primera creación (éxito)
+POST /api/chemistry/molecular-properties/
+{
+  "molecule": 8,
+  "property_type": "LogP",
+  "value": "2.5",
+  "method": "rdkit",
+  "relation": "",
+  "source_id": "flow_run:abc123"
+}
+→ 201 Created
+
+# Intento de duplicar (falla)
+POST /api/chemistry/molecular-properties/
+{
+  "molecule": 8,
+  "property_type": "LogP",
+  "value": "2.7",  # ← valor diferente
+  "method": "rdkit",
+  "relation": "",
+  "source_id": "flow_run:abc123"
+}
+→ 400 Bad Request
+{
+  "error": "Property already exists: property_type='LogP', method='rdkit', relation='', source_id='flow_run:abc123'. Use PATCH or PUT to update existing properties.",
+  "property_type": "LogP",
+  "method": "rdkit",
+  "relation": "",
+  "source_id": "flow_run:abc123"
+}
+
+# Actualización correcta
+PATCH /api/chemistry/molecular-properties/{id}/
+{
+  "value": "2.7"
+}
+→ 200 OK
+```
+
+#### 2. Propiedades Invariantes (`is_invariant=True`)
+
+Cuando `is_invariant` se marca como `True`:
+- ✅ El campo `metadata` **siempre puede actualizarse**
+- ❌ El campo `value` **NO puede modificarse**
+- ✅ Los campos `units`, `method`, `relation`, `source_id` **NO pueden modificarse**
+
+```python
+# Crear propiedad invariante
+POST /api/chemistry/molecular-properties/
+{
+  "molecule": 8,
+  "property_type": "InChIKey",
+  "value": "LFQSCWFLJHTTHZ-UHFFFAOYSA-N",
+  "is_invariant": true,
+  "method": "rdkit",
+  "metadata": {"computed_at": "2025-10-24"}
+}
+→ 201 Created
+
+# Intento de modificar valor (falla)
+PATCH /api/chemistry/molecular-properties/{id}/
+{
+  "value": "DIFFERENT-INCHIKEY"
+}
+→ 400 Bad Request
+{
+  "error": "Cannot modify value of invariant property (id=123). Invariant properties can only have their metadata updated."
+}
+
+# Actualizar metadata (éxito)
+PATCH /api/chemistry/molecular-properties/{id}/
+{
+  "metadata": {"computed_at": "2025-10-24", "verified": true}
+}
+→ 200 OK
+```
+
+#### 3. Múltiples Propiedades del Mismo Tipo
+
+**Puedes tener múltiples propiedades del mismo `property_type`** si difieren en `method`, `relation` o `source_id`:
+
+```python
+# LogP calculado con RDKit
+POST /api/chemistry/molecular-properties/
+{
+  "molecule": 8,
+  "property_type": "LogP",
+  "value": "2.5",
+  "method": "rdkit",
+  "source_id": ""
+}
+
+# LogP experimental
+POST /api/chemistry/molecular-properties/
+{
+  "molecule": 8,
+  "property_type": "LogP",
+  "value": "2.3",
+  "method": "experimental",
+  "source_id": "pubchem:CID702"
+}
+
+# LogP predicho por QSAR
+POST /api/chemistry/molecular-properties/
+{
+  "molecule": 8,
+  "property_type": "LogP",
+  "value": "2.6",
+  "method": "qsar_model_v3",
+  "source_id": "internal_model:v3.2"
+}
+
+# ✅ Las 3 propiedades coexisten porque tienen diferentes method/source_id
+```
+
+### Flujo de Trabajo Recomendado
+
+#### Para Scripts/Procesos Automatizados
+
+Usa el servicio `create_or_update_molecular_property` o `create_or_update_family_property`:
+
+```python
+from chemistry.services.properties import create_or_update_molecular_property
+
+# Modo idempotente: crea o actualiza según exista
+prop, created = create_or_update_molecular_property(
+    molecule=molecule_instance,
+    property_type="LogP",
+    value="2.5",
+    method="rdkit",
+    relation="",
+    source_id=f"flow_run:{run_id}",
+    units="",
+    metadata={"timestamp": "2025-10-24T10:00:00Z"},
+    created_by=user,
+    force_create=False,  # Si True, lanza error en duplicado
+)
+
+if created:
+    print("Propiedad creada")
+else:
+    print("Propiedad actualizada")
+```
+
+#### Para APIs REST
+
+**Creación inicial:**
+```bash
+POST /api/chemistry/molecular-properties/
+{
+  "molecule": 8,
+  "property_type": "Solubility",
+  "value": "1.2",
+  "units": "mg/mL",
+  "method": "experimental",
+  "relation": "",
+  "source_id": "lab:experiment_20251024"
+}
+```
+
+**Actualización:**
+```bash
+# Opción 1: PATCH (actualización parcial)
+PATCH /api/chemistry/molecular-properties/{id}/
+{
+  "value": "1.5",
+  "metadata": {"notes": "remeasured with better calibration"}
+}
+
+# Opción 2: PUT (actualización completa)
+PUT /api/chemistry/molecular-properties/{id}/
+{
+  "molecule": 8,
+  "property_type": "Solubility",
+  "value": "1.5",
+  "units": "mg/mL",
+  "method": "experimental",
+  "relation": "",
+  "source_id": "lab:experiment_20251024",
+  "metadata": {"notes": "remeasured"}
+}
+```
+
+### Validación en el Código
+
+El sistema implementa validación en **3 capas**:
+
+1. **Modelo (Django)**: `UniqueConstraint` en la base de datos
+   ```python
+   class Meta:
+       constraints = [
+           models.UniqueConstraint(
+               fields=["molecule", "property_type", "method", "relation", "source_id"],
+               name="unique_molecular_property_key",
+           )
+       ]
+   ```
+
+2. **Servicio**: Funciones `create_or_update_*` con manejo explícito
+   ```python
+   from chemistry.services.properties import (
+       create_or_update_molecular_property,
+       PropertyAlreadyExistsError,
+       InvariantPropertyError,
+   )
+   ```
+
+3. **Serializer/View**: Validación antes de persistir
+   - Los serializers validan unicidad en `create()`
+   - Las views capturan excepciones y devuelven mensajes amigables
+
+### Casos de Uso Comunes
+
+#### 1. Importación desde Base de Datos Externa
+
+```python
+# Importar desde PubChem
+prop, created = create_or_update_molecular_property(
+    molecule=mol,
+    property_type="MolWt",
+    value="180.16",
+    method="pubchem",
+    source_id="pubchem:CID12345",
+    units="g/mol",
+    is_invariant=True,  # Dato de referencia, no modificable
+    created_by=None,
+)
+```
+
+#### 2. Propiedades Generadas por Flujos
+
+```python
+# Cada flujo marca sus propiedades con un source_id único
+flow_run_id = "7f6a-uuid-flow-abc"
+
+for molecule in molecules:
+    prop, created = create_or_update_molecular_property(
+        molecule=molecule,
+        property_type="PredictedActivity",
+        value=str(activity_score),
+        method="ml_model_v2",
+        relation="",  # El flujo se identifica en source_id
+        source_id=f"flow_run:{flow_run_id}",
+        metadata={"model_version": "2.1", "confidence": 0.95},
+        created_by=user,
+    )
+```
+
+#### 3. Propiedades por Átomo/Fragmento
+
+```python
+# Cargas parciales por átomo
+for atom_idx in range(num_atoms):
+    prop, created = create_or_update_molecular_property(
+        molecule=mol,
+        property_type="partial_charge",
+        value=str(charges[atom_idx]),
+        method="dft_b3lyp",
+        relation=f"atom:{atom_idx}",  # ← Especifica el átomo
+        source_id="qm_job:xyz123",
+        units="e",
+        created_by=user,
+    )
+```
+
+### Consultas Útiles
+
+```python
+# Obtener todas las propiedades de una molécula
+props = MolecularProperty.objects.filter(molecule=mol)
+
+# Filtrar por tipo
+logp_props = MolecularProperty.objects.filter(
+    molecule=mol,
+    property_type="LogP"
+)
+
+# Filtrar por método
+experimental_props = MolecularProperty.objects.filter(
+    molecule=mol,
+    method="experimental"
+)
+
+# Filtrar por fuente
+pubchem_props = MolecularProperty.objects.filter(
+    molecule=mol,
+    source_id__startswith="pubchem:"
+)
+
+# Filtrar por relación (por ejemplo, propiedades atómicas)
+atom_props = MolecularProperty.objects.filter(
+    molecule=mol,
+    relation__startswith="atom:"
+)
+
+# Obtener propiedad específica por llave compuesta
+try:
+    prop = MolecularProperty.objects.get(
+        molecule=mol,
+        property_type="LogP",
+        method="rdkit",
+        relation="",
+        source_id=""
+    )
+except MolecularProperty.DoesNotExist:
+    prop = None
+```
+
+### Migraciones
+
+Al modificar el esquema de propiedades:
+
+1. **Eliminar migraciones existentes** (excepto `__init__.py`):
+   ```bash
+   cd backend
+   find chemistry/migrations -name "*.py" ! -name "__init__.py" -delete
+   ```
+
+2. **Regenerar migraciones**:
+   ```bash
+   python manage.py makemigrations chemistry
+   ```
+
+3. **Aplicar migraciones**:
+   ```bash
+   python manage.py migrate chemistry
+   ```
+
+## �🔧 Uso desde Otros Módulos
 
 ### Importar Servicios
 
 ```python
 from chemistry import services as chem_services
+from chemistry.services.properties import (
+    create_or_update_molecular_property,
+    create_or_update_family_property,
+)
 ```
 
 ### Crear Molécula desde SMILES
