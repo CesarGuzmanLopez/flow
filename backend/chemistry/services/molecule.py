@@ -21,6 +21,7 @@ def create_molecule_from_smiles(
     created_by: Any,
     name: str | None = None,
     extra_metadata: Dict[str, Any] | None = None,
+    compute_descriptors: bool = False,
 ) -> Molecule:
     if not smiles or not smiles.strip():
         raise ValidationError("SMILES cannot be empty")
@@ -36,13 +37,16 @@ def create_molecule_from_smiles(
                 smiles.strip(), return_dataclass=True
             )
 
-            properties: MolecularProperties = providers.engine.calculate_properties(
-                smiles.strip(), return_dataclass=True
-            )
+            # Compute descriptors only when explicitly requested. By default we avoid
+            # populating metadata with potentially heavy descriptor data.
+            metadata = {}
+            if compute_descriptors:
+                properties: MolecularProperties = providers.engine.calculate_properties(
+                    smiles.strip(), return_dataclass=True
+                )
+                properties_dict = properties.to_dict()
+                metadata["descriptors"] = properties_dict
 
-            properties_dict = properties.to_dict()
-
-            metadata = {"descriptors": properties_dict}
             if extra_metadata:
                 metadata.update(extra_metadata)
 
@@ -146,13 +150,17 @@ def create_or_get_molecule(*, payload: dict, created_by: Any) -> tuple[Molecule,
                 "A 'name' is required when SMILES does not provide a molecular formula; please include 'name' in payload"
             )
 
-        try:
-            properties = providers.engine.calculate_properties(
-                smiles, return_dataclass=True
-            )
-            properties_dict = properties.to_dict()
-        except Exception:
-            properties_dict = {}
+        # Compute descriptors only when requested in payload (avoid doing it by default)
+        compute_descriptors = bool(payload.get("compute_descriptors", False))
+        properties_dict = {}
+        if compute_descriptors:
+            try:
+                properties = providers.engine.calculate_properties(
+                    smiles, return_dataclass=True
+                )
+                properties_dict = properties.to_dict()
+            except Exception:
+                properties_dict = {}
 
         metadata = dict(extra_metadata or {})
         if properties_dict:

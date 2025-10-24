@@ -291,6 +291,11 @@ class CreateMoleculeFromSmilesSerializer(serializers.Serializer):
     extra_metadata = serializers.JSONField(
         required=False, default=dict, help_text="Metadatos adicionales"
     )
+    compute_descriptors = serializers.BooleanField(
+        required=False,
+        default=False,
+        help_text="Si es true, el backend calculará y guardará descriptores en metadata",
+    )
 
 
 class CreateMoleculeSerializer(serializers.Serializer):
@@ -322,6 +327,11 @@ class CreateMoleculeSerializer(serializers.Serializer):
     )
     extra_metadata = serializers.JSONField(
         required=False, default=dict, help_text="Metadatos adicionales"
+    )
+    compute_descriptors = serializers.BooleanField(
+        required=False,
+        default=False,
+        help_text="Si es true, el backend calculará y guardará descriptores en metadata",
     )
 
 

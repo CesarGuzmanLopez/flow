@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from users.permissions import HasAppPermission
 
 from .. import services as chem_services
-from ..models import FamilyProperty, MolecularProperty, Molecule
+from ..models import MolecularProperty, Molecule
 from ..serializers import (
     AddPropertySerializer,
     CreateMoleculeFromSmilesSerializer,
@@ -116,6 +116,9 @@ class MoleculeViewSet(BaseChemistryViewSet):
                 created_by=request.user,
                 name=serializer.validated_data.get("name"),
                 extra_metadata=serializer.validated_data.get("extra_metadata"),
+                compute_descriptors=bool(
+                    serializer.validated_data.get("compute_descriptors", False)
+                ),
             )
             return Response(MoleculeSerializer(molecule).data, status=201)
         except Exception as e:
@@ -180,23 +183,12 @@ class MoleculeViewSet(BaseChemistryViewSet):
         data.setdefault("relation", "")
         data.setdefault("source_id", "")
         data.setdefault("metadata", {})
-        # Only allow adding a property type that already exists in the system
-        # (either as a molecular property or a family property). This prevents
-        # arbitrary new property types from being created by this endpoint.
+
+        # Permit creating new property types via this endpoint. The previous
+        # behavior rejected unknown property_type values; that made the API
+        # brittle because descriptors (which used to populate types) are not
+        # created by default anymore.
         prop_type = data["property_type"]
-        prop_exists = MolecularProperty.objects.filter(
-            property_type=prop_type
-        ).exists() or (FamilyProperty.objects.filter(property_type=prop_type).exists())
-        if not prop_exists:
-            return Response(
-                {
-                    "error": (
-                        "Property type not registered. Create the property type first "
-                        "(e.g. via the molecular-properties or family-properties endpoints)"
-                    )
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
         lookup = {
             "molecule": molecule,

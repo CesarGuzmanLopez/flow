@@ -46,8 +46,10 @@ class ChemistryServicesTests(TestCase):
         self.assertEqual(molecule.name, "Ethanol")
         self.assertEqual(molecule.smiles, "CCO")
         self.assertEqual(molecule.created_by, self.user)
+
         self.assertIsNotNone(molecule.inchikey)
-        self.assertIn("descriptors", molecule.metadata)
+        # Descriptors are not computed by default anymore
+        self.assertNotIn("descriptors", molecule.metadata)
 
     def test_create_molecule_from_smiles_empty_smiles(self):
         """Test validación de SMILES vacío."""

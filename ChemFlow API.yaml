@@ -7,7 +7,6 @@ paths:
   /api/chemistry/families/:
     get:
       operationId: chemistry_families_list
-      description: Obtiene la lista de familias de moléculas.
       summary: Listar familias
       tags:
       - chemistry
@@ -24,7 +23,6 @@ paths:
           description: ''
     post:
       operationId: chemistry_families_create
-      description: Crea una nueva familia de moléculas.
       summary: Crear familia
       tags:
       - chemistry
@@ -52,7 +50,6 @@ paths:
   /api/chemistry/families/{id}/:
     get:
       operationId: chemistry_families_retrieve
-      description: ViewSet para familias de moléculas.
       parameters:
       - in: path
         name: id
@@ -73,7 +70,6 @@ paths:
           description: ''
     put:
       operationId: chemistry_families_update
-      description: ViewSet para familias de moléculas.
       parameters:
       - in: path
         name: id
@@ -106,7 +102,6 @@ paths:
           description: ''
     patch:
       operationId: chemistry_families_partial_update
-      description: ViewSet para familias de moléculas.
       parameters:
       - in: path
         name: id
@@ -138,7 +133,6 @@ paths:
           description: ''
     delete:
       operationId: chemistry_families_destroy
-      description: ViewSet para familias de moléculas.
       parameters:
       - in: path
         name: id
@@ -156,7 +150,6 @@ paths:
   /api/chemistry/families/{id}/add_property/:
     post:
       operationId: chemistry_families_add_property_create
-      description: Agrega una propiedad a la familia.
       parameters:
       - in: path
         name: id
@@ -170,13 +163,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Family'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/Family'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/Family'
+              $ref: '#/components/schemas/AddProperty'
         required: true
       security:
       - jwtAuth: []
@@ -187,10 +174,15 @@ paths:
               schema:
                 $ref: '#/components/schemas/Family'
           description: ''
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyProperty'
+          description: ''
   /api/chemistry/families/{id}/generate_admetsa/:
     post:
       operationId: chemistry_families_generate_admetsa_create
-      description: Genera propiedades ADMETSA para la familia.
       parameters:
       - in: path
         name: id
@@ -224,7 +216,6 @@ paths:
   /api/chemistry/families/from_smiles/:
     post:
       operationId: chemistry_families_from_smiles_create
-      description: Crea una familia desde lista de SMILES.
       tags:
       - chemistry
       requestBody:
@@ -251,7 +242,6 @@ paths:
   /api/chemistry/families/mine/:
     get:
       operationId: chemistry_families_mine_retrieve
-      description: Obtiene familias relacionadas con moléculas del usuario autenticado.
       tags:
       - chemistry
       security:
@@ -266,8 +256,6 @@ paths:
   /api/chemistry/family-members/:
     get:
       operationId: chemistry_family_members_list
-      description: Obtiene la lista de relaciones molécula-familia.
-      summary: Listar miembros de familias
       tags:
       - chemistry
       security:
@@ -283,8 +271,6 @@ paths:
           description: ''
     post:
       operationId: chemistry_family_members_create
-      description: Agrega una molécula a una familia.
-      summary: Agregar miembro a familia
       tags:
       - chemistry
       requestBody:
@@ -311,7 +297,6 @@ paths:
   /api/chemistry/family-members/{id}/:
     get:
       operationId: chemistry_family_members_retrieve
-      description: ViewSet para membresías de familias (relaciones molécula-familia).
       parameters:
       - in: path
         name: id
@@ -332,7 +317,6 @@ paths:
           description: ''
     put:
       operationId: chemistry_family_members_update
-      description: ViewSet para membresías de familias (relaciones molécula-familia).
       parameters:
       - in: path
         name: id
@@ -365,7 +349,6 @@ paths:
           description: ''
     patch:
       operationId: chemistry_family_members_partial_update
-      description: ViewSet para membresías de familias (relaciones molécula-familia).
       parameters:
       - in: path
         name: id
@@ -397,7 +380,6 @@ paths:
           description: ''
     delete:
       operationId: chemistry_family_members_destroy
-      description: ViewSet para membresías de familias (relaciones molécula-familia).
       parameters:
       - in: path
         name: id
@@ -415,7 +397,6 @@ paths:
   /api/chemistry/family-properties/:
     get:
       operationId: chemistry_family_properties_list
-      description: Obtiene la lista de propiedades de familias.
       summary: Listar propiedades de familias
       tags:
       - chemistry
@@ -432,7 +413,6 @@ paths:
           description: ''
     post:
       operationId: chemistry_family_properties_create
-      description: Crea una nueva propiedad para una familia.
       summary: Crear propiedad de familia
       tags:
       - chemistry
@@ -460,7 +440,6 @@ paths:
   /api/chemistry/family-properties/{id}/:
     get:
       operationId: chemistry_family_properties_retrieve
-      description: ViewSet para propiedades de familias (EAV).
       parameters:
       - in: path
         name: id
@@ -481,7 +460,6 @@ paths:
           description: ''
     put:
       operationId: chemistry_family_properties_update
-      description: ViewSet para propiedades de familias (EAV).
       parameters:
       - in: path
         name: id
@@ -514,7 +492,6 @@ paths:
           description: ''
     patch:
       operationId: chemistry_family_properties_partial_update
-      description: ViewSet para propiedades de familias (EAV).
       parameters:
       - in: path
         name: id
@@ -546,7 +523,6 @@ paths:
           description: ''
     delete:
       operationId: chemistry_family_properties_destroy
-      description: ViewSet para propiedades de familias (EAV).
       parameters:
       - in: path
         name: id
@@ -564,7 +540,6 @@ paths:
   /api/chemistry/molecular-properties/:
     get:
       operationId: chemistry_molecular_properties_list
-      description: Obtiene la lista de propiedades moleculares.
       summary: Listar propiedades moleculares
       tags:
       - chemistry
@@ -581,7 +556,6 @@ paths:
           description: ''
     post:
       operationId: chemistry_molecular_properties_create
-      description: Crea una nueva propiedad para una molécula.
       summary: Crear propiedad molecular
       tags:
       - chemistry
@@ -609,7 +583,6 @@ paths:
   /api/chemistry/molecular-properties/{id}/:
     get:
       operationId: chemistry_molecular_properties_retrieve
-      description: ViewSet para propiedades moleculares (EAV).
       parameters:
       - in: path
         name: id
@@ -630,7 +603,6 @@ paths:
           description: ''
     put:
       operationId: chemistry_molecular_properties_update
-      description: ViewSet para propiedades moleculares (EAV).
       parameters:
       - in: path
         name: id
@@ -663,7 +635,6 @@ paths:
           description: ''
     patch:
       operationId: chemistry_molecular_properties_partial_update
-      description: ViewSet para propiedades moleculares (EAV).
       parameters:
       - in: path
         name: id
@@ -695,7 +666,6 @@ paths:
           description: ''
     delete:
       operationId: chemistry_molecular_properties_destroy
-      description: ViewSet para propiedades moleculares (EAV).
       parameters:
       - in: path
         name: id
@@ -713,7 +683,7 @@ paths:
   /api/chemistry/molecules/:
     get:
       operationId: chemistry_molecules_list
-      description: Obtiene la lista de moléculas disponibles en el sistema.
+      description: Obtiene la lista de moléculas.
       summary: Listar moléculas
       tags:
       - chemistry
@@ -730,7 +700,7 @@ paths:
           description: ''
     post:
       operationId: chemistry_molecules_create
-      description: Crea una nueva molécula con sus propiedades básicas.
+      description: Crea una nueva molécula.
       summary: Crear molécula
       tags:
       - chemistry
@@ -739,21 +709,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CreateMolecule'
-            examples:
-              LookupByInChIKey(request):
-                value:
-                  inchikey: ABCD1234XYZ
-                summary: Lookup by InChIKey (request)
-              CreateFromSMILES(request):
-                value:
-                  smiles: CCO
-                  name: Ethanol
-                summary: Create from SMILES (request)
-              SMILES+InChIKeyMismatch(request):
-                value:
-                  smiles: CCO
-                  inchikey: WRONGINCHIKEY
-                summary: SMILES+InChIKey mismatch (request)
           application/x-www-form-urlencoded:
             schema:
               $ref: '#/components/schemas/CreateMolecule'
@@ -768,65 +723,22 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Molecule'
-              examples:
-                LookupByInChIKey(response):
-                  value:
-                    id: 1
-                    name: Ethanol
-                    inchikey: ABCD1234XYZ
-                    smiles: CCO
-                    inchi: InChI=1S/C2H6O/c1-2-3/h3H,2H2,1H3
-                    canonical_smiles: CCO
-                    molecular_formula: C2H6O
-                    metadata:
-                      descriptors:
-                        MolWt: 46.07
-                    computed_properties:
-                      MolWt: 46.07
-                      LogP: -0.18
-                    properties: []
-                  summary: Lookup by InChIKey (response)
           description: ''
         '201':
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Molecule'
-              examples:
-                CreateFromSMILES(response):
-                  value:
-                    id: 42
-                    name: Ethanol
-                    inchikey: ZYXW9876QWER
-                    smiles: CCO
-                    inchi: InChI=1S/C2H6O/c1-2-3/h3H,2H2,1H3
-                    canonical_smiles: CCO
-                    molecular_formula: C2H6O
-                    metadata:
-                      descriptors:
-                        MolWt: 46.07
-                    computed_properties:
-                      MolWt: 46.07
-                      TPSA: 20.23
-                    properties: []
-                  summary: Create from SMILES (response)
           description: ''
         '400':
           content:
             application/json:
               schema:
                 type: object
-              examples:
-                SMILES+InChIKeyMismatch(response):
-                  value:
-                    error: Provided InChIKey does not match one computed from SMILES
-                  summary: SMILES+InChIKey mismatch (response)
           description: ''
   /api/chemistry/molecules/{id}/:
     get:
       operationId: chemistry_molecules_retrieve
-      description: Obtiene los detalles de una molécula específica.
-      summary: Obtener molécula
       parameters:
       - in: path
         name: id
@@ -847,8 +759,6 @@ paths:
           description: ''
     put:
       operationId: chemistry_molecules_update
-      description: Actualiza una molécula existente.
-      summary: Actualizar molécula
       parameters:
       - in: path
         name: id
@@ -880,8 +790,6 @@ paths:
           description: ''
     patch:
       operationId: chemistry_molecules_partial_update
-      description: Actualiza parcialmente una molécula existente.
-      summary: Actualizar parcialmente molécula
       parameters:
       - in: path
         name: id
@@ -913,8 +821,6 @@ paths:
           description: ''
     delete:
       operationId: chemistry_molecules_destroy
-      description: Elimina una molécula del sistema.
-      summary: Eliminar molécula
       parameters:
       - in: path
         name: id
@@ -932,7 +838,6 @@ paths:
   /api/chemistry/molecules/{id}/add_property/:
     post:
       operationId: chemistry_molecules_add_property_create
-      description: Agrega una propiedad a la molécula.
       parameters:
       - in: path
         name: id
@@ -946,13 +851,8 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Molecule'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/Molecule'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/Molecule'
+              $ref: '#/components/schemas/AddProperty'
+        required: true
       security:
       - jwtAuth: []
       responses:
@@ -962,10 +862,15 @@ paths:
               schema:
                 $ref: '#/components/schemas/Molecule'
           description: ''
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MolecularProperty'
+          description: ''
   /api/chemistry/molecules/from_smiles/:
     post:
       operationId: chemistry_molecules_from_smiles_create
-      description: Crea una molécula desde notación SMILES.
       tags:
       - chemistry
       requestBody:
@@ -991,7 +896,6 @@ paths:
   /api/chemistry/molecules/mine/:
     get:
       operationId: chemistry_molecules_mine_retrieve
-      description: Endpoint personalizado para obtener moléculas del usuario autenticado.
       tags:
       - chemistry
       security:
@@ -4127,7 +4031,18 @@ components:
           readOnly: true
         metadata: {}
         status:
-          $ref: '#/components/schemas/ExecutionSnapshotStatusEnum'
+          enum:
+          - running
+          - completed
+          - failed
+          - partial
+          type: string
+          description: |-
+            * `running` - Running
+            * `completed` - Completed
+            * `failed` - Failed
+            * `partial` - Partial
+          x-spec-enum-id: e8d459eff29b3abb
         step_executions:
           type: array
           items:
@@ -4139,18 +4054,6 @@ components:
       - id
       - step_executions
       - triggered_by
-    ExecutionSnapshotStatusEnum:
-      enum:
-      - running
-      - completed
-      - failed
-      - partial
-      type: string
-      description: |-
-        * `running` - Running
-        * `completed` - Completed
-        * `failed` - Failed
-        * `partial` - Partial
     Family:
       type: object
       description: Serializador para familias con propiedades anidadas y tipado fuerte.
@@ -4601,7 +4504,18 @@ components:
           readOnly: true
         metadata: {}
         status:
-          $ref: '#/components/schemas/ExecutionSnapshotStatusEnum'
+          enum:
+          - running
+          - completed
+          - failed
+          - partial
+          type: string
+          description: |-
+            * `running` - Running
+            * `completed` - Completed
+            * `failed` - Failed
+            * `partial` - Partial
+          x-spec-enum-id: e8d459eff29b3abb
         step_executions:
           type: array
           items:
@@ -4995,7 +4909,20 @@ components:
           format: date-time
           nullable: true
         status:
-          $ref: '#/components/schemas/StepExecutionStatusEnum'
+          enum:
+          - pending
+          - running
+          - completed
+          - failed
+          - cancelled
+          type: string
+          description: |-
+            * `pending` - Pending
+            * `running` - Running
+            * `completed` - Completed
+            * `failed` - Failed
+            * `cancelled` - Cancelled
+          x-spec-enum-id: 8dadec406e4f98de
         inputs: {}
         outputs: {}
         error_message:
@@ -5066,14 +4993,40 @@ components:
           type: integer
           readOnly: true
         type:
-          $ref: '#/components/schemas/TypeEnum'
+          enum:
+          - info
+          - success
+          - warning
+          - error
+          - flow_update
+          - system
+          type: string
+          description: |-
+            * `info` - Información
+            * `success` - Éxito
+            * `warning` - Advertencia
+            * `error` - Error
+            * `flow_update` - Actualización de Flujo
+            * `system` - Sistema
+          x-spec-enum-id: fb928cac0b354386
         title:
           type: string
           maxLength: 255
         message:
           type: string
         priority:
-          $ref: '#/components/schemas/PriorityEnum'
+          enum:
+          - low
+          - normal
+          - high
+          - urgent
+          type: string
+          description: |-
+            * `low` - Baja
+            * `normal` - Normal
+            * `high` - Alta
+            * `urgent` - Urgente
+          x-spec-enum-id: 841392998835b508
         read:
           type: boolean
         created_at:
@@ -5117,18 +5070,6 @@ components:
       - id
       - name
       - resource
-    PriorityEnum:
-      enum:
-      - low
-      - normal
-      - high
-      - urgent
-      type: string
-      description: |-
-        * `low` - Baja
-        * `normal` - Normal
-        * `high` - Alta
-        * `urgent` - Urgente
     Role:
       type: object
       properties:
@@ -5226,7 +5167,20 @@ components:
           format: date-time
           nullable: true
         status:
-          $ref: '#/components/schemas/StepExecutionStatusEnum'
+          enum:
+          - pending
+          - running
+          - completed
+          - failed
+          - cancelled
+          type: string
+          description: |-
+            * `pending` - Pending
+            * `running` - Running
+            * `completed` - Completed
+            * `failed` - Failed
+            * `cancelled` - Cancelled
+          x-spec-enum-id: 8dadec406e4f98de
         inputs: {}
         outputs: {}
         error_message:
@@ -5262,20 +5216,6 @@ components:
       - artifact_type
       - id
       - step_execution
-    StepExecutionStatusEnum:
-      enum:
-      - pending
-      - running
-      - completed
-      - failed
-      - cancelled
-      type: string
-      description: |-
-        * `pending` - Pending
-        * `running` - Running
-        * `completed` - Completed
-        * `failed` - Failed
-        * `cancelled` - Cancelled
     TokenObtainPair:
       type: object
       properties:
@@ -5308,22 +5248,6 @@ components:
       required:
       - access
       - refresh
-    TypeEnum:
-      enum:
-      - info
-      - success
-      - warning
-      - error
-      - flow_update
-      - system
-      type: string
-      description: |-
-        * `info` - Información
-        * `success` - Éxito
-        * `warning` - Advertencia
-        * `error` - Error
-        * `flow_update` - Actualización de Flujo
-        * `system` - Sistema
     User:
       type: object
       properties:
@@ -5433,14 +5357,40 @@ components:
           type: integer
           readOnly: true
         type:
-          $ref: '#/components/schemas/TypeEnum'
+          enum:
+          - info
+          - success
+          - warning
+          - error
+          - flow_update
+          - system
+          type: string
+          description: |-
+            * `info` - Información
+            * `success` - Éxito
+            * `warning` - Advertencia
+            * `error` - Error
+            * `flow_update` - Actualización de Flujo
+            * `system` - Sistema
+          x-spec-enum-id: fb928cac0b354386
         title:
           type: string
           maxLength: 255
         message:
           type: string
         priority:
-          $ref: '#/components/schemas/PriorityEnum'
+          enum:
+          - low
+          - normal
+          - high
+          - urgent
+          type: string
+          description: |-
+            * `low` - Baja
+            * `normal` - Normal
+            * `high` - Alta
+            * `urgent` - Urgente
+          x-spec-enum-id: 841392998835b508
         read:
           type: boolean
         created_at:
@@ -5459,6 +5409,31 @@ components:
       - message
       - read_at
       - title
+    AddProperty:
+      type: object
+      description: Serializador para agregar propiedades a moléculas o familias.
+      properties:
+        property_type:
+          type: string
+          maxLength: 200
+        value:
+          type: string
+          maxLength: 500
+        method:
+          type: string
+          maxLength: 100
+        units:
+          type: string
+          maxLength: 50
+        source_id:
+          type: string
+          maxLength: 100
+        metadata:
+          type: object
+          additionalProperties: true
+      required:
+      - property_type
+      - value
   securitySchemes:
     jwtAuth:
       type: http
