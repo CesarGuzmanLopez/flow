@@ -293,6 +293,58 @@ class CreateMoleculeFromSmilesSerializer(serializers.Serializer):
     )
 
 
+class CreateMoleculeSerializer(serializers.Serializer):
+    """Serializer used by the openapi schema for creating or looking up molecules.
+
+    Supports multiple payload shapes accepted by the service:
+    - `smiles` (preferred): create or deduplicate by provider InChIKey
+    - `inchikey` (lookup-only when provided without `smiles`)
+    - Optional `name` and `extra_metadata` fields
+    """
+
+    smiles = serializers.CharField(
+        max_length=1000,
+        required=False,
+        allow_blank=True,
+        help_text="Notación SMILES de la molécula (preferida para creación)",
+    )
+    inchikey = serializers.CharField(
+        max_length=27,
+        required=False,
+        allow_blank=True,
+        help_text="InChIKey (busqueda; el backend no confía en inchikeys enviados para creación)",
+    )
+    name = serializers.CharField(
+        max_length=200,
+        required=False,
+        allow_blank=True,
+        help_text="Nombre opcional de la molécula",
+    )
+    extra_metadata = serializers.JSONField(
+        required=False, default=dict, help_text="Metadatos adicionales"
+    )
+
+
+class MoleculeUpdateSerializer(serializers.Serializer):
+    """Serializer for validating update/patch payloads for Molecule endpoints.
+
+    Admins may include structural fields; regular users must not include them.
+    """
+
+    name = serializers.CharField(max_length=200, required=False, allow_blank=True)
+    smiles = serializers.CharField(max_length=1000, required=False, allow_blank=True)
+    inchi = serializers.CharField(required=False, allow_blank=True)
+    inchikey = serializers.CharField(max_length=27, required=False, allow_blank=True)
+    canonical_smiles = serializers.CharField(
+        max_length=1000, required=False, allow_blank=True
+    )
+    molecular_formula = serializers.CharField(
+        max_length=200, required=False, allow_blank=True
+    )
+    metadata = serializers.JSONField(required=False, default=dict)
+    frozen = serializers.BooleanField(required=False)
+
+
 class CreateFamilyFromSmilesSerializer(serializers.Serializer):
     """Serializador para crear familia desde lista de SMILES."""
 

@@ -738,21 +738,89 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Molecule'
+              $ref: '#/components/schemas/CreateMolecule'
+            examples:
+              LookupByInChIKey(request):
+                value:
+                  inchikey: ABCD1234XYZ
+                summary: Lookup by InChIKey (request)
+              CreateFromSMILES(request):
+                value:
+                  smiles: CCO
+                  name: Ethanol
+                summary: Create from SMILES (request)
+              SMILES+InChIKeyMismatch(request):
+                value:
+                  smiles: CCO
+                  inchikey: WRONGINCHIKEY
+                summary: SMILES+InChIKey mismatch (request)
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/Molecule'
+              $ref: '#/components/schemas/CreateMolecule'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Molecule'
+              $ref: '#/components/schemas/CreateMolecule'
       security:
       - jwtAuth: []
       responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Molecule'
+              examples:
+                LookupByInChIKey(response):
+                  value:
+                    id: 1
+                    name: Ethanol
+                    inchikey: ABCD1234XYZ
+                    smiles: CCO
+                    inchi: InChI=1S/C2H6O/c1-2-3/h3H,2H2,1H3
+                    canonical_smiles: CCO
+                    molecular_formula: C2H6O
+                    metadata:
+                      descriptors:
+                        MolWt: 46.07
+                    computed_properties:
+                      MolWt: 46.07
+                      LogP: -0.18
+                    properties: []
+                  summary: Lookup by InChIKey (response)
+          description: ''
         '201':
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Molecule'
+              examples:
+                CreateFromSMILES(response):
+                  value:
+                    id: 42
+                    name: Ethanol
+                    inchikey: ZYXW9876QWER
+                    smiles: CCO
+                    inchi: InChI=1S/C2H6O/c1-2-3/h3H,2H2,1H3
+                    canonical_smiles: CCO
+                    molecular_formula: C2H6O
+                    metadata:
+                      descriptors:
+                        MolWt: 46.07
+                    computed_properties:
+                      MolWt: 46.07
+                      TPSA: 20.23
+                    properties: []
+                  summary: Create from SMILES (response)
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                SMILES+InChIKeyMismatch(response):
+                  value:
+                    error: Provided InChIKey does not match one computed from SMILES
+                  summary: SMILES+InChIKey mismatch (response)
           description: ''
   /api/chemistry/molecules/{id}/:
     get:
@@ -939,8 +1007,29 @@ paths:
     get:
       operationId: flows_artifacts_list
       description: Obtiene todos los artefactos (archivos, datos) generados por flujos.
-        Los artefactos son content-addressable (identificados por hash SHA256).
+        Los artefactos son content-addressable (identificados por hash SHA256). Usa
+        ?mine=true para obtener solo los artefactos asociados a flujos creados por
+        el usuario autenticado.
       summary: Listar artefactos
+      parameters:
+      - in: query
+        name: mine
+        schema:
+          type: boolean
+        description: Filtrar solo los artefactos asociados a flujos creados por el
+          usuario autenticado.
+      - name: ordering
+        required: false
+        in: query
+        description: Qué campo usar para ordenar los resultados.
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: Un término de búsqueda.
+        schema:
+          type: string
       tags:
       - Artifacts
       security:
@@ -1118,7 +1207,27 @@ paths:
       operationId: flows_branches_list
       description: Obtiene todas las ramas en la estructura de árbol de flujos. Cada
         rama representa una línea de desarrollo independiente sin posibilidad de merge.
+        Usa ?mine=true para obtener solo las ramas de flujos creados por el usuario
+        autenticado.
       summary: Listar ramas de flujos
+      parameters:
+      - in: query
+        name: mine
+        schema:
+          type: boolean
+        description: Filtrar solo las ramas de flujos creados por el usuario autenticado.
+      - name: ordering
+        required: false
+        in: query
+        description: Qué campo usar para ordenar los resultados.
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: Un término de búsqueda.
+        schema:
+          type: string
       tags:
       - Branches
       security:
@@ -1329,7 +1438,28 @@ paths:
       operationId: flows_executions_list
       description: Obtiene todos los snapshots de ejecución de flujos. Cada snapshot
         representa una ejecución completa de un flujo con sus inputs, outputs y metadata.
+        Usa ?mine=true para obtener solo las ejecuciones de flujos creados por el
+        usuario autenticado.
       summary: Listar ejecuciones de flujos
+      parameters:
+      - in: query
+        name: mine
+        schema:
+          type: boolean
+        description: Filtrar solo las ejecuciones de flujos creados por el usuario
+          autenticado.
+      - name: ordering
+        required: false
+        in: query
+        description: Qué campo usar para ordenar los resultados.
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: Un término de búsqueda.
+        schema:
+          type: string
       tags:
       - Executions
       security:
@@ -1504,8 +1634,27 @@ paths:
       operationId: flows_flows_list
       description: Obtiene todos los flujos de trabajo (workflows) accesibles por
         el usuario. Los usuarios con permisos globales ven todos los flujos, mientras
-        que los demás solo ven sus propios flujos.
+        que los demás solo ven sus propios flujos. Usa ?mine=true para obtener solo
+        los creados por el usuario autenticado.
       summary: Listar flujos de trabajo
+      parameters:
+      - in: query
+        name: mine
+        schema:
+          type: boolean
+        description: Filtrar solo los flujos creados por el usuario autenticado.
+      - name: ordering
+        required: false
+        in: query
+        description: Qué campo usar para ordenar los resultados.
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: Un término de búsqueda.
+        schema:
+          type: string
       tags:
       - Flows
       security:
@@ -1823,7 +1972,11 @@ paths:
   /api/flows/flows/mine/:
     get:
       operationId: flows_flows_mine_retrieve
-      description: Devuelve los flows creados por el usuario autenticado.
+      description: |-
+        Devuelve los flows creados por el usuario autenticado.
+
+        Endpoint de conveniencia usado por el frontend y tests: retorna únicamente
+        los flujos cuyo `owner` es el usuario autenticado.
       tags:
       - flows
       security:
@@ -1840,7 +1993,27 @@ paths:
       operationId: flows_nodes_list
       description: Obtiene todos los nodos (pasos) en el árbol de flujos. Los nodos
         pueden ser compartidos entre múltiples ramas (deduplicación por content_hash).
+        Usa ?mine=true para obtener solo los nodos de flujos creados por el usuario
+        autenticado.
       summary: Listar nodos de flujos
+      parameters:
+      - in: query
+        name: mine
+        schema:
+          type: boolean
+        description: Filtrar solo los nodos de flujos creados por el usuario autenticado.
+      - name: ordering
+        required: false
+        in: query
+        description: Qué campo usar para ordenar los resultados.
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: Un término de búsqueda.
+        schema:
+          type: string
       tags:
       - Nodes
       security:
@@ -1882,8 +2055,28 @@ paths:
     get:
       operationId: flows_step_executions_list
       description: Obtiene todas las ejecuciones individuales de pasos a través de
-        todos los snapshots de ejecución.
+        todos los snapshots de ejecución. Usa ?mine=true para obtener solo las ejecuciones
+        de pasos de flujos creados por el usuario autenticado.
       summary: Listar todas las ejecuciones de pasos
+      parameters:
+      - in: query
+        name: mine
+        schema:
+          type: boolean
+        description: Filtrar solo las ejecuciones de pasos de flujos creados por el
+          usuario autenticado.
+      - name: ordering
+        required: false
+        in: query
+        description: Qué campo usar para ordenar los resultados.
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: Un término de búsqueda.
+        schema:
+          type: string
       tags:
       - Step Executions
       security:
@@ -2089,7 +2282,27 @@ paths:
     get:
       operationId: flows_steps_list
       description: Obtiene todos los pasos (tareas) definidos en los flujos del sistema.
+        Usa ?mine=true para obtener solo los pasos de flujos creados por el usuario
+        autenticado.
       summary: Listar pasos de flujos
+      parameters:
+      - in: query
+        name: mine
+        schema:
+          type: boolean
+        description: Filtrar solo los pasos de flujos creados por el usuario autenticado.
+      - name: ordering
+        required: false
+        in: query
+        description: Qué campo usar para ordenar los resultados.
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: Un término de búsqueda.
+        schema:
+          type: string
       tags:
       - Steps
       security:
@@ -2239,40 +2452,6 @@ paths:
       responses:
         '204':
           description: No response body
-  /api/flows/steps/{id}/append-step/:
-    post:
-      operationId: flows_steps_append_step_create
-      description: ViewSet para gestión de pasos (tareas) en flujos de trabajo.
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: Un valor de entero único que identifique este step.
-        required: true
-      tags:
-      - flows
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Step'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/Step'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/Step'
-        required: true
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Step'
-          description: ''
   /api/flows/steps/{id}/run/:
     post:
       operationId: flows_steps_run_create
@@ -2353,8 +2532,27 @@ paths:
     get:
       operationId: flows_versions_list
       description: Obtiene todas las versiones de flujos del sistema que el usuario
-        puede ver.
+        puede ver. Usa ?mine=true para obtener solo las versiones de flujos creados
+        por el usuario autenticado.
       summary: Listar versiones de flujos
+      parameters:
+      - in: query
+        name: mine
+        schema:
+          type: boolean
+        description: Filtrar solo las versiones deflujos creados por el usuario autenticado.
+      - name: ordering
+        required: false
+        in: query
+        description: Qué campo usar para ordenar los resultados.
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: Un término de búsqueda.
+        schema:
+          type: string
       tags:
       - Flow Versions
       security:
@@ -2505,6 +2703,40 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/flows/versions/{id}/append-step/:
+    post:
+      operationId: flows_versions_append_step_create
+      description: ViewSet para gestión de versiones de flujos (snapshots inmutables).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este flow version.
+        required: true
+      tags:
+      - flows
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FlowVersion'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FlowVersion'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FlowVersion'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlowVersion'
+          description: ''
   /api/flows/versions/{id}/execute/:
     post:
       operationId: flows_versions_execute_create
@@ -2633,6 +2865,11 @@ paths:
       - in: path
         name: id
         schema:
+          type: string
+        required: true
+      - in: path
+        name: pk
+        schema:
           type: integer
         description: ID de la notificación
         required: true
@@ -2656,6 +2893,11 @@ paths:
       parameters:
       - in: path
         name: id
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: pk
         schema:
           type: integer
         description: ID de la notificación
@@ -2693,6 +2935,11 @@ paths:
       - in: path
         name: id
         schema:
+          type: string
+        required: true
+      - in: path
+        name: pk
+        schema:
           type: integer
         description: ID de la notificación
         required: true
@@ -2727,6 +2974,11 @@ paths:
       parameters:
       - in: path
         name: id
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: pk
         schema:
           type: integer
         description: ID de la notificación
@@ -2983,8 +3235,8 @@ paths:
             examples:
               LoginConUsernameYPassword:
                 value:
-                  username: admin
-                  password: admin123
+                  username: chemflow_admin
+                  password: ChemFlow2024!
                 summary: Login con username y password
           application/x-www-form-urlencoded:
             schema:
@@ -3833,6 +4085,31 @@ components:
       - at_step
       - from_branch
       - name
+    CreateMolecule:
+      type: object
+      description: |-
+        Serializer used by the openapi schema for creating or looking up molecules.
+
+        Supports multiple payload shapes accepted by the service:
+        - `smiles` (preferred): create or deduplicate by provider InChIKey
+        - `inchikey` (lookup-only when provided without `smiles`)
+        - Optional `name` and `extra_metadata` fields
+      properties:
+        smiles:
+          type: string
+          description: Notación SMILES de la molécula (preferida para creación)
+          maxLength: 1000
+        inchikey:
+          type: string
+          description: InChIKey (busqueda; el backend no confía en inchikeys enviados
+            para creación)
+          maxLength: 27
+        name:
+          type: string
+          description: Nombre opcional de la molécula
+          maxLength: 200
+        extra_metadata:
+          description: Metadatos adicionales
     ExecutionSnapshot:
       type: object
       properties:

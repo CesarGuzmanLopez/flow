@@ -130,6 +130,37 @@ SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
 
+# Persist a signing key for JWT so tokens survive server restarts.
+# By default DRF SimpleJWT will use SECRET_KEY for HS256, but some
+# deployments generate SECRET_KEY at runtime or use ephemeral containers.
+# We store a dedicated signing secret in a file inside the project base
+# directory (only when running locally). In production you should provide
+# a stable secret via environment variable `JWT_SIGNING_KEY` or mount a
+# secret file into the container.
+JWT_SIGNING_KEY_FILE = BASE_DIR / ".jwt_signing_key"
+_jwt_key = os.getenv("JWT_SIGNING_KEY")
+if not _jwt_key:
+    try:
+        if JWT_SIGNING_KEY_FILE.exists():
+            _jwt_key = JWT_SIGNING_KEY_FILE.read_text(encoding="utf-8").strip()
+        else:
+            # generate a random key and persist it with restrictive permissions
+            _jwt_key = os.urandom(64).hex()
+            with open(JWT_SIGNING_KEY_FILE, "w", encoding="utf-8") as f:
+                f.write(_jwt_key)
+            try:
+                # Try to restrict file permissions (POSIX)
+                os.chmod(JWT_SIGNING_KEY_FILE, 0o600)
+            except Exception:
+                # Best-effort only; some filesystems may not support chmod
+                pass
+    except Exception:
+        # Fallback to Django SECRET_KEY if file cannot be used for any reason
+        _jwt_key = SECRET_KEY
+
+# Configure SimpleJWT to use the persistent signing key
+SIMPLE_JWT["SIGNING_KEY"] = _jwt_key
+
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 

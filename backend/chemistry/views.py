@@ -11,7 +11,7 @@ Las vistas actúan como coordinadores que delegan la lógica de negocio
 a servicios especializados a través de acciones tipadas.
 """
 
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from drf_spectacular.views import SpectacularAPIView
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
@@ -25,11 +25,13 @@ from .serializers import (
     AddPropertySerializer,
     CreateFamilyFromSmilesSerializer,
     CreateMoleculeFromSmilesSerializer,
+    CreateMoleculeSerializer,
     FamilyMemberSerializer,
     FamilyPropertySerializer,
     FamilySerializer,
     MolecularPropertySerializer,
     MoleculeSerializer,
+    MoleculeUpdateSerializer,
 )
 
 # Expose a simple schema view for inclusion in URL config if desired
@@ -114,21 +116,73 @@ class MoleculeViewSet(BaseChemistryViewSet):
             "Reglas principales: soporte para payloads con `smiles` (preferido) o solo `inchikey` (solo búsqueda). "
             "La verificación y creación se delega a la capa de servicios; el backend no confía en InChIKey del frontend."
         ),
-        request={
-            "type": "object",
-            "properties": {
-                "smiles": {"type": "string"},
-                "inchikey": {"type": "string"},
-                "name": {"type": "string"},
-                "extra_metadata": {"type": "object"},
-            },
-            "additionalProperties": False,
-        },
+        request=CreateMoleculeSerializer,
         responses={
             200: MoleculeSerializer,
             201: MoleculeSerializer,
             400: {"type": "object"},
         },
+        examples=[
+            OpenApiExample(
+                "Lookup by InChIKey (request)",
+                value={"inchikey": "ABCD1234XYZ"},
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Lookup by InChIKey (response)",
+                value={
+                    "id": 1,
+                    "name": "Ethanol",
+                    "inchikey": "ABCD1234XYZ",
+                    "smiles": "CCO",
+                    "inchi": "InChI=1S/C2H6O/c1-2-3/h3H,2H2,1H3",
+                    "canonical_smiles": "CCO",
+                    "molecular_formula": "C2H6O",
+                    "metadata": {"descriptors": {"MolWt": 46.07}},
+                    "computed_properties": {"MolWt": 46.07, "LogP": -0.18},
+                    "properties": [],
+                },
+                response_only=True,
+                status_codes=[200],
+            ),
+            # Example 2: create from SMILES (created)
+            OpenApiExample(
+                "Create from SMILES (request)",
+                value={"smiles": "CCO", "name": "Ethanol"},
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Create from SMILES (response)",
+                value={
+                    "id": 42,
+                    "name": "Ethanol",
+                    "inchikey": "ZYXW9876QWER",
+                    "smiles": "CCO",
+                    "inchi": "InChI=1S/C2H6O/c1-2-3/h3H,2H2,1H3",
+                    "canonical_smiles": "CCO",
+                    "molecular_formula": "C2H6O",
+                    "metadata": {"descriptors": {"MolWt": 46.07}},
+                    "computed_properties": {"MolWt": 46.07, "TPSA": 20.23},
+                    "properties": [],
+                },
+                response_only=True,
+                status_codes=[201],
+            ),
+            # Example 3: SMILES + mismatched InChIKey -> error
+            OpenApiExample(
+                "SMILES+InChIKey mismatch (request)",
+                value={"smiles": "CCO", "inchikey": "WRONGINCHIKEY"},
+                request_only=True,
+            ),
+            OpenApiExample(
+                "SMILES+InChIKey mismatch (response)",
+                value={
+                    "error": "Provided InChIKey does not match one computed from SMILES"
+                },
+                response_only=True,
+                status_codes=[400],
+            ),
+        ],
     )
     def create(self, request, *args, **kwargs):
         """Create a molecule following domain rules by delegating to services.create_or_get_molecule."""
@@ -192,6 +246,59 @@ class MoleculeViewSet(BaseChemistryViewSet):
             return Response(MoleculeSerializer(molecule).data, status=201)
         except Exception as e:
             return Response({"error": str(e)}, status=400)
+
+    def update(self, request, *args, **kwargs):
+        """PUT: Full update. Enforce strict rules via services.update_molecule.
+
+        Returns a warning message for non-admins because changing molecules may corrupt data.
+        """
+        from django.core.exceptions import ValidationError
+
+        molecule = self.get_object()
+        serializer = MoleculeUpdateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            mol, warning = chem_services.update_molecule(
+                molecule=molecule,
+                payload=serializer.validated_data,
+                user=request.user,
+                partial=False,
+            )
+            out = MoleculeSerializer(mol, context={"request": request})
+            resp = {**out.data}
+            if warning:
+                resp["warning"] = warning
+            return Response(resp, status=status.HTTP_200_OK)
+        except ValidationError as e:
+            msg = e.message if hasattr(e, "message") else str(e)
+            return Response({"error": msg}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    def partial_update(self, request, *args, **kwargs):
+        """PATCH: Partial update. Uses same rules as PUT but allows partial fields."""
+        from django.core.exceptions import ValidationError
+
+        molecule = self.get_object()
+        serializer = MoleculeUpdateSerializer(data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        try:
+            mol, warning = chem_services.update_molecule(
+                molecule=molecule,
+                payload=serializer.validated_data,
+                user=request.user,
+                partial=True,
+            )
+            out = MoleculeSerializer(mol, context={"request": request})
+            resp = {**out.data}
+            if warning:
+                resp["warning"] = warning
+            return Response(resp, status=status.HTTP_200_OK)
+        except ValidationError as e:
+            msg = e.message if hasattr(e, "message") else str(e)
+            return Response({"error": msg}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=["post"])
     @extend_schema(

@@ -821,3 +821,111 @@ def _compute_property_statistics(
                 stats[prop_name]["std"] = 0.0
 
     return stats
+
+
+def update_molecule(
+    *, molecule: Molecule, payload: Dict[str, Any], user: Any, partial: bool = False
+) -> tuple[Molecule, str]:
+    """
+    Update a Molecule with strict rules.
+
+    Rules:
+    - Non-admin users CANNOT change structural identifiers: `smiles`, `inchi`, `inchikey`, `canonical_smiles`.
+    - Admin users (is_staff or is_superuser) may change any field. If `smiles` is changed by admin,
+      we attempt to recompute structure identifiers via provider and update descriptors.
+    - If payload contains `inchikey` and it differs from molecule.inchikey, non-admins cannot change it.
+    - Returns: (molecule, warning_message). warning_message is empty when no warning.
+    """
+    if not user:
+        raise ValueError("user is required")
+
+    is_admin = getattr(user, "is_staff", False) or getattr(user, "is_superuser", False)
+
+    # Immutable structural fields for non-admins
+    structural_fields = {"smiles", "inchi", "inchikey", "canonical_smiles"}
+
+    # If non-admin attempts to modify structural fields -> ValidationError
+    attempted_structurals = structural_fields.intersection(set(payload.keys()))
+    if attempted_structurals and not is_admin:
+        from django.core.exceptions import ValidationError
+
+        raise ValidationError(
+            f"Updating structural identifiers ({', '.join(sorted(attempted_structurals))}) is forbidden for non-admin users"
+        )
+
+    # If payload includes inchikey as verification, ensure it matches existing molecule (unless admin)
+    if "inchikey" in payload and payload.get("inchikey"):
+        provided = (payload.get("inchikey") or "").strip()
+        if (
+            provided
+            and molecule.inchikey
+            and provided != molecule.inchikey
+            and not is_admin
+        ):
+            from django.core.exceptions import ValidationError
+
+            raise ValidationError(
+                "Provided InChIKey in payload does not match the resource's InChIKey; cannot update"
+            )
+
+    warning = ""
+    # Apply updates
+    changed_smiles = False
+    for key, val in payload.items():
+        if hasattr(molecule, key):
+            # skip id, created_by, updated_by
+            if key in ("id", "created_by", "updated_by"):
+                continue
+            setattr(molecule, key, val)
+            if key == "smiles":
+                changed_smiles = True
+
+    # If admin changed SMILES, try to recompute identifiers and descriptors
+    if is_admin and changed_smiles and (molecule.smiles or ""):
+        try:
+            structure_info = providers.engine.smiles_to_inchi(
+                molecule.smiles, return_dataclass=True
+            )
+            molecule.inchi = structure_info.inchi or molecule.inchi
+            molecule.inchikey = structure_info.inchikey or molecule.inchikey
+            molecule.canonical_smiles = (
+                structure_info.canonical_smiles or molecule.canonical_smiles
+            )
+            molecule.molecular_formula = (
+                structure_info.molecular_formula or molecule.molecular_formula
+            )
+            # recompute descriptors if possible
+            try:
+                props = providers.engine.calculate_properties(
+                    molecule.smiles, return_dataclass=True
+                )
+                molecule.metadata = dict(molecule.metadata or {})
+                molecule.metadata["descriptors"] = props.to_dict()
+            except Exception:
+                # ignore descriptor errors but log
+                logger.warning(
+                    "Failed to recompute descriptors for molecule %s", molecule.pk
+                )
+        except Exception as e:
+            # If recompute failed, surface an error for admin so they can decide
+            from django.core.exceptions import ValidationError
+
+            raise ValidationError(
+                f"Failed to recompute structure identifiers from SMILES: {e}"
+            )
+
+    # Save update with audit
+    molecule.updated_by = user
+    molecule.save()
+
+    # Non-admins get a warning reminding them about danger
+    if not is_admin:
+        warning = (
+            "Warning: updating molecules can corrupt structural data. "
+            "Structural identifiers are protected; admins may perform structural changes."
+        )
+
+    return molecule, warning
+
+
+__all__.append("update_molecule")
