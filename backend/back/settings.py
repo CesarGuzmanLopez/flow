@@ -114,6 +114,9 @@ SPECTACULAR_SETTINGS = {
     "TITLE": "ChemFlow API",
     "DESCRIPTION": "API schema for ChemFlow",
     "VERSION": "0.1.0",
+    "POSTPROCESSING_HOOKS": [
+        "back.spectacular_overrides.fix_add_property_schema",
+    ],
 }
 
 # Custom user model

@@ -95,7 +95,9 @@ class MoleculeViewSet(BaseChemistryViewSet):
     def get_queryset(self):
         qs = super().get_queryset()
         user = getattr(self.request, "user", None)
-        if getattr(self, "action", None) == "list" and (
+        # Allow admins/staff to access all molecules for any action (not only list).
+        # Non-admins: exclude molecules without an owner and filter by permissions.
+        if user and (
             getattr(user, "is_superuser", False) or getattr(user, "is_staff", False)
         ):
             qs = qs
@@ -306,18 +308,87 @@ class MoleculeViewSet(BaseChemistryViewSet):
         description="Agrega una nueva propiedad a la molécula.",
         request=AddPropertySerializer,
         responses={201: MolecularPropertySerializer},
+        operation_id="molecule_add_property",
+        examples=[
+            OpenApiExample(
+                "AddProperty (request)",
+                value={
+                    "property_type": "LogP",
+                    "value": "2.5",
+                    "method": "calculated",
+                    "units": "log(octanol/water)",
+                    "source_id": "run-1",
+                    "metadata": {},
+                },
+                request_only=True,
+                media_type="application/json",
+            ),
+            OpenApiExample(
+                "MolecularProperty (response)",
+                value={
+                    "id": 1,
+                    "molecule": 45,
+                    "property_type": "LogP",
+                    "value": "2.5",
+                    "is_invariant": False,
+                    "method": "calculated",
+                    "units": "log(octanol/water)",
+                    "relation": "",
+                    "source_id": "run-1",
+                    "metadata": {},
+                    "created_at": "2025-10-24T12:34:56Z",
+                    "updated_at": "2025-10-24T12:34:56Z",
+                    "created_by": 7,
+                    "updated_by": None,
+                },
+                response_only=True,
+                media_type="application/json",
+            ),
+        ],
     )
     def add_property(self, request, pk=None):
         """Agrega una propiedad a la molécula."""
         molecule = self.get_object()
         serializer = AddPropertySerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        molecular_property = MolecularProperty.objects.create(
-            molecule=molecule, created_by=request.user, **serializer.validated_data
-        )
+        # Normalize defaults for optional fields like in other create endpoints
+        data = dict(serializer.validated_data)
+        data.setdefault("method", "")
+        data.setdefault("units", "")
+        data.setdefault("relation", "")
+        data.setdefault("source_id", "")
+        data.setdefault("metadata", {})
+        lookup = {
+            "molecule": molecule,
+            "property_type": data["property_type"],
+            "method": data.get("method", ""),
+        }
+        defaults = {
+            "value": data.get("value"),
+            "is_invariant": data.get("is_invariant", False),
+            "units": data.get("units", ""),
+            "relation": data.get("relation", ""),
+            "source_id": data.get("source_id", ""),
+            "metadata": data.get("metadata", {}),
+        }
+
+        try:
+            molecular_property, created = MolecularProperty.objects.update_or_create(
+                defaults=defaults, **lookup
+            )
+        except Exception as e:
+            # Catch any DB-level uniqueness or integrity issues and return a
+            # clean 400 with the error message so the client can handle it.
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        # If a new property was created, ensure created_by is set for audit
+        if created and getattr(molecular_property, "created_by", None) is None:
+            molecular_property.created_by = request.user
+            molecular_property.save(update_fields=["created_by", "updated_at"])
+
+        resp_status = status.HTTP_201_CREATED if created else status.HTTP_200_OK
         return Response(
-            MolecularPropertySerializer(molecular_property).data,
-            status=status.HTTP_201_CREATED,
+            MolecularPropertySerializer(molecular_property).data, status=resp_status
         )
 
 
@@ -441,16 +512,87 @@ class FamilyViewSet(BaseChemistryViewSet):
         description="Agrega una nueva propiedad a la familia.",
         request=AddPropertySerializer,
         responses={201: FamilyPropertySerializer},
+        operation_id="family_add_property",
+        examples=[
+            OpenApiExample(
+                "AddProperty (request)",
+                value={
+                    "property_type": "AvgLogP",
+                    "value": "3.2",
+                    "method": "calculated",
+                    "units": "average",
+                    "source_id": "run-1",
+                    "metadata": {},
+                },
+                request_only=True,
+                media_type="application/json",
+            ),
+            OpenApiExample(
+                "FamilyProperty (response)",
+                value={
+                    "id": 1,
+                    "family": 10,
+                    "property_type": "AvgLogP",
+                    "value": "3.2",
+                    "is_invariant": False,
+                    "method": "calculated",
+                    "units": "average",
+                    "relation": "",
+                    "source_id": "run-1",
+                    "metadata": {},
+                    "created_at": "2025-10-24T12:34:56Z",
+                    "updated_at": "2025-10-24T12:34:56Z",
+                    "created_by": 7,
+                    "updated_by": None,
+                },
+                response_only=True,
+                media_type="application/json",
+            ),
+        ],
     )
     def add_property(self, request, pk=None):
         """Agrega una propiedad a la familia."""
         family = self.get_object()
         serializer = AddPropertySerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        family_property = FamilyProperty.objects.create(
-            family=family, created_by=request.user, **serializer.validated_data
+        # Normalize optional fields similarly to molecular property endpoint
+        data = dict(serializer.validated_data)
+        data.setdefault("method", "")
+        data.setdefault("units", "")
+        data.setdefault("relation", "")
+        data.setdefault("source_id", "")
+        data.setdefault("metadata", {})
+
+        lookup = {
+            "family": family,
+            "property_type": data["property_type"],
+            "method": data.get("method", ""),
+        }
+        defaults = {
+            "value": data.get("value"),
+            "is_invariant": data.get("is_invariant", False),
+            "units": data.get("units", ""),
+            "relation": data.get("relation", ""),
+            "source_id": data.get("source_id", ""),
+            "metadata": data.get("metadata", {}),
+        }
+
+        try:
+            family_property, created = FamilyProperty.objects.update_or_create(
+                defaults=defaults, **lookup
+            )
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        # If created, ensure created_by audit is set
+        if created and getattr(family_property, "created_by", None) is None:
+            family_property.created_by = request.user
+            family_property.save(update_fields=["created_by", "updated_at"])
+
+        resp_status = status.HTTP_201_CREATED if created else status.HTTP_200_OK
+        return Response(
+            FamilyPropertySerializer(family_property).data, status=resp_status
         )
-        return Response(FamilyPropertySerializer(family_property).data, status=201)
 
 
 @extend_schema_view(
