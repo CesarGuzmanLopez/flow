@@ -1,0 +1,153 @@
+from drf_spectacular.utils import extend_schema, extend_schema_view
+from rest_framework import status
+from rest_framework.decorators import action
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
+from rest_framework.response import Response
+
+from .. import services as chem_services
+from ..models import Family, FamilyProperty, MolecularProperty
+from ..serializers import (
+    AddPropertySerializer,
+    CreateFamilyFromSmilesSerializer,
+    FamilyPropertySerializer,
+    FamilySerializer,
+)
+from .molecules import BaseChemistryViewSet
+
+
+@extend_schema_view(
+    list=extend_schema(summary="Listar familias"),
+    create=extend_schema(summary="Crear familia"),
+)
+class FamilyViewSet(BaseChemistryViewSet):
+    queryset = Family.objects.all()
+    serializer_class = FamilySerializer
+
+    @action(detail=False, methods=["get"])
+    def mine(self, request):
+        qs = self.get_queryset().filter(created_by=request.user)
+        page = self.paginate_queryset(qs)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(qs, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=["post"])
+    def from_smiles(self, request):
+        serializer = CreateFamilyFromSmilesSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            family = chem_services.create_family_from_smiles(
+                name=serializer.validated_data["name"],
+                smiles_list=serializer.validated_data["smiles_list"],
+                created_by=request.user,
+                provenance=serializer.validated_data.get("provenance", "user"),
+            )
+            return Response(FamilySerializer(family).data, status=201)
+        except Exception as e:
+            return Response({"error": str(e)}, status=400)
+
+    @action(detail=True, methods=["post"])
+    def generate_admetsa(self, request, pk=None):
+        family = self.get_object()
+        try:
+            result = chem_services.generate_admetsa_for_family(
+                family_id=family.id, created_by=request.user
+            )
+            try:
+                properties_created = 0
+                for m in result.get("molecules", []):
+                    props = m.get("properties", {})
+                    properties_created += sum(
+                        1 for v in props.values() if v is not None
+                    )
+                enriched = {**result, "properties_created": properties_created}
+            except Exception:
+                enriched = {**result, "properties_created": 0}
+
+            return Response(enriched, status=200)
+        except Exception as e:
+            return Response({"error": str(e)}, status=400)
+
+    @action(detail=True, methods=["post"])
+    def add_property(self, request, pk=None):
+        family = self.get_object()
+        serializer = AddPropertySerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = dict(serializer.validated_data)
+        data.setdefault("method", "")
+        data.setdefault("units", "")
+        data.setdefault("relation", "")
+        data.setdefault("source_id", "")
+        data.setdefault("metadata", {})
+
+        # Only allow adding a property type that already exists in the system
+        prop_type = data["property_type"]
+        prop_exists = (
+            FamilyProperty.objects.filter(property_type=prop_type).exists()
+            or MolecularProperty.objects.filter(property_type=prop_type).exists()
+        )
+        if not prop_exists:
+            return Response(
+                {
+                    "error": (
+                        "Property type not registered. Create the property type first "
+                        "(e.g. via the family-properties or molecular-properties endpoints)"
+                    )
+                },
+                status=400,
+            )
+
+        lookup = {
+            "family": family,
+            "property_type": prop_type,
+            "method": data.get("method", ""),
+        }
+        defaults = {
+            "value": data.get("value"),
+            "is_invariant": data.get("is_invariant", False),
+            "units": data.get("units", ""),
+            "relation": data.get("relation", ""),
+            "source_id": data.get("source_id", ""),
+            "metadata": data.get("metadata", {}),
+        }
+
+        try:
+            family_property, created = FamilyProperty.objects.update_or_create(
+                defaults=defaults, **lookup
+            )
+        except Exception as e:
+            return Response({"error": str(e)}, status=400)
+
+        if created and getattr(family_property, "created_by", None) is None:
+            family_property.created_by = request.user
+            family_property.save(update_fields=["created_by", "updated_at"])
+
+        resp_status = status.HTTP_201_CREATED if created else status.HTTP_200_OK
+        return Response(
+            FamilyPropertySerializer(family_property).data, status=resp_status
+        )
+
+
+@extend_schema_view(
+    list=extend_schema(summary="Listar propiedades de familias"),
+    create=extend_schema(summary="Crear propiedad de familia"),
+)
+class FamilyPropertyViewSet(BaseChemistryViewSet):
+    queryset = FamilyProperty.objects.all()
+    serializer_class = FamilyPropertySerializer
+    parser_classes = [JSONParser, FormParser, MultiPartParser]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = dict(serializer.validated_data)
+        data.setdefault("method", "")
+        data.setdefault("units", "")
+        data.setdefault("relation", "")
+        data.setdefault("source_id", "")
+        prop = FamilyProperty.objects.create(created_by=request.user, **data)
+        out = self.get_serializer(prop)
+        headers = self.get_success_headers(out.data)
+        return Response(out.data, status=status.HTTP_201_CREATED, headers=headers)
