@@ -137,7 +137,7 @@ class ChemflowTokenObtainPairView(TokenObtainPairView):
         examples=[
             OpenApiExample(
                 "Login con username y password",
-                value={"username": "admin", "password": "admin123"},
+                value={"username": "chemflow_admin", "password": "ChemFlow2024!"},
                 request_only=True,
             )
         ],

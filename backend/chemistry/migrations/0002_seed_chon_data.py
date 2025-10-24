@@ -96,16 +96,51 @@ def create_chon_family_and_molecules(apps, schema_editor):
 
     # Crear todas las moléculas
     for mol_data in molecules_data + additional_molecules:
-        molecule, created = Molecule.objects.get_or_create(
-            name=mol_data["name"],
-            defaults={
+        try:
+            from chemistry.providers.utils import enrich_smiles
+
+            structure, descriptors = enrich_smiles(mol_data["smiles"])
+            inchi_val = structure.get("inchi") or None
+            inchikey_val = structure.get("inchikey") or None
+            canonical_val = structure.get("canonical_smiles") or mol_data.get(
+                "canonical_smiles"
+            )
+            molformula_val = structure.get("molecular_formula") or mol_data.get(
+                "molecular_formula"
+            )
+
+            defaults = {
                 "smiles": mol_data["smiles"],
-                "canonical_smiles": mol_data["canonical_smiles"],
-                "molecular_formula": mol_data["molecular_formula"],
-                "metadata": mol_data["metadata"],
+                "canonical_smiles": canonical_val,
+                "inchi": inchi_val,
+                "inchikey": inchikey_val,
+                "molecular_formula": molformula_val,
+                "metadata": {
+                    **mol_data.get("metadata", {}),
+                    "descriptors": descriptors,
+                },
                 "frozen": False,
-            },
-        )
+            }
+        except Exception:
+            # If the helper import fails for any reason, fall back to static data
+            defaults = {
+                "smiles": mol_data["smiles"],
+                "canonical_smiles": mol_data.get("canonical_smiles"),
+                "molecular_formula": mol_data.get("molecular_formula"),
+                "metadata": mol_data.get("metadata", {}),
+                "frozen": False,
+            }
+
+        # Use inchikey as uniqueness key when available to avoid creating
+        # duplicate structures (different names but same chemical entity).
+        if defaults.get("inchikey"):
+            molecule, created = Molecule.objects.get_or_create(
+                inchikey=defaults["inchikey"], defaults=defaults
+            )
+        else:
+            molecule, created = Molecule.objects.get_or_create(
+                name=mol_data["name"], defaults=defaults
+            )
         if created:
             created_molecules.append(molecule)
             print(f"✓ Molécula creada: {molecule.name}")

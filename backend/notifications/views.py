@@ -31,7 +31,7 @@ class UserNotificationViewSet(viewsets.ModelViewSet):
     @extend_schema(
         parameters=[
             OpenApiParameter(
-                name="id",
+                name="pk",
                 type=int,
                 location=OpenApiParameter.PATH,
                 description="ID de la notificación",
@@ -44,7 +44,7 @@ class UserNotificationViewSet(viewsets.ModelViewSet):
     @extend_schema(
         parameters=[
             OpenApiParameter(
-                name="id",
+                name="pk",
                 type=int,
                 location=OpenApiParameter.PATH,
                 description="ID de la notificación",
@@ -57,7 +57,7 @@ class UserNotificationViewSet(viewsets.ModelViewSet):
     @extend_schema(
         parameters=[
             OpenApiParameter(
-                name="id",
+                name="pk",
                 type=int,
                 location=OpenApiParameter.PATH,
                 description="ID de la notificación",
@@ -70,7 +70,7 @@ class UserNotificationViewSet(viewsets.ModelViewSet):
     @extend_schema(
         parameters=[
             OpenApiParameter(
-                name="id",
+                name="pk",
                 type=int,
                 location=OpenApiParameter.PATH,
                 description="ID de la notificación",
@@ -84,7 +84,7 @@ class UserNotificationViewSet(viewsets.ModelViewSet):
     @extend_schema(
         parameters=[
             OpenApiParameter(
-                name="id",
+                name="pk",
                 type=int,
                 location=OpenApiParameter.PATH,
                 description="ID de la notificación",

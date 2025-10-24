@@ -5,7 +5,7 @@ This module defines the contract that all chemistry engine implementations must 
 with precise type annotations and detailed documentation for each method.
 """
 
-from typing import Protocol, Union, overload
+from typing import Protocol, Union, overload, runtime_checkable
 
 from ..types import (
     MolecularProperties,
@@ -16,6 +16,7 @@ from ..types import (
 )
 
 
+@runtime_checkable
 class ChemEngineInterface(Protocol):
     """
     Protocol defining the interface for chemistry computation engines.

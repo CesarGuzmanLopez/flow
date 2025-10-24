@@ -57,8 +57,9 @@ class GenerateAdmetsaFamilyAggregatesStep(
         )
 
         method = inp.method or "flows.family_aggregates"
+        # Pass created_by so the service can persist created_by on FamilyProperty
         agg = chem_services.compute_family_admetsa_aggregates(
-            family_id=inp.family_id, method=method
+            family_id=inp.family_id, created_by=ctx.user, method=method
         )
 
         typed_out = GenerateAdmetsaFamilyAggregatesOutput(

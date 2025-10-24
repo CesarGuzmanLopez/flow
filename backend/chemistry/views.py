@@ -88,10 +88,19 @@ class MoleculeViewSet(BaseChemistryViewSet):
 
     def get_queryset(self):
         qs = super().get_queryset()
-        qs = chem_services.filter_molecules_for_user(qs, self.request.user)
-        qs = qs.exclude(created_by__isnull=True)
+        user = getattr(self.request, "user", None)
+        if getattr(self, "action", None) == "list" and (
+            getattr(user, "is_superuser", False) or getattr(user, "is_staff", False)
+        ):
+            qs = qs
+        else:
+            base_qs = qs.exclude(created_by__isnull=True)
+            qs = chem_services.filter_molecules_for_user(base_qs, user)
+
+        # El query param ?mine=true fuerza siempre filtrar por el usuario autenticado
         if self.request.query_params.get("mine") == "true":
-            qs = qs.filter(created_by=self.request.user)
+            qs = qs.filter(created_by=user)
+
         return qs
 
     @action(detail=False, methods=["get"])
@@ -101,7 +110,9 @@ class MoleculeViewSet(BaseChemistryViewSet):
     )
     def mine(self, request):
         """Endpoint personalizado para obtener moléculas del usuario autenticado."""
-        qs = self.get_queryset().filter(created_by=request.user)
+        # El endpoint /mine/ debe retornar siempre las moléculas creadas por
+        # el usuario autenticado, sin importar si es administrador.
+        qs = super().get_queryset().filter(created_by=request.user)
         page = self.paginate_queryset(qs)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
