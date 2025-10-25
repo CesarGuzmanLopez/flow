@@ -1,6 +1,11 @@
 import logging
 
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import (
+    OpenApiExample,
+    OpenApiResponse,
+    extend_schema,
+    extend_schema_view,
+)
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -38,10 +43,34 @@ class BaseChemistryViewSet(viewsets.ModelViewSet):
 
 @extend_schema_view(
     list=extend_schema(
-        summary="Listar moléculas", description="Obtiene la lista de moléculas."
+        summary="Listar moléculas",
+        description="Obtiene la lista de moléculas.",
+        tags=["Chemistry • Molecules"],
     ),
     create=extend_schema(
-        summary="Crear molécula", description="Crea una nueva molécula."
+        summary="Crear o recuperar molécula",
+        description=(
+            "Crea una nueva molécula o devuelve una existente si coincide por inchikey.\n"
+            "Se aceptan SMILES (preferente) y/o InChIKey."
+        ),
+        request=CreateMoleculeSerializer,
+        responses={
+            200: MoleculeSerializer,
+            201: MoleculeSerializer,
+            400: OpenApiResponse(response=dict),
+        },
+        examples=[
+            OpenApiExample(
+                "Crear por SMILES",
+                value={
+                    "smiles": "CCO",
+                    "name": "Ethanol",
+                    "extra_metadata": {"source": "demo"},
+                },
+                request_only=True,
+            )
+        ],
+        tags=["Chemistry • Molecules"],
     ),
 )
 class MoleculeViewSet(BaseChemistryViewSet):
@@ -101,6 +130,7 @@ class MoleculeViewSet(BaseChemistryViewSet):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+    @extend_schema(summary="Mis moléculas", tags=["Chemistry • Molecules"])
     @action(detail=False, methods=["get"])
     def mine(self, request):
         qs = super().get_queryset().filter(created_by=request.user)
@@ -111,6 +141,27 @@ class MoleculeViewSet(BaseChemistryViewSet):
         serializer = self.get_serializer(qs, many=True)
         return Response(serializer.data)
 
+    @extend_schema(
+        summary="Crear desde SMILES",
+        description=(
+            "Crea una molécula a partir de una cadena SMILES, normalizando estructuras\n"
+            "y opcionalmente calculando descriptores si 'compute_descriptors' es True."
+        ),
+        request=CreateMoleculeFromSmilesSerializer,
+        responses={201: MoleculeSerializer, 400: OpenApiResponse(response=dict)},
+        examples=[
+            OpenApiExample(
+                "Ejemplo",
+                value={
+                    "smiles": "CC(=O)O",
+                    "name": "Acetic acid",
+                    "compute_descriptors": True,
+                },
+                request_only=True,
+            )
+        ],
+        tags=["Chemistry • Molecules"],
+    )
     @action(detail=False, methods=["post"])
     def from_smiles(self, request):
         serializer = CreateMoleculeFromSmilesSerializer(data=request.data)
@@ -177,6 +228,37 @@ class MoleculeViewSet(BaseChemistryViewSet):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+    @extend_schema(
+        summary="Agregar propiedad a una molécula",
+        description=(
+            "Crea una nueva propiedad EAV para la molécula. Previene duplicados estrictamente\n"
+            "por la clave compuesta (molecule, property_type, method, relation, source_id)."
+        ),
+        request=AddPropertySerializer,
+        responses={
+            201: MolecularPropertySerializer,
+            400: OpenApiResponse(
+                description="Propiedad duplicada o inválida", response=dict
+            ),
+        },
+        examples=[
+            OpenApiExample(
+                "Agregar LogP computacional",
+                value={
+                    "property_type": "LogP",
+                    "value": "2.45",
+                    "units": "",
+                    "method": "rdkit",
+                    "relation": "calc:baseline",
+                    "source_id": "provider:rdkit",
+                    "metadata": {"dataset": "batch-42"},
+                    "is_invariant": False,
+                },
+                request_only=True,
+            )
+        ],
+        tags=["Chemistry • Molecules"],
+    )
     @action(detail=True, methods=["post"])
     def add_property(self, request, pk=None):
         """Add property to molecule with strict duplicate prevention.

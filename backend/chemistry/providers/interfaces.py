@@ -1,4 +1,12 @@
 """
+Interfaces y abstracciones centrales del sistema de generación de propiedades.
+
+Este módulo define contratos estrictos usando Protocol y ABC para garantizar
+seguridad de tipos y cumplir SOLID dentro de una arquitectura hexagonal.
+Objetivos: desacoplar cálculos de proveedores, facilitar pruebas con DI y
+ofrecer una base estable para extender categorías/proveedores sin romper APIs.
+
+Resumen en inglés:
 Core interfaces and abstractions for the property generation system.
 
 This module defines strict interfaces using Python's Protocol and ABC (Abstract Base Classes)

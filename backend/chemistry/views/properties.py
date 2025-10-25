@@ -1,4 +1,9 @@
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import (
+    OpenApiExample,
+    OpenApiResponse,
+    extend_schema,
+    extend_schema_view,
+)
 from rest_framework import status
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
@@ -10,8 +15,38 @@ from .molecules import BaseChemistryViewSet
 
 
 @extend_schema_view(
-    list=extend_schema(summary="Listar propiedades moleculares"),
-    create=extend_schema(summary="Crear propiedad molecular"),
+    list=extend_schema(
+        summary="Listar propiedades moleculares", tags=["Chemistry • Properties"]
+    ),
+    create=extend_schema(
+        summary="Crear propiedad molecular",
+        description=(
+            "Crea una propiedad EAV para una molécula con validación de unicidad compuesta.\n"
+            "Devuelve 400 si ya existe una propiedad con la clave compuesta (molecule, property_type, method, relation, source_id)."
+        ),
+        responses={
+            201: MolecularPropertySerializer,
+            400: OpenApiResponse(response=dict),
+        },
+        tags=["Chemistry • Properties"],
+        examples=[
+            OpenApiExample(
+                "Nueva propiedad",
+                value={
+                    "molecule": 8,
+                    "property_type": "MolWt",
+                    "value": "180.16",
+                    "units": "g/mol",
+                    "method": "aggregation",
+                    "relation": "calc:mean",
+                    "source_id": "exp:001",
+                    "metadata": {"source": "labX"},
+                    "is_invariant": False,
+                },
+                request_only=True,
+            )
+        ],
+    ),
 )
 class MolecularPropertyViewSet(BaseChemistryViewSet):
     queryset = MolecularProperty.objects.all()
@@ -65,6 +100,17 @@ class MolecularPropertyViewSet(BaseChemistryViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+    @extend_schema(
+        summary="Actualizar propiedad molecular",
+        description=(
+            "Actualiza una propiedad existente. Si es invariante (is_invariant=True), solo permite modificar metadata."
+        ),
+        responses={
+            200: MolecularPropertySerializer,
+            400: OpenApiResponse(response=dict),
+        },
+        tags=["Chemistry • Properties"],
+    )
     def update(self, request, *args, **kwargs):
         """Update existing molecular property with invariant protection."""
         partial = kwargs.pop("partial", False)
@@ -91,6 +137,14 @@ class MolecularPropertyViewSet(BaseChemistryViewSet):
 
         return Response(serializer.data)
 
+    @extend_schema(
+        summary="Actualizar parcialmente propiedad molecular",
+        responses={
+            200: MolecularPropertySerializer,
+            400: OpenApiResponse(response=dict),
+        },
+        tags=["Chemistry • Properties"],
+    )
     def partial_update(self, request, *args, **kwargs):
         """Partial update (PATCH) with invariant protection."""
         kwargs["partial"] = True

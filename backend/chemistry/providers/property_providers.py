@@ -1,4 +1,13 @@
 """
+Proveedores de cálculo de propiedades para el sistema de generación.
+
+Este módulo implementa proveedores concretos siguiendo SOLID y arquitectura
+hexagonal. Cada proveedor es un Adaptador que cumple el Puerto
+(PropertyProviderInterface) y encapsula la estrategia de cálculo.
+Objetivos: extensibilidad sin tocar servicios, trazabilidad de capacidades
+por categoría y validaciones específicas por proveedor.
+
+Resumen en inglés:
 Property calculation providers for the property generation system.
 
 This module implements concrete property providers following SOLID principles

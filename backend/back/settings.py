@@ -73,7 +73,7 @@ ROOT_URLCONF = "back.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "back" / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -111,12 +111,92 @@ REST_FRAMEWORK = {
 }
 
 SPECTACULAR_SETTINGS = {
-    "TITLE": "ChemFlow API",
-    "DESCRIPTION": "API schema for ChemFlow",
-    "VERSION": "0.1.0",
+    "TITLE": "🧪 ChemFlow API",
+    "DESCRIPTION": """
+        ## Molecular Chemistry & Flow Management API
+        
+        ChemFlow provides a comprehensive RESTful API for:
+        
+        - **Molecular Management**: Create, retrieve, update molecules with SMILES/InChI formats
+        - **Property Calculations**: Generate chemical properties (ADMETSA, descriptors) via multiple providers
+        - **Family Organization**: Group molecules into families with aggregate statistics
+        - **Flow Processing**: Execute computational chemistry workflows
+        - **User Management**: Authentication, authorization, and team collaboration
+        
+        ### Key Features
+        
+        - 🔬 Multiple property generation providers (RDKit, Manual, Ollama)
+        - 📊 Statistical aggregation for molecular families
+        - 🔐 JWT-based authentication with role-based permissions
+        - 📡 Real-time updates via WebSockets
+        - 🧬 Support for standard chemistry formats (SMILES, InChI, Mol2, PDB)
+        
+        ### Getting Started
+        
+        1. Authenticate via `/api/users/token/` to get JWT tokens
+        2. Include `Authorization: Bearer <token>` header in requests
+        3. Explore endpoints for molecules, families, properties, and flows
+        
+        For detailed examples and integration guides, see the [GitHub repository](https://github.com/CesarGuzmanLopez/flow).
+    """,
+    "VERSION": "1.0.0",
+    "CONTACT": {
+        "name": "ChemFlow Development Team",
+        "url": "https://github.com/CesarGuzmanLopez/flow",
+    },
+    "LICENSE": {
+        "name": "MIT License",
+        "url": "https://github.com/CesarGuzmanLopez/flow/blob/master/LICENSE",
+    },
+    "EXTERNAL_DOCS": {
+        "description": "ChemFlow Documentation & Examples",
+        "url": "https://github.com/CesarGuzmanLopez/flow/blob/master/README.md",
+    },
+    "TAGS": [
+        {"name": "chemistry", "description": "🧪 Molecular chemistry endpoints"},
+        {"name": "flows", "description": "🌊 Workflow and flow management"},
+        {"name": "users", "description": "👤 User authentication and management"},
+        {"name": "notifications", "description": "🔔 Notification system"},
+    ],
     "POSTPROCESSING_HOOKS": [
         "back.spectacular_overrides.fix_add_property_schema",
     ],
+    "COMPONENT_SPLIT_REQUEST": True,
+    "SWAGGER_UI_SETTINGS": {
+        "deepLinking": True,
+        "persistAuthorization": True,
+        "displayOperationId": True,
+        "displayRequestDuration": True,
+        "filter": True,
+        "tryItOutEnabled": True,
+        "docExpansion": "none",  # Contraer todo por defecto
+        "defaultModelsExpandDepth": 1,
+        "defaultModelExpandDepth": 1,
+        "showExtensions": True,
+        "showCommonExtensions": True,
+    },
+    # Security schemes for JWT authentication
+    "APPEND_COMPONENTS": {
+        "securitySchemes": {
+            "jwtAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT",
+                "description": (
+                    "JWT authentication using access tokens. "
+                    "Login via the 🔒 button in the header or use the "
+                    "`/api/token/` endpoint to obtain a token."
+                ),
+            }
+        }
+    },
+    "SECURITY": [{"jwtAuth": []}],
+    # Use custom template with download buttons and chemistry theme
+    "SWAGGER_UI_DIST": "https://unpkg.com/swagger-ui-dist@5",
+    "SWAGGER_UI_FAVICON_HREF": (
+        "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' "
+        "viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧪</text></svg>"
+    ),
 }
 
 # Custom user model

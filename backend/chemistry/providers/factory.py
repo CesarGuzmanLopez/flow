@@ -1,4 +1,12 @@
 """
+Fábrica y Registro de Proveedores de Propiedades.
+
+Este módulo implementa los patrones Factory y Registry para gestionar
+proveedores de propiedades con inyección de dependencias y tipado fuerte.
+Objetivos: descubrimiento seguro de proveedores, extensibilidad sin modificar
+servicios, y control centralizado para permitir pruebas y configuración.
+
+Resumen en inglés:
 Factory and Registry for Property Providers.
 
 This module implements the Factory and Registry patterns to manage property providers

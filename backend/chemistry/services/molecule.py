@@ -1,3 +1,25 @@
+"""
+Servicios de dominio para gestión de moléculas.
+
+Este módulo encapsula la lógica de negocio para crear, buscar y actualizar moléculas,
+garantizando normalización estructural (vía ChemEngine) y unicidad por InChIKey.
+
+Reglas de negocio implementadas:
+- Normalización automática: SMILES → InChI, InChIKey, canonical SMILES, fórmula molecular.
+- Unicidad: una sola instancia de Molecule por InChIKey (búsqueda/creación idempotente).
+- Auditoría: todas las moléculas llevan created_by y updated_by.
+- Opcionalidad de descriptores: se calculan solo si se piden explícitamente (para limitar peso).
+- Validación de entrada: rechaza SMILES inválidos con errores descriptivos.
+
+Objetivos:
+- Facilitar creación desde API REST (via views) o scripts/migraciones.
+- Proveer interfaz uniforme para casos de uso: moléculas nuevas, existentes, o idempotentes.
+- Aislar dependencia en el ChemEngine (RDKit/mock) para facilitar pruebas.
+
+Resumen en inglés:
+Domain services for molecule management (creation, lookup, updates).
+"""
+
 import logging
 from typing import Any, Dict
 
@@ -23,6 +45,54 @@ def create_molecule_from_smiles(
     extra_metadata: Dict[str, Any] | None = None,
     compute_descriptors: bool = False,
 ) -> Molecule:
+    """Crea una molécula a partir de una SMILES, con normalización y deduplicación.
+
+    Este servicio es el punto de entrada principal para crear moléculas desde:
+    - API REST (views/molecules.py)
+    - Servicios de familias (para construir familias desde listas de SMILES)
+    - Scripts y comandos de importación
+
+    Flujo:
+    1. Valida SMILES vacíos/nulos
+    2. Normaliza estructura vía ChemEngine (SMILES → InChI, InChIKey, canonical SMILES, fórmula)
+    3. Opcionalmente calcula descriptores (MolWt, LogP, etc.) y los guarda en metadata
+    4. Crea o busca molécula por InChIKey (idempotente)
+    5. Retorna instancia de Molecule
+
+    Args:
+        smiles: Cadena SMILES de la molécula (requerido, no vacío)
+        created_by: Usuario que crea la molécula (requerido)
+        name: Nombre opcional (si no se proporciona, usa la fórmula molecular)
+        extra_metadata: Metadatos adicionales para fusionar con los calculados
+        compute_descriptors: Si True, calcula y guarda propiedades básicas en metadata
+
+    Returns:
+        Instancia de Molecule (nueva o existente si InChIKey coincide)
+
+    Raises:
+        ValidationError: Si SMILES vacío, inválido, o falla normalización/cálculo
+        ValueError: Si created_by es None
+
+    Examples:
+        >>> # Crear molécula simple
+        >>> mol = create_molecule_from_smiles(
+        ...     smiles="CCO",
+        ...     created_by=user,
+        ...     name="Ethanol",
+        ...     extra_metadata={"source": "pubchem"}
+        ... )
+        >>> print(mol.inchikey)
+        IK_...
+
+        >>> # Con descriptores
+        >>> mol = create_molecule_from_smiles(
+        ...     smiles="CCO",
+        ...     created_by=user,
+        ...     compute_descriptors=True
+        ... )
+        >>> print(mol.metadata["descriptors"]["MolWt"])
+        46.07
+    """
     if not smiles or not smiles.strip():
         raise ValidationError("SMILES cannot be empty")
 
@@ -84,6 +154,47 @@ def create_molecule_from_smiles(
 
 
 def create_or_get_molecule(*, payload: dict, created_by: Any) -> tuple[Molecule, bool]:
+    """Crea o recupera una molécula según payload con SMILES y/o InChIKey.
+
+    Servicio idempotente usado por la API REST para endpoints que aceptan tanto
+    SMILES nuevos como referencias a moléculas existentes vía InChIKey. Útil para:
+    - Crear nuevas moléculas desde SMILES
+    - Referenciar moléculas ya registradas (por InChIKey)
+    - Migrar/importar listas mixtas (algunos duplicados, algunos nuevos)
+
+    Lógica:
+    - Solo InChIKey (sin SMILES): busca existente; error si no existe
+    - SMILES provisto: normaliza y crea/deduplica por InChIKey
+    - SMILES + InChIKey: verifica consistencia; actualiza nombre si difiere
+
+    Args:
+        payload: Dict con claves "smiles", "inchikey", "name", "extra_metadata"
+        created_by: Usuario que solicita la operación
+
+    Returns:
+        Tupla (Molecule, created: bool)
+
+    Raises:
+        ValueError: Si created_by es None o payload inválido
+        ValidationError: Si solo InChIKey y no existe, o SMILES inválido, o inconsistencia
+
+    Examples:
+        >>> # Crear desde SMILES
+        >>> mol, created = create_or_get_molecule(
+        ...     payload={"smiles": "CCO", "name": "Ethanol"},
+        ...     created_by=user
+        ... )
+        >>> print(created)
+        True
+
+        >>> # Referenciar existente por InChIKey
+        >>> mol, created = create_or_get_molecule(
+        ...     payload={"inchikey": "IK_12345abc"},
+        ...     created_by=user
+        ... )
+        >>> print(created)
+        False
+    """
     if not created_by:
         raise ValueError("created_by is required")
 

@@ -1,3 +1,26 @@
+"""
+Servicios de dominio para gestión de familias de moléculas.
+
+Este módulo encapsula la lógica de negocio para crear y administrar familias,
+que son agregados de moléculas relacionadas. Útil para flujos de screening,
+generación combinatoria y análisis grupal de propiedades.
+
+Reglas de negocio implementadas:
+- Familia = grupo inmutable de moléculas con hash determinista (basado en SMILES canónicos ordenados).
+- Deduplicación automática: moléculas repetidas (por InChIKey/SMILES) se agregan una sola vez.
+- Validación transaccional: creación atómica de familia + moléculas + membresías.
+- Auditoría: todas las familias llevan created_by y metadata con tamaño/contexto.
+
+Objetivos:
+- Crear familias desde listas de SMILES (para importar/migrar datos).
+- Soportar generación combinatoria (sustituciones) para expansión de librerías.
+- Facilitar agregación de propiedades a nivel de familia (ej. media de LogP).
+- Integración con flujos: metadata puede incluir "flow_id" para contexto.
+
+Resumen en inglés:
+Domain services for managing molecular families (aggregates of molecules).
+"""
+
 import hashlib
 import logging
 from typing import Any, Dict, Iterable, List
@@ -12,6 +35,11 @@ logger = logging.getLogger(__name__)
 
 
 def _family_hash(smiles_list: Iterable[str]) -> str:
+    """Calcula hash determinista de familia (SMILES ordenados y normalizados).
+
+    Helper interno para garantizar que familias con mismo conjunto de moléculas
+    tengan el mismo hash (útil para deduplicación o comparación).
+    """
     norm = ",".join(sorted(s.strip() for s in smiles_list if s and s.strip()))
     return hashlib.sha256(norm.encode("utf-8")).hexdigest()
 
@@ -19,6 +47,52 @@ def _family_hash(smiles_list: Iterable[str]) -> str:
 def create_family_from_smiles(
     *, name: str, smiles_list: List[str], created_by: Any, provenance: str = "user"
 ) -> Family:
+    """Crea una familia a partir de una lista de SMILES, con deduplicación automática.
+
+    Servicio transaccional que:
+    1. Normaliza y crea/busca cada molécula por InChIKey (idempotente)
+    2. Deduplica moléculas repetidas dentro de la familia
+    3. Crea la familia con hash determinista y marca como frozen=True (inmutable)
+    4. Crea membresías (FamilyMember) en bulk
+
+    Usado desde:
+    - API REST (views/families.py endpoint from_smiles)
+    - Scripts de importación/migración
+    - Servicios de generación combinatoria
+
+    Args:
+        name: Nombre de la familia (requerido, no vacío)
+        smiles_list: Lista de SMILES (al menos uno válido)
+        created_by: Usuario que crea la familia (requerido)
+        provenance: Origen de la familia (ej. "user", "import", "substitutions")
+
+    Returns:
+        Instancia de Family con membresías creadas
+
+    Raises:
+        ValidationError: Si nombre vacío, lista vacía, o SMILES inválidos
+        ValueError: Si created_by es None o ninguna molécula válida tras normalización
+
+    Examples:
+        >>> # Crear familia con 3 moléculas
+        >>> fam = create_family_from_smiles(
+        ...     name="Test Family",
+        ...     smiles_list=["CCO", "CCN", "CCC"],
+        ...     created_by=user,
+        ...     provenance="user"
+        ... )
+        >>> print(fam.metadata["size"])
+        3
+
+        >>> # Con duplicados (deduplica automáticamente)
+        >>> fam = create_family_from_smiles(
+        ...     name="Dedup Test",
+        ...     smiles_list=["CCO", "CCO", "CCN"],
+        ...     created_by=user
+        ... )
+        >>> print(fam.metadata["size"])  # Solo 2
+        2
+    """
     if not name or not name.strip():
         raise ValidationError("Family name cannot be empty")
 
@@ -67,6 +141,30 @@ def create_single_molecule_family(
     created_by: Any,
     provenance: str = "reference",
 ) -> Family:
+    """Crea una familia con una sola molécula (wrapper conveniente).
+
+    Helper para casos donde se quiere encapsular una molécula como familia,
+    útil para flujos que operan siempre con familias o para referencia.
+
+    Args:
+        name: Nombre de la familia (opcional; usa nombre/fórmula de molécula si None)
+        molecule: Instancia de Molecule a encapsular
+        created_by: Usuario que crea la familia
+        provenance: Origen (por defecto "reference")
+
+    Returns:
+        Instancia de Family con un solo miembro
+
+    Examples:
+        >>> mol = Molecule.objects.get(inchikey="IK_...")
+        >>> fam = create_single_molecule_family(
+        ...     name="Single Ref",
+        ...     molecule=mol,
+        ...     created_by=user
+        ... )
+        >>> print(fam.metadata["size"])
+        1
+    """
     smiles = molecule.canonical_smiles or molecule.smiles
     fam = Family.objects.create(
         name=name or molecule.name or molecule.molecular_formula or "",

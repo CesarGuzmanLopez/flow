@@ -32,8 +32,8 @@ from .molecules import BaseChemistryViewSet
 
 
 @extend_schema_view(
-    list=extend_schema(summary="Listar familias"),
-    create=extend_schema(summary="Crear familia"),
+    list=extend_schema(summary="Listar familias", tags=["Chemistry • Families"]),
+    create=extend_schema(summary="Crear familia", tags=["Chemistry • Families"]),
 )
 class FamilyViewSet(BaseChemistryViewSet):
     queryset = Family.objects.all()
@@ -49,6 +49,31 @@ class FamilyViewSet(BaseChemistryViewSet):
         serializer = self.get_serializer(qs, many=True)
         return Response(serializer.data)
 
+    @extend_schema(
+        summary="Crear familia a partir de SMILES",
+        description=(
+            "Crea una familia con una o más moléculas a partir de una lista de SMILES.\n\n"
+            "- Normaliza estructuras y calcula identificadores.\n"
+            "- Acepta metadatos opcionales vía 'provenance'.\n"
+        ),
+        request=CreateFamilyFromSmilesSerializer,
+        responses={
+            201: FamilySerializer,
+            400: OpenApiResponse(description="Datos inválidos", response=dict),
+        },
+        examples=[
+            OpenApiExample(
+                "Ejemplo mínimo",
+                value={
+                    "name": "Aspirins",
+                    "smiles_list": ["CC(=O)OC1=CC=CC=C1C(=O)O"],
+                    "provenance": "user",
+                },
+                request_only=True,
+            )
+        ],
+        tags=["Chemistry • Families"],
+    )
     @action(detail=False, methods=["post"])
     def from_smiles(self, request):
         serializer = CreateFamilyFromSmilesSerializer(data=request.data)
@@ -64,6 +89,39 @@ class FamilyViewSet(BaseChemistryViewSet):
         except Exception as e:
             return Response({"error": str(e)}, status=400)
 
+    @extend_schema(
+        summary="Agregar propiedad a una familia",
+        description=(
+            "Crea una nueva propiedad EAV para la familia.\n\n"
+            "Importante: Previene duplicados estrictamente por la clave compuesta\n"
+            "(family, property_type, method, relation, source_id). Si ya existe,\n"
+            "retorna 400 y sugiere usar PATCH/PUT."
+        ),
+        request=AddPropertySerializer,
+        responses={
+            201: FamilyPropertySerializer,
+            400: OpenApiResponse(
+                description="Propiedad duplicada o inválida", response=dict
+            ),
+        },
+        examples=[
+            OpenApiExample(
+                "Nueva propiedad (media de MolWt)",
+                value={
+                    "property_type": "MolWt_mean",
+                    "value": "180.16",
+                    "units": "g/mol",
+                    "method": "aggregation",
+                    "relation": "aggregated:mean",
+                    "source_id": "calc:v1",
+                    "metadata": {"window": 10},
+                    "is_invariant": False,
+                },
+                request_only=True,
+            )
+        ],
+        tags=["Chemistry • Families"],
+    )
     @action(detail=True, methods=["post"])
     def add_property(self, request, pk=None):
         """Add property to family with strict duplicate prevention.
@@ -125,6 +183,52 @@ class FamilyViewSet(BaseChemistryViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+    @extend_schema(
+        summary="Generar propiedades para familia",
+        description=(
+            "Genera propiedades para todas las moléculas de la familia usando una\n"
+            "categoría y proveedor específicos. Persiste los resultados por defecto.\n\n"
+            "Usos típicos: admetsa con rdkit (computacional) o manual con datos provistos."
+        ),
+        request=PropertyGenerationRequestSerializer,
+        responses={
+            200: OpenApiResponse(
+                description="Generación exitosa",
+                response=dict,
+                examples=[
+                    OpenApiExample(
+                        "RDKit básico",
+                        value={
+                            "family_id": 5,
+                            "category": "admetsa",
+                            "provider": "rdkit",
+                            "persisted": True,
+                            "properties_created": 12,
+                            "molecules": [
+                                {
+                                    "molecule_id": 8,
+                                    "properties": {
+                                        "MolWt": "180.16",
+                                        "LogP": "2.45",
+                                        "TPSA": "75.12",
+                                        "HBA": "3",
+                                        "HBD": "1",
+                                        "RB": "2",
+                                    },
+                                    "metadata": {
+                                        "category": "admetsa",
+                                        "experiment_id": "EXP-001",
+                                    },
+                                }
+                            ],
+                        },
+                    )
+                ],
+            ),
+            400: OpenApiResponse(description="Solicitud inválida", response=dict),
+        },
+        tags=["Chemistry • Families"],
+    )
     @action(
         detail=True,
         methods=["post"],
@@ -191,7 +295,7 @@ class FamilyViewSet(BaseChemistryViewSet):
                 properties_data=data.get("properties_data"),
                 created_by=request.user,
             )
-            return Response(result, status=status.HTTP_200_OK)
+            return Response(result.to_dict(), status=status.HTTP_200_OK)
         except ValueError as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except KeyError as e:
@@ -205,6 +309,43 @@ class FamilyViewSet(BaseChemistryViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
+    @extend_schema(
+        summary="Previsualizar generación de propiedades",
+        description=(
+            "Calcula las propiedades sin persistir en base de datos. Útil para validar\n"
+            "proveedores/categorías y datos manuales antes de guardar."
+        ),
+        request=PropertyGenerationRequestSerializer,
+        responses={
+            200: OpenApiResponse(
+                description="Previsualización exitosa",
+                response=dict,
+                examples=[
+                    OpenApiExample(
+                        "Preview manual",
+                        value={
+                            "family_id": 5,
+                            "category": "admetsa",
+                            "provider": "manual",
+                            "persisted": False,
+                            "molecules": [
+                                {
+                                    "molecule_id": 8,
+                                    "properties": {"MolWt": "180.16", "LogP": "2.45"},
+                                    "metadata": {
+                                        "category": "admetsa",
+                                        "technician": "Jane",
+                                    },
+                                }
+                            ],
+                        },
+                    )
+                ],
+            ),
+            400: OpenApiResponse(description="Solicitud inválida", response=dict),
+        },
+        tags=["Chemistry • Families"],
+    )
     @action(
         detail=True,
         methods=["post"],
@@ -251,7 +392,7 @@ class FamilyViewSet(BaseChemistryViewSet):
                 per_molecule_metadata=data.get("per_molecule_metadata"),
                 properties_data=data.get("properties_data"),
             )
-            return Response(result, status=status.HTTP_200_OK)
+            return Response(result.to_dict(), status=status.HTTP_200_OK)
         except ValueError as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except KeyError as e:
@@ -924,6 +1065,63 @@ class FamilyViewSet(BaseChemistryViewSet):
             provider = provider_registry.get_provider(provider_name)
             categories.update(provider.list_categories())
         return sorted(list(categories))
+
+    @extend_schema(
+        summary="List providers",
+        description="List all registered property providers with their capabilities.",
+        responses={
+            200: OpenApiResponse(
+                response=dict,
+                description="Providers list",
+                examples=[
+                    OpenApiExample(
+                        "Providers",
+                        value={
+                            "providers": [
+                                {
+                                    "name": "rdkit",
+                                    "display_name": "RDKit Computational",
+                                    "description": "Calculate properties using RDKit library",
+                                    "requires_external_data": False,
+                                    "is_computational": True,
+                                    "supported_categories": [
+                                        "admetsa",
+                                        "admet",
+                                        "physics",
+                                        "pharmacodynamic",
+                                    ],
+                                }
+                            ]
+                        },
+                    )
+                ],
+            )
+        },
+        tags=["Chemistry • Families"],
+    )
+    @action(detail=False, methods=["get"], url_path="generate-properties/providers")
+    def list_providers(self, request):
+        try:
+            providers = []
+            for name in provider_registry.list_provider_names():
+                p = provider_registry.get_provider(name)
+                info = p.get_info()
+                providers.append(
+                    {
+                        "name": info.name,
+                        "display_name": info.display_name,
+                        "description": info.description,
+                        "requires_external_data": info.requires_external_data,
+                        "is_computational": info.is_computational,
+                        "supported_categories": info.supported_categories,
+                    }
+                )
+            return Response({"providers": providers}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(
+                {"error": f"Failed to list providers: {e}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
 
 @extend_schema_view(

@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="ChemFlow API - Molecular Chemistry & Flow Management"
+    />
+    <title>🧪 ChemFlow API Documentation</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css"
+    />
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+        background: #f8f9fa;
+      }
+
+      /* Hide default topbar */
+      .swagger-ui .topbar {
+        display: none !important;
+      }
+
+      /* Custom header with chemistry theme */
+      .custom-header {
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        background: linear-gradient(
+          135deg,
+          #2c3e50 0%,
+          #3498db 50%,
+          #9b59b6 100%
+        );
+        color: white;
+        padding: 25px 40px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        border-bottom: 3px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .custom-header-content {
+        max-width: 1460px;
+        margin: 0 auto;
+      }
+
+      .header-title {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 20px;
+      }
+
+      .custom-header h1 {
+        margin: 0;
+        font-size: 32px;
+        font-weight: 700;
+        color: white;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        letter-spacing: -0.5px;
+      }
+
+      .api-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .header-description {
+        margin: 10px 0 20px 0;
+        opacity: 0.95;
+        font-size: 14px;
+        line-height: 1.6;
+      }
+
+      .download-buttons {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+
+      .btn-download {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 24px;
+        background: rgba(255, 255, 255, 0.95);
+        color: #2c3e50 !important;
+        border: 2px solid transparent;
+        border-radius: 8px;
+        text-decoration: none !important;
+        font-size: 14px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+      }
+
+      .btn-download:hover {
+        background: white;
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+        border-color: rgba(255, 255, 255, 0.4);
+      }
+
+      .btn-download:active {
+        transform: translateY(-1px);
+      }
+
+      .btn-download.secondary {
+        background: rgba(255, 255, 255, 0.15);
+        color: white !important;
+        border-color: rgba(255, 255, 255, 0.4);
+        backdrop-filter: blur(10px);
+      }
+
+      .btn-download.secondary:hover {
+        background: rgba(255, 255, 255, 0.25);
+        border-color: rgba(255, 255, 255, 0.6);
+      }
+
+      .btn-download.success {
+        background: rgba(46, 213, 115, 0.9);
+        color: white !important;
+      }
+
+      .btn-download.success:hover {
+        background: rgba(46, 213, 115, 1);
+      }
+
+      .icon {
+        font-size: 18px;
+      }
+
+      /* Swagger container with chemistry styling */
+      #swagger-ui {
+        max-width: 1460px;
+        margin: 0 auto;
+        padding: 30px 20px;
+      }
+
+      /* Chemistry-themed color scheme */
+      .swagger-ui .info .title {
+        color: #2c3e50;
+        font-size: 42px;
+      }
+
+      .swagger-ui .opblock-tag {
+        border-bottom: 2px solid #3498db;
+        color: #2c3e50;
+        font-size: 20px;
+        font-weight: 600;
+        margin: 30px 0 20px 0;
+        padding-bottom: 10px;
+      }
+
+      .swagger-ui .opblock.opblock-get {
+        border-color: #61affe;
+        background: rgba(97, 175, 254, 0.05);
+      }
+
+      .swagger-ui .opblock.opblock-post {
+        border-color: #49cc90;
+        background: rgba(73, 204, 144, 0.05);
+      }
+
+      .swagger-ui .opblock.opblock-put {
+        border-color: #fca130;
+        background: rgba(252, 161, 48, 0.05);
+      }
+
+      .swagger-ui .opblock.opblock-delete {
+        border-color: #f93e3e;
+        background: rgba(249, 62, 62, 0.05);
+      }
+
+      .swagger-ui .opblock.opblock-patch {
+        border-color: #50e3c2;
+        background: rgba(80, 227, 194, 0.05);
+      }
+
+      .swagger-ui .opblock {
+        margin: 0 0 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      }
+
+      /* Better mobile support */
+      @media (max-width: 768px) {
+        .custom-header {
+          padding: 20px;
+        }
+
+        .custom-header h1 {
+          font-size: 24px;
+        }
+
+        .download-buttons {
+          flex-direction: column;
+        }
+
+        .btn-download {
+          width: 100%;
+          justify-content: center;
+        }
+
+        #swagger-ui {
+          padding: 20px 10px;
+        }
+      }
+
+      /* Loading animation */
+      .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.95);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        transition: opacity 0.3s ease;
+      }
+
+      .loading-overlay.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .molecule-spinner {
+        width: 60px;
+        height: 60px;
+        border: 4px solid #e0e0e0;
+        border-top: 4px solid #3498db;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Login Modal Styles */
+      .login-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 10000;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .login-modal.active {
+        display: flex;
+      }
+
+      .login-content {
+        background: white;
+        border-radius: 12px;
+        padding: 40px;
+        max-width: 400px;
+        width: 90%;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        animation: slideDown 0.3s ease;
+      }
+
+      @keyframes slideDown {
+        from {
+          transform: translateY(-50px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      .login-header {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+
+      .login-header h2 {
+        margin: 0 0 10px 0;
+        color: #2c3e50;
+        font-size: 24px;
+      }
+
+      .login-header p {
+        margin: 0;
+        color: #7f8c8d;
+        font-size: 14px;
+      }
+
+      .login-form {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .form-group label {
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 14px;
+      }
+
+      .form-group input {
+        padding: 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 6px;
+        font-size: 14px;
+        transition: border-color 0.3s ease;
+      }
+
+      .form-group input:focus {
+        outline: none;
+        border-color: #3498db;
+      }
+
+      .login-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+      }
+
+      .btn-login {
+        flex: 1;
+        padding: 12px;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .btn-login.primary {
+        background: linear-gradient(135deg, #3498db, #2c3e50);
+        color: white;
+      }
+
+      .btn-login.primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+      }
+
+      .btn-login.secondary {
+        background: #ecf0f1;
+        color: #7f8c8d;
+      }
+
+      .btn-login.secondary:hover {
+        background: #bdc3c7;
+      }
+
+      .login-error {
+        padding: 12px;
+        background: #fee;
+        border: 1px solid #fcc;
+        border-radius: 6px;
+        color: #c33;
+        font-size: 14px;
+        display: none;
+      }
+
+      .login-error.active {
+        display: block;
+      }
+
+      .auth-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .auth-status:hover {
+        background: rgba(255, 255, 255, 0.25);
+      }
+
+      .auth-status.authenticated {
+        background: rgba(46, 213, 115, 0.2);
+        border-color: rgba(46, 213, 115, 0.4);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Loading overlay -->
+    <div class="loading-overlay" id="loading">
+      <div class="molecule-spinner"></div>
+    </div>
+
+    <!-- Login Modal -->
+    <div class="login-modal" id="login-modal">
+      <div class="login-content">
+        <div class="login-header">
+          <h2>🔐 ChemFlow Login</h2>
+          <p>Authenticate to access protected endpoints</p>
+        </div>
+        <form class="login-form" id="login-form">
+          <div class="login-error" id="login-error"></div>
+          <div class="form-group">
+            <label for="username">Username</label>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              placeholder="Enter your username"
+              required
+              autocomplete="username"
+            />
+          </div>
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              placeholder="Enter your password"
+              required
+              autocomplete="current-password"
+            />
+          </div>
+          <div class="login-buttons">
+            <button type="submit" class="btn-login primary">🔓 Login</button>
+            <button type="button" class="btn-login secondary" id="cancel-login">
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Custom Chemistry-Themed Header -->
+    <div class="custom-header">
+      <div class="custom-header-content">
+        <div class="header-title">
+          <h1>🧪 ChemFlow API</h1>
+          <span class="api-badge">REST API</span>
+        </div>
+        <p class="header-description">
+          Comprehensive API for molecular chemistry management, flow processing,
+          and computational chemistry workflows. Explore endpoints for molecule
+          manipulation, property calculations, and chemical analysis.
+        </p>
+        <div class="download-buttons">
+          <button
+            id="auth-status"
+            class="auth-status"
+            title="Click to login or logout"
+          >
+            <span class="icon">🔒</span>
+            <span id="auth-text">Not Authenticated</span>
+          </button>
+          <a
+            href="/api/schema/?format=openapi-json"
+            class="btn-download"
+            download="chemflow-api-schema.json"
+            title="Download OpenAPI Schema as JSON"
+          >
+            <span class="icon">📥</span>
+            <span>Download JSON</span>
+          </a>
+          <a
+            href="/api/schema/?format=openapi"
+            class="btn-download"
+            download="chemflow-api-schema.yaml"
+            title="Download OpenAPI Schema as YAML"
+          >
+            <span class="icon">�</span>
+            <span>Download YAML</span>
+          </a>
+          <a
+            href="/api/schema/"
+            class="btn-download secondary"
+            target="_blank"
+            title="View Raw OpenAPI Schema"
+          >
+            <span class="icon">📄</span>
+            <span>View Schema</span>
+          </a>
+          <button
+            id="expand-all"
+            class="btn-download success"
+            title="Toggle expand/collapse all API endpoints"
+          >
+            <span class="icon">📖</span>
+            <span>Expand All</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="swagger-ui"></div>
+
+    <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+    <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-standalone-preset.js"></script>
+    <script>
+      console.log(
+        "🧪 ChemFlow API: Initializing Swagger UI with chemistry theme..."
+      );
+
+      // Authentication state management
+      const AuthManager = {
+        TOKEN_KEY: "chemflow_access_token",
+        USER_KEY: "chemflow_user_data",
+
+        getToken() {
+          return localStorage.getItem(this.TOKEN_KEY);
+        },
+
+        setToken(token) {
+          localStorage.setItem(this.TOKEN_KEY, token);
+        },
+
+        getUser() {
+          const userData = localStorage.getItem(this.USER_KEY);
+          return userData ? JSON.parse(userData) : null;
+        },
+
+        setUser(user) {
+          localStorage.setItem(this.USER_KEY, JSON.stringify(user));
+        },
+
+        clearAuth() {
+          localStorage.removeItem(this.TOKEN_KEY);
+          localStorage.removeItem(this.USER_KEY);
+        },
+
+        isAuthenticated() {
+          return !!this.getToken();
+        },
+
+        async login(username, password) {
+          try {
+            const response = await fetch("/api/token/", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ username, password }),
+            });
+
+            if (!response.ok) {
+              const error = await response.json();
+              throw new Error(error.detail || "Authentication failed");
+            }
+
+            const data = await response.json();
+            this.setToken(data.access);
+            this.setUser(data.user);
+            return data;
+          } catch (error) {
+            console.error("Login error:", error);
+            throw error;
+          }
+        },
+
+        logout() {
+          this.clearAuth();
+          updateAuthUI();
+          console.log("🔓 Logged out successfully");
+        },
+      };
+
+      // Update authentication UI
+      function updateAuthUI() {
+        const authStatus = document.getElementById("auth-status");
+        const authText = document.getElementById("auth-text");
+        const icon = authStatus.querySelector(".icon");
+
+        if (AuthManager.isAuthenticated()) {
+          const user = AuthManager.getUser();
+          authStatus.classList.add("authenticated");
+          authText.textContent = user ? user.username : "Authenticated";
+          icon.textContent = "🔓";
+
+          // Update Swagger UI authorization
+          if (window.ui) {
+            window.ui.preauthorizeApiKey(
+              "jwtAuth",
+              `${AuthManager.getToken()}`
+            );
+          }
+        } else {
+          authStatus.classList.remove("authenticated");
+          authText.textContent = "Not Authenticated";
+          icon.textContent = "🔒";
+        }
+      }
+
+      // Modal management
+      function showLoginModal() {
+        document.getElementById("login-modal").classList.add("active");
+        document.getElementById("username").focus();
+      }
+
+      function hideLoginModal() {
+        document.getElementById("login-modal").classList.remove("active");
+        document.getElementById("login-form").reset();
+        document.getElementById("login-error").classList.remove("active");
+      }
+
+      function showLoginError(message) {
+        const errorDiv = document.getElementById("login-error");
+        errorDiv.textContent = message;
+        errorDiv.classList.add("active");
+      }
+
+      window.onload = function () {
+        // Initialize Swagger UI
+        window.ui = SwaggerUIBundle({
+          url: "/api/schema/",
+          dom_id: "#swagger-ui",
+          deepLinking: true,
+          docExpansion: "none", // Contraer todo por defecto
+          defaultModelsExpandDepth: 1,
+          defaultModelExpandDepth: 1,
+          displayOperationId: true,
+          displayRequestDuration: true,
+          filter: true,
+          showExtensions: true,
+          showCommonExtensions: true,
+          tryItOutEnabled: true,
+          persistAuthorization: true,
+          presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
+          plugins: [SwaggerUIBundle.plugins.DownloadUrl],
+          layout: "StandaloneLayout",
+          onComplete: function () {
+            console.log("✅ ChemFlow API: Swagger UI loaded successfully");
+
+            // Hide loading overlay
+            setTimeout(function () {
+              document.getElementById("loading").classList.add("hidden");
+            }, 300);
+
+            // No auto-expandir, dejar todo contraído por defecto
+
+            // Apply authentication if available
+            updateAuthUI();
+          },
+          requestInterceptor: function (req) {
+            // Add JWT token to all requests
+            const token = AuthManager.getToken();
+            if (token && !req.headers.Authorization) {
+              req.headers.Authorization = `Bearer ${token}`;
+            }
+            return req;
+          },
+        });
+
+        // Function to expand all operations
+        function expandAllOperations() {
+          console.log("📖 Expanding all API endpoints...");
+
+          setTimeout(function () {
+            // Click all collapsed operation blocks
+            const collapseButtons = document.querySelectorAll(
+              '.opblock-summary-control[aria-expanded="false"]'
+            );
+
+            collapseButtons.forEach(function (button) {
+              button.click();
+            });
+
+            // Expand all tag sections
+            const tagButtons = document.querySelectorAll(
+              '.opblock-tag-section button[aria-expanded="false"]'
+            );
+
+            tagButtons.forEach(function (button) {
+              button.click();
+            });
+
+            console.log(`✅ Expanded ${collapseButtons.length} operations`);
+          }, 500);
+        }
+
+        // Function to collapse all operations
+        function collapseAllOperations() {
+          console.log("📕 Collapsing all API endpoints...");
+
+          setTimeout(function () {
+            // Click all expanded operation blocks
+            const expandedButtons = document.querySelectorAll(
+              '.opblock-summary-control[aria-expanded="true"]'
+            );
+
+            expandedButtons.forEach(function (button) {
+              button.click();
+            });
+
+            // Collapse all tag sections
+            const tagButtons = document.querySelectorAll(
+              '.opblock-tag-section button[aria-expanded="true"]'
+            );
+
+            tagButtons.forEach(function (button) {
+              button.click();
+            });
+
+            console.log(`✅ Collapsed ${expandedButtons.length} operations`);
+          }, 500);
+        }
+
+        // Expand/Collapse All button handler
+        const expandBtn = document.getElementById("expand-all");
+        let isExpanded = false;
+
+        expandBtn.addEventListener("click", function () {
+          if (isExpanded) {
+            collapseAllOperations();
+            expandBtn.querySelector("span:last-child").textContent =
+              "Expand All";
+            expandBtn.querySelector(".icon").textContent = "📖";
+            isExpanded = false;
+          } else {
+            expandAllOperations();
+            expandBtn.querySelector("span:last-child").textContent =
+              "Collapse All";
+            expandBtn.querySelector(".icon").textContent = "📕";
+            isExpanded = true;
+          }
+        });
+
+        // Force visibility of all buttons
+        setTimeout(function () {
+          document
+            .querySelectorAll(".btn-download, #expand-all")
+            .forEach(function (btn) {
+              btn.style.display = "inline-flex";
+              btn.style.visibility = "visible";
+              btn.style.opacity = "1";
+              btn.style.pointerEvents = "auto";
+            });
+          console.log("✅ All header buttons are visible and interactive");
+        }, 300);
+
+        // Add keyboard shortcuts for expand/collapse
+        document.addEventListener("keydown", function (e) {
+          // Alt+E to expand all
+          if (e.altKey && e.key === "e") {
+            e.preventDefault();
+            if (!isExpanded) {
+              expandAllOperations();
+              expandBtn.querySelector("span:last-child").textContent =
+                "Collapse All";
+              expandBtn.querySelector(".icon").textContent = "📕";
+              isExpanded = true;
+            }
+            console.log("⌨️ Keyboard shortcut triggered: Expand All");
+          }
+          // Alt+C to collapse all
+          if (e.altKey && e.key === "c") {
+            e.preventDefault();
+            if (isExpanded) {
+              collapseAllOperations();
+              expandBtn.querySelector("span:last-child").textContent =
+                "Expand All";
+              expandBtn.querySelector(".icon").textContent = "📖";
+              isExpanded = false;
+            }
+            console.log("⌨️ Keyboard shortcut triggered: Collapse All");
+          }
+        });
+
+        console.log("💡 Tip: Press Alt+E to expand, Alt+C to collapse");
+
+        // Authentication event listeners
+        document
+          .getElementById("auth-status")
+          .addEventListener("click", function () {
+            if (AuthManager.isAuthenticated()) {
+              if (
+                confirm("Are you sure you want to logout from ChemFlow API?")
+              ) {
+                AuthManager.logout();
+              }
+            } else {
+              showLoginModal();
+            }
+          });
+
+        document
+          .getElementById("cancel-login")
+          .addEventListener("click", hideLoginModal);
+
+        document
+          .getElementById("login-modal")
+          .addEventListener("click", function (e) {
+            if (e.target === this) {
+              hideLoginModal();
+            }
+          });
+
+        document
+          .getElementById("login-form")
+          .addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = "🔄 Logging in...";
+
+            try {
+              await AuthManager.login(username, password);
+              console.log("✅ Login successful!");
+              hideLoginModal();
+              updateAuthUI();
+
+              // Show success message
+              const user = AuthManager.getUser();
+              alert(
+                `Welcome back, ${user.first_name || user.username}! 🎉\n\n` +
+                  `You are now authenticated and can access protected endpoints.`
+              );
+            } catch (error) {
+              showLoginError(
+                error.message || "Login failed. Please check your credentials."
+              );
+              console.error("❌ Login failed:", error);
+            } finally {
+              submitBtn.disabled = false;
+              submitBtn.textContent = "🔓 Login";
+            }
+          });
+
+        // Keyboard shortcuts
+        document.addEventListener("keydown", function (e) {
+          // Escape to close modal
+          if (e.key === "Escape") {
+            hideLoginModal();
+          }
+          // Ctrl+L or Cmd+L to open login
+          if ((e.ctrlKey || e.metaKey) && e.key === "l") {
+            e.preventDefault();
+            if (!AuthManager.isAuthenticated()) {
+              showLoginModal();
+            }
+          }
+        });
+
+        console.log("🔑 Authentication: Press Ctrl+L to login quickly");
+      };
+    </script>
+  </body>
+</html>

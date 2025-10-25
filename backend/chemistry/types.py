@@ -282,28 +282,28 @@ class PropertyGenerationRequest:
         created_by: User initiating the generation
 
     Examples:
-        # RDKit with global metadata
-        PropertyGenerationRequest(
-            family_id=5,
-            category=PropertyCategory.ADMETSA,
-            provider=PropertyProvider.RDKIT,
-            metadata={"experiment_id": "EXP-001"}
-        )
+        >>> # RDKit with global metadata
+        >>> PropertyGenerationRequest(
+        ...     family_id=5,
+        ...     category=PropertyCategory.ADMETSA,
+        ...     provider=PropertyProvider.RDKIT,
+        ...     metadata={"experiment_id": "EXP-001"}
+        ... )
 
-        # Manual with per-molecule metadata
-        PropertyGenerationRequest(
-            family_id=5,
-            category=PropertyCategory.PHYSICS,
-            provider=PropertyProvider.MANUAL,
-            properties_data={
-                8: {"MolWt": "180.16", "LogP": "2.45"},
-                9: {"MolWt": "194.19", "LogP": "2.89"}
-            },
-            per_molecule_metadata={
-                8: {"technician": "John"},
-                9: {"technician": "Jane"}
-            }
-        )
+        >>> # Manual with per-molecule metadata
+        >>> PropertyGenerationRequest(
+        ...     family_id=5,
+        ...     category=PropertyCategory.PHYSICS,
+        ...     provider=PropertyProvider.MANUAL,
+        ...     properties_data={
+        ...         8: {"MolWt": "180.16", "LogP": "2.45"},
+        ...         9: {"MolWt": "194.19", "LogP": "2.89"}
+        ...     },
+        ...     per_molecule_metadata={
+        ...         8: {"technician": "John"},
+        ...         9: {"technician": "Jane"}
+        ...     }
+        ... )
     """
 
     family_id: int
@@ -370,3 +370,21 @@ class PropertyGenerationResult:
         if self.properties_created is not None:
             result["properties_created"] = self.properties_created
         return result
+
+    # --- Convenience API to behave dict-like and provide additional semantics ---
+    def __getitem__(self, key: str) -> Any:
+        """Allow dict-style access (compat with existing tests/usages)."""
+        return self.to_dict()[key]
+
+    @property
+    def molecule_results(self) -> List[Dict[str, Any]]:
+        """Alias used by some tests expecting `molecule_results` attribute."""
+        return self.molecules
+
+    @property
+    def success(self) -> bool:
+        """Whether all molecule calculations succeeded (no error keys)."""
+        try:
+            return all("error" not in m for m in (self.molecules or []))
+        except Exception:
+            return False
