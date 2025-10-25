@@ -440,3 +440,151 @@ class AddPropertySerializer(serializers.Serializer):
     metadata = serializers.JSONField(
         required=False, default=dict, help_text="Metadatos adicionales"
     )
+
+
+class PropertyGenerationRequestSerializer(serializers.Serializer):
+    """Serializer for property generation requests.
+
+    This serializer validates requests for the unified property generation
+    system, supporting both persistent and preview modes with metadata.
+
+    Fields:
+        metadata: Global metadata applied to all molecules (optional)
+        per_molecule_metadata: Metadata per molecule {mol_id: {key: value}} (optional)
+        properties_data: Pre-calculated properties for manual provider (optional)
+
+    Examples:
+        # RDKit with global metadata
+        {
+            "metadata": {"experiment_id": "EXP-001", "batch": "batch-42"}
+        }
+
+        # Manual provider with per-molecule data
+        {
+            "properties_data": {
+                "8": {"MolWt": "180.16", "LogP": "2.45"},
+                "9": {"MolWt": "194.19"}
+            },
+            "per_molecule_metadata": {
+                "8": {"technician": "John"},
+                "9": {"technician": "Jane"}
+            }
+        }
+
+        # Combined metadata
+        {
+            "metadata": {"experiment_id": "EXP-001"},
+            "per_molecule_metadata": {
+                "8": {"replicate": 1}
+            }
+        }
+    """
+
+    metadata = serializers.JSONField(
+        required=False,
+        allow_null=True,
+        help_text="Global metadata applied to all molecules",
+    )
+    per_molecule_metadata = serializers.JSONField(
+        required=False,
+        allow_null=True,
+        help_text="Metadata per molecule: {molecule_id: {key: value}}",
+    )
+    properties_data = serializers.JSONField(
+        required=False,
+        allow_null=True,
+        help_text="Pre-calculated properties for manual provider: {molecule_id: {prop: value}}",
+    )
+
+    def validate_per_molecule_metadata(self, value):
+        """Validate per_molecule_metadata structure.
+
+        Must be a dictionary mapping molecule IDs (as strings or ints) to
+        metadata dictionaries.
+        """
+        if value is None:
+            return None
+
+        if not isinstance(value, dict):
+            raise serializers.ValidationError(
+                "per_molecule_metadata must be a dictionary"
+            )
+
+        # Convert string keys to integers and validate structure
+        converted = {}
+        for mol_id, metadata in value.items():
+            try:
+                mol_id_int = int(mol_id)
+            except (ValueError, TypeError):
+                raise serializers.ValidationError(
+                    f"Invalid molecule ID: {mol_id}. Must be an integer."
+                )
+
+            if not isinstance(metadata, dict):
+                raise serializers.ValidationError(
+                    f"Metadata for molecule {mol_id} must be a dictionary"
+                )
+
+            converted[mol_id_int] = metadata
+
+        return converted
+
+    def validate_properties_data(self, value):
+        """Validate properties_data structure.
+
+        Must be a dictionary mapping molecule IDs to property dictionaries.
+        """
+        if value is None:
+            return None
+
+        if not isinstance(value, dict):
+            raise serializers.ValidationError("properties_data must be a dictionary")
+
+        # Convert string keys to integers and validate structure
+        converted = {}
+        for mol_id, properties in value.items():
+            try:
+                mol_id_int = int(mol_id)
+            except (ValueError, TypeError):
+                raise serializers.ValidationError(
+                    f"Invalid molecule ID: {mol_id}. Must be an integer."
+                )
+
+            if not isinstance(properties, dict):
+                raise serializers.ValidationError(
+                    f"Properties for molecule {mol_id} must be a dictionary"
+                )
+
+            # Validate all property values are strings
+            for prop_key, prop_value in properties.items():
+                if not isinstance(prop_value, str):
+                    raise serializers.ValidationError(
+                        f"Property value for {prop_key} in molecule {mol_id} "
+                        f"must be a string, got {type(prop_value).__name__}"
+                    )
+
+            converted[mol_id_int] = properties
+
+        return converted
+
+    def validate(self, data):
+        """Cross-field validation."""
+        # If properties_data is provided, ensure it's consistent with metadata
+        properties_data = data.get("properties_data")
+        per_molecule_metadata = data.get("per_molecule_metadata")
+
+        if properties_data and per_molecule_metadata:
+            # Check that molecule IDs match
+            props_mol_ids = set(properties_data.keys())
+            metadata_mol_ids = set(per_molecule_metadata.keys())
+
+            # It's OK if metadata has fewer molecules than properties_data,
+            # but warn if metadata has molecules not in properties_data
+            extra_metadata_mols = metadata_mol_ids - props_mol_ids
+            if extra_metadata_mols:
+                raise serializers.ValidationError(
+                    f"per_molecule_metadata contains molecule IDs not in properties_data: "
+                    f"{extra_metadata_mols}"
+                )
+
+        return data

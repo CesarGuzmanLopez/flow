@@ -9,7 +9,8 @@ and reduce coupling between components.
 """
 
 from dataclasses import dataclass
-from typing import List, Optional
+from enum import Enum
+from typing import Any, Dict, List, Optional
 
 from typing_extensions import TypedDict
 
@@ -230,3 +231,142 @@ class SubstitutionGenerationError(ChemEngineError):
         if message is None:
             message = f"Failed to generate {count} substitutions for SMILES: {smiles}"
         super().__init__(message)
+
+
+# ========== Property Generation System Types ==========
+
+
+class PropertyCategory(str, Enum):
+    """Categories of molecular/family properties that can be generated.
+
+    Each category represents a group of related properties that can be
+    calculated using different providers.
+    """
+
+    ADMETSA = "admetsa"  # Basic ADMET properties (MolWt, LogP, TPSA, HBA, HBD, RB)
+    ADMET = "admet"  # Extended ADMET properties
+    PHYSICS = "physics"  # Physical properties
+    PHARMACODYNAMIC = "pharmacodynamic"  # Pharmacodynamic properties
+    CUSTOM = "custom"  # User-defined custom properties
+
+
+class PropertyProvider(str, Enum):
+    """Providers that can calculate molecular properties.
+
+    Each provider represents a different source or method for calculating
+    property values.
+    """
+
+    RDKIT = "rdkit"  # RDKit-based calculations
+    MANUAL = "manual"  # User-provided values via JSON
+    PROVIDER_EXTRA = (
+        "provider-extra"  # Additional providers (random, external APIs, etc.)
+    )
+
+
+@dataclass
+class PropertyGenerationRequest:
+    """Request for property generation with metadata support.
+
+    This dataclass represents a request to generate properties for molecules
+    in a family, with support for both global and per-molecule metadata.
+
+    Attributes:
+        family_id: ID of the family to generate properties for
+        category: Category of properties to generate (admetsa, physics, etc.)
+        provider: Provider to use for calculations (rdkit, manual, etc.)
+        persist: Whether to save properties to database (True) or just preview (False)
+        metadata: Global metadata applied to all molecules
+        per_molecule_metadata: Metadata specific to each molecule {mol_id: {key: value}}
+        properties_data: Pre-calculated property values (required for manual provider)
+        created_by: User initiating the generation
+
+    Examples:
+        # RDKit with global metadata
+        PropertyGenerationRequest(
+            family_id=5,
+            category=PropertyCategory.ADMETSA,
+            provider=PropertyProvider.RDKIT,
+            metadata={"experiment_id": "EXP-001"}
+        )
+
+        # Manual with per-molecule metadata
+        PropertyGenerationRequest(
+            family_id=5,
+            category=PropertyCategory.PHYSICS,
+            provider=PropertyProvider.MANUAL,
+            properties_data={
+                8: {"MolWt": "180.16", "LogP": "2.45"},
+                9: {"MolWt": "194.19", "LogP": "2.89"}
+            },
+            per_molecule_metadata={
+                8: {"technician": "John"},
+                9: {"technician": "Jane"}
+            }
+        )
+    """
+
+    family_id: int
+    category: PropertyCategory
+    provider: PropertyProvider
+    persist: bool = True
+    metadata: Optional[Dict[str, Any]] = None
+    per_molecule_metadata: Optional[Dict[int, Dict[str, Any]]] = None
+    properties_data: Optional[Dict[int, Dict[str, str]]] = None
+    created_by: Optional[Any] = None
+
+    def get_merged_metadata(self, molecule_id: int) -> Dict[str, Any]:
+        """Get merged metadata for a specific molecule.
+
+        Merges global metadata with per-molecule metadata, with per-molecule
+        taking precedence in case of conflicts.
+
+        Args:
+            molecule_id: ID of the molecule
+
+        Returns:
+            Merged metadata dictionary
+        """
+        result = {}
+        if self.metadata:
+            result.update(self.metadata)
+        if self.per_molecule_metadata and molecule_id in self.per_molecule_metadata:
+            result.update(self.per_molecule_metadata[molecule_id])
+        return result
+
+
+@dataclass
+class PropertyGenerationResult:
+    """Result from property generation operation.
+
+    Contains information about the generated properties and whether they
+    were persisted to the database.
+
+    Attributes:
+        family_id: ID of the family
+        category: Category of properties generated
+        provider: Provider used for generation
+        persisted: Whether properties were saved to database
+        properties_created: Number of properties created (only if persisted)
+        molecules: List of molecule results with their properties
+    """
+
+    family_id: int
+    category: str
+    provider: str
+    persisted: bool
+    molecules: List[Dict[str, Any]]
+    properties_created: Optional[int] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary for API response."""
+        result = {
+            "family_id": self.family_id,
+            "category": self.category,
+            "provider": self.provider,
+            "persisted": self.persisted,
+            "molecules": self.molecules,
+        }
+        if self.properties_created is not None:
+            result["properties_created"] = self.properties_created
+        return result

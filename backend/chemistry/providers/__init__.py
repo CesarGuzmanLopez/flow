@@ -91,3 +91,52 @@ class _EngineProxy:
 engine: Any = _EngineProxy()
 
 __all__ = ["engine"]
+
+# ========== New Property Generation System Exports ==========
+
+# Import new architecture components
+from .factory import auto_register_providers, factory, registry  # noqa: E402
+from .interfaces import (  # noqa: E402
+    AbstractPropertyProvider,  # noqa: E402
+    PropertyInfo,  # noqa: E402
+    PropertyProviderInfo,  # noqa: E402
+    PropertyProviderInterface,  # noqa: E402
+)
+from .property_providers import (  # noqa: E402
+    ManualProvider,  # noqa: E402
+    RandomProvider,  # noqa: E402
+    RDKitProvider,  # noqa: E402
+)
+
+# Mark imports as used for re-export
+_ = (
+    auto_register_providers,
+    factory,
+    registry,
+    AbstractPropertyProvider,
+    PropertyInfo,
+    PropertyProviderInfo,
+    PropertyProviderInterface,
+    ManualProvider,
+    RandomProvider,
+    RDKitProvider,
+)
+
+# Add to __all__
+__all__.extend(
+    [
+        # Interfaces
+        "PropertyProviderInterface",
+        "AbstractPropertyProvider",
+        "PropertyInfo",
+        "PropertyProviderInfo",
+        # Concrete Providers
+        "RDKitProvider",
+        "ManualProvider",
+        "RandomProvider",
+        # Registry & Factory
+        "registry",
+        "factory",
+        "auto_register_providers",
+    ]
+)

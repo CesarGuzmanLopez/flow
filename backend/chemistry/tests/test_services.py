@@ -146,26 +146,31 @@ class ChemistryServicesTests(TestCase):
         self.assertIn(mol1, filtered)
         self.assertNotIn(mol2, filtered)
 
-    def test_generate_admetsa_for_family(self):
-        """Test generación de propiedades ADMETSA para familia."""
+    def test_generate_properties_for_family(self):
+        """Test generación de propiedades para familia usando nuevo sistema."""
+        from chemistry.services.property_generator import generate_properties_for_family
+
         # Crear familia con moléculas
         family = chem_services.create_family_from_smiles(
             name="Test Family", smiles_list=["CCO", "CO"], created_by=self.user
         )
 
-        # Generar ADMETSA
-        result = chem_services.generate_admetsa_for_family(
-            family_id=family.id, created_by=self.user
+        # Generar propiedades usando el nuevo sistema
+        result = generate_properties_for_family(
+            family_id=family.id,
+            category="admetsa",
+            provider="rdkit",
+            created_by=self.user,
         )
 
-        self.assertEqual(result["family_id"], family.id)
-        self.assertEqual(result["count"], 2)
-        self.assertEqual(len(result["molecules"]), 2)
+        self.assertEqual(result.family_id, family.id)
+        self.assertGreater(result.properties_created, 0)
+        self.assertEqual(len(result.molecule_results), 2)
+        self.assertTrue(result.success)
 
         # Verificar que se crearon propiedades moleculares
         props_count = MolecularProperty.objects.filter(
             molecule__in=family.members.values_list("molecule_id", flat=True),
-            property_type__in=chem_services.ADMETSA_PROPERTIES,
         ).count()
         self.assertGreater(props_count, 0)
 
@@ -209,13 +214,18 @@ class ChemistryServicesTests(TestCase):
 
     def test_compute_family_admetsa_aggregates(self):
         """Test cálculo de agregados ADMETSA para familia."""
+        from chemistry.services.property_generator import generate_properties_for_family
+
         # Crear familia y generar propiedades
         family = chem_services.create_family_from_smiles(
             name="Test Family", smiles_list=["CCO", "CO"], created_by=self.user
         )
 
-        chem_services.generate_admetsa_for_family(
-            family_id=family.id, created_by=self.user
+        generate_properties_for_family(
+            family_id=family.id,
+            category="admetsa",
+            provider="rdkit",
+            created_by=self.user,
         )
 
         # Calcular agregados

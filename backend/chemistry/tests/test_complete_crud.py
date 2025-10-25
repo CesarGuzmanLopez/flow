@@ -3,7 +3,7 @@ Test comprehensivo de todas las operaciones CRUD de Chemistry Views.
 
 Verifica que las vistas puedan realizar todas las operaciones en la base de datos:
 - CRUD completo para todas las entidades
-- Operaciones especiales (from_smiles, add_property, generate_admetsa)
+- Operaciones especiales (from_smiles, add_property, generate_properties)
 - Auditoría correcta (created_by, updated_by)
 - Filtrado por usuario
 """
@@ -173,8 +173,8 @@ class ChemistryViewsCRUDTests(TestCase):
         self.assertEqual(response.data["name"], "Alcohol Family")
         self.assertEqual(response.data["created_by"], self.user.id)
 
-    def test_family_generate_admetsa(self):
-        """Test generación de propiedades ADMETSA para familia."""
+    def test_family_generate_properties(self):
+        """Test generación de propiedades para familia usando nuevo sistema."""
         # Crear familia con moléculas
         family = Family.objects.create(
             name="Test Family",
@@ -189,9 +189,9 @@ class ChemistryViewsCRUDTests(TestCase):
         FamilyMember.objects.create(family=family, molecule=mol1)
         FamilyMember.objects.create(family=family, molecule=mol2)
 
-        # Generar ADMETSA
+        # Generar propiedades usando el nuevo endpoint
         response = self.client.post(
-            f"/api/chemistry/families/{family.id}/generate_admetsa/"
+            f"/api/chemistry/families/{family.id}/generate-properties/admetsa/rdkit/"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("properties_created", response.data)
@@ -371,9 +371,9 @@ class ChemistryViewsCRUDTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         family_id = response.data["id"]
 
-        # 3. Generar propiedades ADMETSA
+        # 3. Generar propiedades ADMETSA usando nuevo sistema
         response = self.client.post(
-            f"/api/chemistry/families/{family_id}/generate_admetsa/"
+            f"/api/chemistry/families/{family_id}/generate-properties/admetsa/rdkit/"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 

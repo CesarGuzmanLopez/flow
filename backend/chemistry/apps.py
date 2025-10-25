@@ -13,3 +13,10 @@ class ChemistryConfig(AppConfig):
 
     default_auto_field = "django.db.models.BigAutoField"
     name = "chemistry"
+
+    def ready(self):
+        """Initialize app - register property providers."""
+        from .providers.factory import auto_register_providers
+
+        # Auto-register all built-in providers (RDKit, Manual, Random)
+        auto_register_providers()
