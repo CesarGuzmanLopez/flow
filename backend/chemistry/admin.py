@@ -86,5 +86,5 @@ class FamilyMemberAdmin(admin.ModelAdmin):
 class MoleculeFlowAdmin(admin.ModelAdmin):
     """Configuración del admin para la relación molécula-flujo."""
 
-    list_display = ("id", "molecule_id", "flow_id", "created_at")
+    list_display = ("id", "molecule_id", "flow_id", "role", "step_number", "created_at")
     search_fields = ("molecule__name", "molecule__inchikey", "flow__name")
