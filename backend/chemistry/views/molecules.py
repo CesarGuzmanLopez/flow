@@ -72,6 +72,38 @@ class BaseChemistryViewSet(viewsets.ModelViewSet):
         ],
         tags=["Chemistry • Molecules"],
     ),
+    retrieve=extend_schema(
+        summary="Recuperar molécula",
+        description="Obtiene la representación completa de una molécula por su ID.",
+        responses={
+            200: MoleculeSerializer,
+            404: OpenApiResponse(description="Molécula no encontrada", response=dict),
+        },
+        tags=["Chemistry • Molecules"],
+    ),
+    update=extend_schema(
+        summary="Actualizar molécula (PUT)",
+        description=(
+            "Reemplaza todos los campos de la molécula. Use PATCH para actualizaciones parciales."
+        ),
+        responses={200: MoleculeSerializer, 400: OpenApiResponse(response=dict)},
+        tags=["Chemistry • Molecules"],
+    ),
+    partial_update=extend_schema(
+        summary="Actualizar parcialmente molécula (PATCH)",
+        description="Actualiza uno o más campos de la molécula sin reemplazar la entidad completa.",
+        responses={200: MoleculeSerializer, 400: OpenApiResponse(response=dict)},
+        tags=["Chemistry • Molecules"],
+    ),
+    destroy=extend_schema(
+        summary="Eliminar molécula",
+        description="Elimina la molécula indicada por ID. Retorna 204 en caso de éxito.",
+        responses={
+            204: OpenApiResponse(description="Eliminado con éxito", response=None),
+            404: OpenApiResponse(description="Molécula no encontrada", response=dict),
+        },
+        tags=["Chemistry • Molecules"],
+    ),
 )
 class MoleculeViewSet(BaseChemistryViewSet):
     queryset = Molecule.objects.all()

@@ -47,6 +47,24 @@ from .molecules import BaseChemistryViewSet
             )
         ],
     ),
+    retrieve=extend_schema(
+        summary="Recuperar propiedad molecular",
+        description="Obtiene una propiedad molecular por su ID.",
+        responses={
+            200: MolecularPropertySerializer,
+            404: OpenApiResponse(description="Propiedad no encontrada", response=dict),
+        },
+        tags=["Chemistry • Properties"],
+    ),
+    destroy=extend_schema(
+        summary="Eliminar propiedad molecular",
+        description="Elimina la propiedad molecular indicada por ID. Retorna 204 en caso de éxito.",
+        responses={
+            204: OpenApiResponse(description="Eliminado con éxito", response=None),
+            404: OpenApiResponse(description="Propiedad no encontrada", response=dict),
+        },
+        tags=["Chemistry • Properties"],
+    ),
 )
 class MolecularPropertyViewSet(BaseChemistryViewSet):
     queryset = MolecularProperty.objects.all()
@@ -149,3 +167,4 @@ class MolecularPropertyViewSet(BaseChemistryViewSet):
         """Partial update (PATCH) with invariant protection."""
         kwargs["partial"] = True
         return self.update(request, *args, **kwargs)
+

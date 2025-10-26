@@ -35,11 +35,49 @@ from .molecules import BaseChemistryViewSet
 @extend_schema_view(
     list=extend_schema(summary="Listar familias", tags=["Chemistry • Families"]),
     create=extend_schema(summary="Crear familia", tags=["Chemistry • Families"]),
+    retrieve=extend_schema(
+        summary="Recuperar familia",
+        description="Obtiene la representación de una familia por su ID.",
+        responses={
+            200: FamilySerializer,
+            404: OpenApiResponse(description="Familia no encontrada", response=dict),
+        },
+        tags=["Chemistry • Families"],
+    ),
+    update=extend_schema(
+        summary="Actualizar familia (PUT)",
+        description=(
+            "Reemplaza todos los campos de la familia. Use PATCH para actualizaciones parciales."
+        ),
+        responses={200: FamilySerializer, 400: OpenApiResponse(response=dict)},
+        tags=["Chemistry • Families"],
+    ),
+    partial_update=extend_schema(
+        summary="Actualizar parcialmente familia (PATCH)",
+        description="Actualiza uno o más campos de la familia sin reemplazar la entidad completa.",
+        responses={200: FamilySerializer, 400: OpenApiResponse(response=dict)},
+        tags=["Chemistry • Families"],
+    ),
+    destroy=extend_schema(
+        summary="Eliminar familia",
+        description="Elimina la familia indicada por ID. Retorna 204 en caso de éxito.",
+        responses={
+            204: OpenApiResponse(description="Eliminado con éxito", response=None),
+            404: OpenApiResponse(description="Familia no encontrada", response=dict),
+        },
+        tags=["Chemistry • Families"],
+    ),
 )
 class FamilyViewSet(BaseChemistryViewSet):
     queryset = Family.objects.all()
     serializer_class = FamilySerializer
 
+    @extend_schema(
+        summary="Mis familias",
+        description="Lista las familias creadas por el usuario autenticado. Soporta paginación estándar.",
+        responses={200: FamilySerializer(many=True)},
+        tags=["Chemistry • Families"],
+    )
     @action(detail=False, methods=["get"])
     def mine(self, request):
         qs = self.get_queryset().filter(created_by=request.user)
@@ -1194,8 +1232,42 @@ class FamilyViewSet(BaseChemistryViewSet):
 
 
 @extend_schema_view(
-    list=extend_schema(summary="Listar propiedades de familias"),
-    create=extend_schema(summary="Crear propiedad de familia"),
+    list=extend_schema(
+        summary="Listar propiedades de familias", tags=["Chemistry • Families"]
+    ),
+    create=extend_schema(
+        summary="Crear propiedad de familia", tags=["Chemistry • Families"]
+    ),
+    retrieve=extend_schema(
+        summary="Recuperar propiedad de familia",
+        description="Obtiene una propiedad de familia por su ID.",
+        responses={
+            200: FamilyPropertySerializer,
+            404: OpenApiResponse(description="Propiedad no encontrada", response=dict),
+        },
+        tags=["Chemistry • Families"],
+    ),
+    update=extend_schema(
+        summary="Actualizar propiedad de familia (PUT)",
+        description="Reemplaza todos los campos de la propiedad de familia. Use PATCH para actualizaciones parciales.",
+        responses={200: FamilyPropertySerializer, 400: OpenApiResponse(response=dict)},
+        tags=["Chemistry • Families"],
+    ),
+    partial_update=extend_schema(
+        summary="Actualizar parcialmente propiedad de familia (PATCH)",
+        description="Actualiza uno o más campos de la propiedad de familia sin reemplazar la entidad completa.",
+        responses={200: FamilyPropertySerializer, 400: OpenApiResponse(response=dict)},
+        tags=["Chemistry • Families"],
+    ),
+    destroy=extend_schema(
+        summary="Eliminar propiedad de familia",
+        description="Elimina la propiedad de familia indicada por ID. Retorna 204 en caso de éxito.",
+        responses={
+            204: OpenApiResponse(description="Eliminado con éxito", response=None),
+            404: OpenApiResponse(description="Propiedad no encontrada", response=dict),
+        },
+        tags=["Chemistry • Families"],
+    ),
 )
 class FamilyPropertyViewSet(BaseChemistryViewSet):
     queryset = FamilyProperty.objects.all()
