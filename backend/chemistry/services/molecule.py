@@ -44,6 +44,7 @@ def create_molecule_from_smiles(
     name: str | None = None,
     extra_metadata: Dict[str, Any] | None = None,
     compute_descriptors: bool = False,
+    metadata: Dict[str, Any] | None = None,  # compatibility alias for tests
 ) -> Molecule:
     """Crea una molécula a partir de una SMILES, con normalización y deduplicación.
 
@@ -96,6 +97,10 @@ def create_molecule_from_smiles(
     if not smiles or not smiles.strip():
         raise ValidationError("SMILES cannot be empty")
 
+    # Size limits: enforce max length similar to serializers to keep service-safe when called directly
+    if len(smiles.strip()) > 1000:
+        raise ValidationError("SMILES is too long (max 1000 characters)")
+
     if not created_by:
         raise ValueError("created_by is required")
 
@@ -109,16 +114,22 @@ def create_molecule_from_smiles(
 
             # Compute descriptors only when explicitly requested. By default we avoid
             # populating metadata with potentially heavy descriptor data.
-            metadata = {}
+            metadata_dict: Dict[str, Any] = {}
             if compute_descriptors:
                 properties: MolecularProperties = providers.engine.calculate_properties(
                     smiles.strip(), return_dataclass=True
                 )
                 properties_dict = properties.to_dict()
-                metadata["descriptors"] = properties_dict
-
+                metadata_dict["descriptors"] = properties_dict
+            # Support both "metadata" (tests) and "extra_metadata" (API) parameters
+            merged_meta: Dict[str, Any] = {}
+            if metadata:
+                merged_meta.update(metadata)
             if extra_metadata:
-                metadata.update(extra_metadata)
+                merged_meta.update(extra_metadata)
+            # Merge computed descriptors last to avoid accidental overwrite
+            if metadata_dict:
+                merged_meta.update(metadata_dict)
 
             defaults = {
                 "name": name or structure_info.molecular_formula or "",
@@ -127,7 +138,7 @@ def create_molecule_from_smiles(
                 "inchi": structure_info.inchi,
                 "molecular_formula": structure_info.molecular_formula or "",
                 "created_by": created_by,
-                "metadata": metadata,
+                "metadata": merged_meta,
             }
 
             if structure_info.inchikey:
@@ -143,8 +154,9 @@ def create_molecule_from_smiles(
             return molecule
 
     except InvalidSmilesError as e:
+        # Let InvalidSmilesError bubble up as tests expect this specific error
         logger.error(f"Invalid SMILES '{smiles}': {e}")
-        raise ValidationError(f"Invalid SMILES: {e}")
+        raise
     except PropertyCalculationError as e:
         logger.error(f"Property calculation failed for SMILES '{smiles}': {e}")
         raise ValidationError(f"Property calculation failed: {e}")
@@ -355,12 +367,25 @@ def get_molecule_structure_info(molecule: Molecule) -> StructureIdentifiers:
 
 def update_molecule(
     *, molecule: Molecule, payload: Dict[str, Any], user: Any, partial: bool = False
-) -> tuple[Molecule, str]:
+) -> Molecule:
     if not user:
         raise ValueError("user is required")
 
     is_admin = getattr(user, "is_staff", False) or getattr(user, "is_superuser", False)
     structural_fields = {"smiles", "inchi", "inchikey", "canonical_smiles"}
+
+    # Business rules: cannot update a frozen molecule
+    if getattr(molecule, "frozen", False):
+        from django.core.exceptions import ValidationError
+
+        raise ValidationError("Cannot update a frozen molecule")
+
+    # Only the creator (or admins) can update
+    creator_id = getattr(getattr(molecule, "created_by", None), "id", None)
+    user_id = getattr(user, "id", None)
+    if not is_admin and creator_id is not None and creator_id != user_id:
+        # Tests expect a built-in PermissionError (or ValidationError in some cases)
+        raise PermissionError("Only the creator can update this molecule")
 
     attempted_structurals = structural_fields.intersection(set(payload.keys()))
     if attempted_structurals and not is_admin:
@@ -384,7 +409,6 @@ def update_molecule(
                 "Provided InChIKey in payload does not match the resource's InChIKey; cannot update"
             )
 
-    warning = ""
     changed_smiles = False
     for key, val in payload.items():
         if hasattr(molecule, key):
@@ -427,10 +451,4 @@ def update_molecule(
     molecule.updated_by = user
     molecule.save()
 
-    if not is_admin:
-        warning = (
-            "Warning: updating molecules can corrupt structural data. "
-            "Structural identifiers are protected; admins may perform structural changes."
-        )
-
-    return molecule, warning
+    return molecule

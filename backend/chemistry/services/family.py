@@ -45,7 +45,12 @@ def _family_hash(smiles_list: Iterable[str]) -> str:
 
 
 def create_family_from_smiles(
-    *, name: str, smiles_list: List[str], created_by: Any, provenance: str = "user"
+    *,
+    name: str,
+    smiles_list: List[str],
+    created_by: Any,
+    provenance: str = "user",
+    metadata: Dict[str, Any] | None = None,  # compatibility alias for tests
 ) -> Family:
     """Crea una familia a partir de una lista de SMILES, con deduplicación automática.
 
@@ -118,14 +123,27 @@ def create_family_from_smiles(
         if not mols:
             raise ValueError("No valid molecules could be created from SMILES list")
 
-        fam = Family.objects.create(
-            name=name.strip(),
-            description="",
-            family_hash=_family_hash([m.canonical_smiles or m.smiles for m in mols]),
-            provenance=provenance,
-            frozen=True,
-            created_by=created_by,
-            metadata={"size": len(mols), "created_by": getattr(created_by, "id", None)},
+        fam_hash = _family_hash([m.canonical_smiles or m.smiles for m in mols])
+
+        # Merge metadata with defaults
+        meta: Dict[str, Any] = {
+            "size": len(mols),
+            "created_by": getattr(created_by, "id", None),
+        }
+        if metadata:
+            meta.update(metadata)
+
+        # Deduplicate by family_hash regardless of name order/content
+        fam, created = Family.objects.get_or_create(
+            family_hash=fam_hash,
+            defaults={
+                "name": name.strip(),
+                "description": "",
+                "provenance": provenance,
+                "frozen": True,
+                "created_by": created_by,
+                "metadata": meta,
+            },
         )
         FamilyMember.objects.bulk_create(
             [FamilyMember(family=fam, molecule=m) for m in mols], ignore_conflicts=True

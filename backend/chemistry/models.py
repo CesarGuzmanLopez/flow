@@ -218,6 +218,10 @@ class MoleculeFlow(models.Model):
     molecule = models.ForeignKey(
         Molecule, on_delete=models.CASCADE, related_name="flow_links"
     )
+    # Optional role of the molecule in the flow context (e.g., input, generated, reference)
+    role = models.CharField(max_length=50, blank=True)
+    # Optional step ordering/number where this link was recorded
+    step_number = models.IntegerField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

@@ -138,7 +138,7 @@ class FamilyViewSet(BaseChemistryViewSet):
 
         try:
             # Use force_create=True to reject duplicates
-            prop, created = create_or_update_family_property(
+            result = create_or_update_family_property(
                 family=family,
                 property_type=data["property_type"],
                 value=data["value"],
@@ -151,7 +151,7 @@ class FamilyViewSet(BaseChemistryViewSet):
                 created_by=request.user,
                 force_create=True,  # ← Reject duplicates
             )
-
+            prop = result[0] if isinstance(result, tuple) else result
             return Response(
                 FamilyPropertySerializer(prop).data, status=status.HTTP_201_CREATED
             )

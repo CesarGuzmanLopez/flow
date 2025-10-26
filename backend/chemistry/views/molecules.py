@@ -187,12 +187,17 @@ class MoleculeViewSet(BaseChemistryViewSet):
         serializer = MoleculeUpdateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         try:
-            mol, warning = chem_services.update_molecule(
+            result = chem_services.update_molecule(
                 molecule=molecule,
                 payload=serializer.validated_data,
                 user=request.user,
                 partial=False,
             )
+            # Support both return shapes: Molecule or (Molecule, warning)
+            if isinstance(result, tuple):
+                mol, warning = result
+            else:
+                mol, warning = result, None
             out = MoleculeSerializer(mol, context={"request": request})
             resp = {**out.data}
             if warning:
@@ -211,12 +216,16 @@ class MoleculeViewSet(BaseChemistryViewSet):
         serializer = MoleculeUpdateSerializer(data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         try:
-            mol, warning = chem_services.update_molecule(
+            result = chem_services.update_molecule(
                 molecule=molecule,
                 payload=serializer.validated_data,
                 user=request.user,
                 partial=True,
             )
+            if isinstance(result, tuple):
+                mol, warning = result
+            else:
+                mol, warning = result, None
             out = MoleculeSerializer(mol, context={"request": request})
             resp = {**out.data}
             if warning:
@@ -275,7 +284,7 @@ class MoleculeViewSet(BaseChemistryViewSet):
 
         try:
             # Use force_create=True to reject duplicates
-            prop, created = create_or_update_molecular_property(
+            result = create_or_update_molecular_property(
                 molecule=molecule,
                 property_type=data["property_type"],
                 value=data["value"],
@@ -288,7 +297,11 @@ class MoleculeViewSet(BaseChemistryViewSet):
                 created_by=request.user,
                 force_create=True,  # ← Reject duplicates
             )
-
+            # Support both return shapes
+            if isinstance(result, tuple):
+                prop = result[0]
+            else:
+                prop = result
             return Response(
                 MolecularPropertySerializer(prop).data, status=status.HTTP_201_CREATED
             )

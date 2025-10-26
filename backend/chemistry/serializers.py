@@ -345,6 +345,17 @@ class CreateMoleculeFromSmilesSerializer(serializers.Serializer):
         help_text="Si es true, el backend calculará y guardará descriptores en metadata",
     )
 
+    def validate_extra_metadata(self, value):
+        """Ensure extra_metadata is a dictionary.
+
+        Tests expect non-dict values to be invalid, even if JSONField could accept them.
+        """
+        if value is None:
+            return {}
+        if not isinstance(value, dict):
+            raise serializers.ValidationError("extra_metadata must be a dictionary")
+        return value
+
 
 class CreateMoleculeSerializer(serializers.Serializer):
     """Serializer used by the openapi schema for creating or looking up molecules.

@@ -35,6 +35,16 @@ class Flow(models.Model):
     def __str__(self):
         return self.name
 
+    def __init__(self, *args, **kwargs):
+        """Compatibility: allow created_by alias for owner on creation.
+
+        Tests may pass created_by=<user>; map it to owner if provided.
+        """
+        created_by = kwargs.pop("created_by", None)
+        if created_by is not None and "owner" not in kwargs:
+            kwargs["owner"] = created_by
+        super().__init__(*args, **kwargs)
+
 
 class FlowVersion(models.Model):
     """Version control for flows - allows branching without merging"""
