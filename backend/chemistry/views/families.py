@@ -1,5 +1,6 @@
 from drf_spectacular.utils import (
     OpenApiExample,
+    OpenApiParameter,
     OpenApiResponse,
     extend_schema,
     extend_schema_view,
@@ -190,6 +191,22 @@ class FamilyViewSet(BaseChemistryViewSet):
             "categoría y proveedor específicos. Persiste los resultados por defecto.\n\n"
             "Usos típicos: admetsa con rdkit (computacional) o manual con datos provistos."
         ),
+        parameters=[
+            OpenApiParameter(
+                name="category",
+                type=str,
+                location=OpenApiParameter.PATH,
+                description="Property category (e.g., 'admetsa', 'physics', 'pharmacodynamic')",
+                required=True,
+            ),
+            OpenApiParameter(
+                name="provider",
+                type=str,
+                location=OpenApiParameter.PATH,
+                description="Property provider (e.g., 'rdkit', 'manual', 'random')",
+                required=True,
+            ),
+        ],
         request=PropertyGenerationRequestSerializer,
         responses={
             200: OpenApiResponse(
@@ -315,6 +332,22 @@ class FamilyViewSet(BaseChemistryViewSet):
             "Calcula las propiedades sin persistir en base de datos. Útil para validar\n"
             "proveedores/categorías y datos manuales antes de guardar."
         ),
+        parameters=[
+            OpenApiParameter(
+                name="category",
+                type=str,
+                location=OpenApiParameter.PATH,
+                description="Property category (e.g., 'admetsa', 'physics', 'pharmacodynamic')",
+                required=True,
+            ),
+            OpenApiParameter(
+                name="provider",
+                type=str,
+                location=OpenApiParameter.PATH,
+                description="Property provider (e.g., 'rdkit', 'manual', 'random')",
+                required=True,
+            ),
+        ],
         request=PropertyGenerationRequestSerializer,
         responses={
             200: OpenApiResponse(
@@ -568,6 +601,15 @@ class FamilyViewSet(BaseChemistryViewSet):
     @extend_schema(
         summary="List providers for a category",
         description="Returns detailed information about all providers that can generate properties for the specified category.",
+        parameters=[
+            OpenApiParameter(
+                name="category",
+                type=str,
+                location=OpenApiParameter.PATH,
+                description="Property category (e.g., 'admetsa', 'physics', 'pharmacodynamic')",
+                required=True,
+            ),
+        ],
         responses={
             200: OpenApiResponse(
                 response=dict,
@@ -727,11 +769,21 @@ class FamilyViewSet(BaseChemistryViewSet):
             )
 
     @extend_schema(
+        operation_id="chemistry_families_category_info_retrieve",
         summary="Get category information",
         description=(
             "Returns metadata about what properties are available in this category "
             "and which providers can calculate them."
         ),
+        parameters=[
+            OpenApiParameter(
+                name="category",
+                type=str,
+                location=OpenApiParameter.PATH,
+                description="Property category (e.g., 'admetsa', 'physics', 'pharmacodynamic')",
+                required=True,
+            ),
+        ],
         responses={
             200: OpenApiResponse(
                 response=dict,
@@ -877,11 +929,28 @@ class FamilyViewSet(BaseChemistryViewSet):
             )
 
     @extend_schema(
+        operation_id="chemistry_families_provider_category_info_retrieve",
         summary="Get provider capabilities for a category",
         description=(
             "Returns what properties this specific provider can calculate for the category, "
             "along with provider metadata."
         ),
+        parameters=[
+            OpenApiParameter(
+                name="category",
+                type=str,
+                location=OpenApiParameter.PATH,
+                description="Property category (e.g., 'admetsa', 'physics', 'pharmacodynamic')",
+                required=True,
+            ),
+            OpenApiParameter(
+                name="provider",
+                type=str,
+                location=OpenApiParameter.PATH,
+                description="Property provider (e.g., 'rdkit', 'manual', 'random')",
+                required=True,
+            ),
+        ],
         responses={
             200: OpenApiResponse(
                 response=dict,

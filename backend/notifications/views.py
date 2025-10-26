@@ -4,7 +4,7 @@ Views para la API REST de notificaciones.
 Implementa los endpoints para gestionar notificaciones de usuario.
 """
 
-from drf_spectacular.utils import OpenApiParameter, extend_schema
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -14,6 +14,64 @@ from .models import UserNotification
 from .serializers import UserNotificationSerializer
 
 
+@extend_schema_view(
+    list=extend_schema(
+        summary="Listar notificaciones del usuario",
+        description="Retorna todas las notificaciones del usuario autenticado.",
+    ),
+    create=extend_schema(
+        summary="Crear notificación",
+        description="Crea una nueva notificación para el usuario.",
+    ),
+    retrieve=extend_schema(
+        summary="Obtener notificación",
+        description="Retorna una notificación específica por ID.",
+        parameters=[
+            OpenApiParameter(
+                name="id",
+                type=int,
+                location=OpenApiParameter.PATH,
+                description="ID de la notificación",
+            )
+        ],
+    ),
+    update=extend_schema(
+        summary="Actualizar notificación",
+        description="Actualiza completamente una notificación.",
+        parameters=[
+            OpenApiParameter(
+                name="id",
+                type=int,
+                location=OpenApiParameter.PATH,
+                description="ID de la notificación",
+            )
+        ],
+    ),
+    partial_update=extend_schema(
+        summary="Actualizar parcialmente notificación",
+        description="Actualiza parcialmente una notificación.",
+        parameters=[
+            OpenApiParameter(
+                name="id",
+                type=int,
+                location=OpenApiParameter.PATH,
+                description="ID de la notificación",
+            )
+        ],
+    ),
+    destroy=extend_schema(
+        summary="Eliminar notificación",
+        description="Elimina una notificación.",
+        parameters=[
+            OpenApiParameter(
+                name="id",
+                type=int,
+                location=OpenApiParameter.PATH,
+                description="ID de la notificación",
+            )
+        ],
+    ),
+)
 class UserNotificationViewSet(viewsets.ModelViewSet):
     """
     ViewSet para notificaciones de usuario.
@@ -23,74 +81,25 @@ class UserNotificationViewSet(viewsets.ModelViewSet):
 
     serializer_class = UserNotificationSerializer
     permission_classes = [IsAuthenticated]
+    lookup_field = "pk"
 
     def get_queryset(self):
         """Retorna solo las notificaciones del usuario autenticado."""
         return UserNotification.objects.filter(user=self.request.user)
 
     @extend_schema(
+        summary="Marcar notificación como leída",
+        description="Marca una notificación específica como leída.",
         parameters=[
             OpenApiParameter(
-                name="pk",
+                name="id",
                 type=int,
                 location=OpenApiParameter.PATH,
                 description="ID de la notificación",
             )
-        ]
+        ],
     )
-    def retrieve(self, request, *args, **kwargs):
-        return super().retrieve(request, *args, **kwargs)
-
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(
-                name="pk",
-                type=int,
-                location=OpenApiParameter.PATH,
-                description="ID de la notificación",
-            )
-        ]
-    )
-    def update(self, request, *args, **kwargs):
-        return super().update(request, *args, **kwargs)
-
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(
-                name="pk",
-                type=int,
-                location=OpenApiParameter.PATH,
-                description="ID de la notificación",
-            )
-        ]
-    )
-    def partial_update(self, request, *args, **kwargs):
-        return super().partial_update(request, *args, **kwargs)
-
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(
-                name="pk",
-                type=int,
-                location=OpenApiParameter.PATH,
-                description="ID de la notificación",
-            )
-        ]
-    )
-    def destroy(self, request, *args, **kwargs):
-        return super().destroy(request, *args, **kwargs)
-
     @action(detail=True, methods=["post"])
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(
-                name="pk",
-                type=int,
-                location=OpenApiParameter.PATH,
-                description="ID de la notificación",
-            )
-        ]
-    )
     def mark_as_read(self, request, pk=None):
         """Marca una notificación específica como leída."""
         notification = self.get_object()
@@ -98,6 +107,10 @@ class UserNotificationViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(notification)
         return Response(serializer.data)
 
+    @extend_schema(
+        summary="Marcar todas como leídas",
+        description="Marca todas las notificaciones del usuario como leídas.",
+    )
     @action(detail=False, methods=["post"])
     def mark_all_as_read(self, request):
         """Marca todas las notificaciones del usuario como leídas."""
@@ -106,6 +119,10 @@ class UserNotificationViewSet(viewsets.ModelViewSet):
         self.get_queryset().filter(read=False).update(read=True, read_at=timezone.now())
         return Response({"message": "All notifications marked as read"})
 
+    @extend_schema(
+        summary="Contar notificaciones no leídas",
+        description="Retorna el conteo de notificaciones no leídas del usuario.",
+    )
     @action(detail=False, methods=["get"])
     def unread_count(self, request):
         """Retorna el conteo de notificaciones no leídas."""
