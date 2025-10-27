@@ -42,7 +42,7 @@ class PropertyAlreadyExistsError(ValidationError):
     """Error lanzado al intentar crear una propiedad con clave compuesta duplicada.
 
     Se usa cuando force_create=True (endpoints POST estrictos) para rechazar duplicados
-    y sugerir al cliente usar PATCH/PUT para actualizar.
+    y sugerir al cliente usar PATCH para actualizar.
 
     Raised when attempting to create a property that already exists with same key.
     """
@@ -51,7 +51,7 @@ class PropertyAlreadyExistsError(ValidationError):
         message = (
             f"Property already exists: property_type='{property_type}', "
             f"method='{method}', relation='{relation}', source_id='{source_id}'. "
-            "Use PATCH or PUT to update existing properties."
+            "Use PATCH to update existing properties."
         )
         super().__init__(message)
         self.property_type = property_type

@@ -109,7 +109,7 @@ class MolecularPropertyViewSet(BaseChemistryViewSet):
             return Response(
                 {
                     "error": str(e),
-                    "detail": "Property with this composite key already exists. Use PATCH or PUT to update.",
+                    "detail": "Property with this composite key already exists. Use PATCH to update.",
                     "property_type": e.property_type,
                     "method": e.method,
                     "relation": e.relation,
@@ -119,9 +119,9 @@ class MolecularPropertyViewSet(BaseChemistryViewSet):
             )
 
     @extend_schema(
-        summary="Actualizar propiedad molecular",
+        summary="Actualizar parcialmente propiedad molecular",
         description=(
-            "Actualiza una propiedad existente. Si es invariante (is_invariant=True), solo permite modificar metadata."
+            "Actualiza una propiedad existente de forma parcial. Si es invariante (is_invariant=True), solo permite modificar metadata."
         ),
         responses={
             200: MolecularPropertySerializer,
@@ -130,8 +130,25 @@ class MolecularPropertyViewSet(BaseChemistryViewSet):
         tags=["Chemistry • Properties"],
     )
     def update(self, request, *args, **kwargs):
-        """Update existing molecular property with invariant protection."""
-        partial = kwargs.pop("partial", False)
+        """PUT method disabled for security reasons. Use PATCH instead."""
+        return Response(
+            {
+                "error": "Method PUT not allowed",
+                "detail": "Use PATCH /api/chemistry/molecular-properties/{id}/ para actualizaciones.",
+            },
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
+
+    @extend_schema(
+        summary="Actualizar parcialmente propiedad molecular",
+        responses={
+            200: MolecularPropertySerializer,
+            400: OpenApiResponse(response=dict),
+        },
+        tags=["Chemistry • Properties"],
+    )
+    def partial_update(self, request, *args, **kwargs):
+        """Partial update (PATCH) with invariant protection."""
         instance = self.get_object()
 
         # Check if trying to modify invariant property value
@@ -149,22 +166,9 @@ class MolecularPropertyViewSet(BaseChemistryViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
 
         return Response(serializer.data)
-
-    @extend_schema(
-        summary="Actualizar parcialmente propiedad molecular",
-        responses={
-            200: MolecularPropertySerializer,
-            400: OpenApiResponse(response=dict),
-        },
-        tags=["Chemistry • Properties"],
-    )
-    def partial_update(self, request, *args, **kwargs):
-        """Partial update (PATCH) with invariant protection."""
-        kwargs["partial"] = True
-        return self.update(request, *args, **kwargs)
 

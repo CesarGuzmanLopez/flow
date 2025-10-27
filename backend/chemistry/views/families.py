@@ -44,14 +44,6 @@ from .molecules import BaseChemistryViewSet
         },
         tags=["Chemistry • Families"],
     ),
-    update=extend_schema(
-        summary="Actualizar familia (PUT)",
-        description=(
-            "Reemplaza todos los campos de la familia. Use PATCH para actualizaciones parciales."
-        ),
-        responses={200: FamilySerializer, 400: OpenApiResponse(response=dict)},
-        tags=["Chemistry • Families"],
-    ),
     partial_update=extend_schema(
         summary="Actualizar parcialmente familia (PATCH)",
         description="Actualiza uno o más campos de la familia sin reemplazar la entidad completa.",
@@ -1247,12 +1239,6 @@ class FamilyViewSet(BaseChemistryViewSet):
         },
         tags=["Chemistry • Families"],
     ),
-    update=extend_schema(
-        summary="Actualizar propiedad de familia (PUT)",
-        description="Reemplaza todos los campos de la propiedad de familia. Use PATCH para actualizaciones parciales.",
-        responses={200: FamilyPropertySerializer, 400: OpenApiResponse(response=dict)},
-        tags=["Chemistry • Families"],
-    ),
     partial_update=extend_schema(
         summary="Actualizar parcialmente propiedad de familia (PATCH)",
         description="Actualiza uno o más campos de la propiedad de familia sin reemplazar la entidad completa.",
@@ -1290,7 +1276,7 @@ class FamilyPropertyViewSet(BaseChemistryViewSet):
             return Response(
                 {
                     "error": str(e),
-                    "detail": "Property with this composite key already exists. Use PATCH or PUT to update.",
+                    "detail": "Property with this composite key already exists. Use PATCH to update.",
                     "property_type": e.property_type,
                     "method": e.method,
                     "relation": e.relation,
@@ -1300,8 +1286,17 @@ class FamilyPropertyViewSet(BaseChemistryViewSet):
             )
 
     def update(self, request, *args, **kwargs):
-        """Update existing family property with invariant protection."""
-        partial = kwargs.pop("partial", False)
+        """PUT method disabled for security reasons. Use PATCH instead."""
+        return Response(
+            {
+                "error": "Method PUT not allowed",
+                "detail": "Use PATCH /api/chemistry/family-properties/{id}/ para actualizaciones.",
+            },
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
+
+    def partial_update(self, request, *args, **kwargs):
+        """Partial update (PATCH) with invariant protection."""
         instance = self.get_object()
 
         # Check if trying to modify invariant property value
@@ -1319,13 +1314,8 @@ class FamilyPropertyViewSet(BaseChemistryViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
 
         return Response(serializer.data)
-
-    def partial_update(self, request, *args, **kwargs):
-        """Partial update (PATCH) with invariant protection."""
-        kwargs["partial"] = True
-        return self.update(request, *args, **kwargs)

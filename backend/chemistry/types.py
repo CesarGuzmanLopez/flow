@@ -233,6 +233,26 @@ class SubstitutionGenerationError(ChemEngineError):
         super().__init__(message)
 
 
+class MoleculeAlreadyExistsError(ChemEngineError):
+    """Raised when attempting to create a molecule that already exists.
+
+    Used when force_create=True (strict POST endpoints) to reject duplicates
+    and suggest the client use PATCH to update the existing molecule.
+    """
+
+    def __init__(self, inchikey: str, molecule_id: int, name: Optional[str] = None):
+        self.inchikey = inchikey
+        self.molecule_id = molecule_id
+        self.name = name
+        message = (
+            f"Molecule already exists with inchikey='{inchikey}' (id={molecule_id}"
+        )
+        if name:
+            message += f", name='{name}'"
+        message += "). Use PATCH to update the existing molecule."
+        super().__init__(message)
+
+
 # ========== Property Generation System Types ==========
 
 

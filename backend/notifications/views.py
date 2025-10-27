@@ -35,18 +35,6 @@ from .serializers import UserNotificationSerializer
             )
         ],
     ),
-    update=extend_schema(
-        summary="Actualizar notificación",
-        description="Actualiza completamente una notificación.",
-        parameters=[
-            OpenApiParameter(
-                name="id",
-                type=int,
-                location=OpenApiParameter.PATH,
-                description="ID de la notificación",
-            )
-        ],
-    ),
     partial_update=extend_schema(
         summary="Actualizar parcialmente notificación",
         description="Actualiza parcialmente una notificación.",
@@ -86,6 +74,18 @@ class UserNotificationViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Retorna solo las notificaciones del usuario autenticado."""
         return UserNotification.objects.filter(user=self.request.user)
+
+    def update(self, request, *args, **kwargs):
+        """PUT method disabled for security reasons. Use PATCH instead."""
+        from rest_framework import status
+
+        return Response(
+            {
+                "error": "Method PUT not allowed",
+                "detail": "Use PATCH /api/notifications/{id}/ para actualizaciones.",
+            },
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
 
     @extend_schema(
         summary="Marcar notificación como leída",

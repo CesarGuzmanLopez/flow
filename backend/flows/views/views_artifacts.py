@@ -55,11 +55,6 @@ class BaseFlowViewSet(StandardEnvelopeMixin, viewsets.ModelViewSet):
         "almacenado en storage externo (S3/MinIO) y se registra el hash SHA256.",
         tags=["Artifacts"],
     ),
-    update=extend_schema(
-        summary="Actualizar artefacto completo",
-        description="Actualiza metadata de un artefacto (no el contenido, que es inmutable).",
-        tags=["Artifacts"],
-    ),
     partial_update=extend_schema(
         summary="Actualizar artefacto parcialmente",
         description="Actualiza campos específicos de metadata de un artefacto.",
@@ -89,6 +84,19 @@ class ArtifactViewSet(BaseFlowViewSet):
                 step_execution__execution_snapshot__flow_version__flow__owner=self.request.user
             )
         return flow_services.filter_artifacts_for_user(qs, self.request.user)
+
+    def update(self, request, *args, **kwargs):
+        """PUT method disabled for security reasons. Use PATCH instead."""
+        from rest_framework import status
+        from rest_framework.response import Response
+
+        return Response(
+            {
+                "error": "Method PUT not allowed",
+                "detail": "Use PATCH /api/artifacts/{id}/ para actualizaciones.",
+            },
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
 
     @action(detail=True, methods=["get"])
     @extend_schema(

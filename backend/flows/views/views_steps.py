@@ -62,11 +62,6 @@ class BaseFlowViewSet(StandardEnvelopeMixin, viewsets.ModelViewSet):
         "inputs esperados y outputs generados.",
         tags=["Steps"],
     ),
-    update=extend_schema(
-        summary="Actualizar paso completo",
-        description="Actualiza todos los campos de un paso existente.",
-        tags=["Steps"],
-    ),
     partial_update=extend_schema(
         summary="Actualizar paso parcialmente",
         description="Actualiza campos específicos de un paso existente.",
@@ -91,6 +86,19 @@ class StepViewSet(BaseFlowViewSet):
         if self.request.query_params.get("mine") == "true":
             return qs.filter(flow_version__flow__owner=self.request.user)
         return flow_services.filter_steps_for_user(qs, self.request.user)
+
+    def update(self, request, *args, **kwargs):
+        """PUT method disabled for security reasons. Use PATCH instead."""
+        from rest_framework import status
+        from rest_framework.response import Response
+
+        return Response(
+            {
+                "error": "Method PUT not allowed",
+                "detail": "Use PATCH /api/steps/{id}/ para actualizaciones.",
+            },
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
 
     @action(detail=False, methods=["get"], url_path="catalog")
     @extend_schema(

@@ -81,11 +81,6 @@ from .sse import step_log_broker
         "principal vacía para el flujo. El usuario autenticado se asigna como propietario.",
         tags=["Flows"],
     ),
-    update=extend_schema(
-        summary="Actualizar flujo completo",
-        description="Actualiza todos los campos de un flujo existente (PUT completo).",
-        tags=["Flows"],
-    ),
     partial_update=extend_schema(
         summary="Actualizar flujo parcialmente",
         description="Actualiza campos específicos de un flujo existente (PATCH parcial).",
@@ -233,6 +228,16 @@ class FlowViewSet(StandardEnvelopeMixin, viewsets.ModelViewSet):
         serializer = FlowSerializer(qs, many=True)
         return Response(serializer.data)
 
+    def update(self, request, *args, **kwargs):
+        """PUT method disabled for security reasons. Use PATCH instead."""
+        return Response(
+            {
+                "error": "Method PUT not allowed",
+                "detail": "Use PATCH /api/flows/{id}/ para actualizaciones.",
+            },
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
+
     @action(detail=True, methods=["post"], url_path="create-branch")
     @extend_schema(
         summary="Crear rama en un flujo",
@@ -334,11 +339,6 @@ class FlowViewSet(StandardEnvelopeMixin, viewsets.ModelViewSet):
         "congeladas para hacerlas inmutables.",
         tags=["Flow Versions"],
     ),
-    update=extend_schema(
-        summary="Actualizar versión de flujo",
-        description="Actualiza una versión de flujo (solo si no está congelada).",
-        tags=["Flow Versions"],
-    ),
     partial_update=extend_schema(
         summary="Actualizar versión parcialmente",
         description="Actualiza campos específicos de una versión (solo si no está congelada).",
@@ -364,6 +364,16 @@ class FlowVersionViewSet(StandardEnvelopeMixin, viewsets.ModelViewSet):
     def get_queryset(self):  # type: ignore[override]
         qs = super().get_queryset()
         return flow_services.filter_versions_for_user(qs, self.request.user)
+
+    def update(self, request, *args, **kwargs):
+        """PUT method disabled for security reasons. Use PATCH instead."""
+        return Response(
+            {
+                "error": "Method PUT not allowed",
+                "detail": "Use PATCH /api/flow-versions/{id}/ para actualizaciones.",
+            },
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
 
     @action(detail=True, methods=["post"])
     @extend_schema(
@@ -422,11 +432,6 @@ class FlowVersionViewSet(StandardEnvelopeMixin, viewsets.ModelViewSet):
         "inputs esperados y outputs generados.",
         tags=["Steps"],
     ),
-    update=extend_schema(
-        summary="Actualizar paso completo",
-        description="Actualiza todos los campos de un paso existente.",
-        tags=["Steps"],
-    ),
     partial_update=extend_schema(
         summary="Actualizar paso parcialmente",
         description="Actualiza campos específicos de un paso existente.",
@@ -449,6 +454,16 @@ class StepViewSet(StandardEnvelopeMixin, viewsets.ModelViewSet):
     def get_queryset(self):  # type: ignore[override]
         qs = super().get_queryset()
         return flow_services.filter_steps_for_user(qs, self.request.user)
+
+    def update(self, request, *args, **kwargs):
+        """PUT method disabled for security reasons. Use PATCH instead."""
+        return Response(
+            {
+                "error": "Method PUT not allowed",
+                "detail": "Use PATCH /api/steps/{id}/ para actualizaciones.",
+            },
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
 
     @action(detail=False, methods=["get"], url_path="catalog")
     @extend_schema(
@@ -624,11 +639,6 @@ class StepViewSet(StandardEnvelopeMixin, viewsets.ModelViewSet):
         "almacenado en storage externo (S3/MinIO) y se registra el hash SHA256.",
         tags=["Artifacts"],
     ),
-    update=extend_schema(
-        summary="Actualizar artefacto completo",
-        description="Actualiza metadata de un artefacto (no el contenido, que es inmutable).",
-        tags=["Artifacts"],
-    ),
     partial_update=extend_schema(
         summary="Actualizar artefacto parcialmente",
         description="Actualiza campos específicos de metadata de un artefacto.",
@@ -654,6 +664,16 @@ class ArtifactViewSet(StandardEnvelopeMixin, viewsets.ModelViewSet):
     def get_queryset(self):  # type: ignore[override]
         qs = super().get_queryset()
         return flow_services.filter_artifacts_for_user(qs, self.request.user)
+
+    def update(self, request, *args, **kwargs):
+        """PUT method disabled for security reasons. Use PATCH instead."""
+        return Response(
+            {
+                "error": "Method PUT not allowed",
+                "detail": "Use PATCH /api/artifacts/{id}/ para actualizaciones.",
+            },
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
 
     @action(detail=True, methods=["get"])
     @extend_schema(

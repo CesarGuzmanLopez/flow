@@ -167,7 +167,9 @@ def create_molecule_from_smiles(
         raise ValidationError(f"Invalid SMILES or chemistry engine error: {e}")
 
 
-def create_or_get_molecule(*, payload: dict, created_by: Any) -> tuple[Molecule, bool]:
+def create_or_get_molecule(
+    *, payload: dict, created_by: Any, force_create: bool = False
+) -> tuple[Molecule, bool]:
     """Crea o recupera una molécula según payload con SMILES y/o InChIKey.
 
     Servicio idempotente usado por la API REST para endpoints que aceptan tanto
@@ -180,10 +182,12 @@ def create_or_get_molecule(*, payload: dict, created_by: Any) -> tuple[Molecule,
     - Solo InChIKey (sin SMILES): busca existente; error si no existe
     - SMILES provisto: normaliza y crea/deduplica por InChIKey
     - SMILES + InChIKey: verifica consistencia; actualiza nombre si difiere
+    - Si force_create=True y la molécula existe: lanza MoleculeAlreadyExistsError
 
     Args:
         payload: Dict con claves "smiles", "inchikey", "name", "extra_metadata"
         created_by: Usuario que solicita la operación
+        force_create: Si True, rechaza duplicados y requiere usar PATCH/PUT
 
     Returns:
         Tupla (Molecule, created: bool)
@@ -191,6 +195,7 @@ def create_or_get_molecule(*, payload: dict, created_by: Any) -> tuple[Molecule,
     Raises:
         ValueError: Si created_by es None o payload inválido
         ValidationError: Si solo InChIKey y no existe, o SMILES inválido, o inconsistencia
+        MoleculeAlreadyExistsError: Si force_create=True y la molécula ya existe
 
     Examples:
         >>> # Crear desde SMILES
@@ -208,6 +213,14 @@ def create_or_get_molecule(*, payload: dict, created_by: Any) -> tuple[Molecule,
         ... )
         >>> print(created)
         False
+
+        >>> # Rechazar duplicados con force_create
+        >>> mol, created = create_or_get_molecule(
+        ...     payload={"smiles": "CCO", "name": "Ethanol"},
+        ...     created_by=user,
+        ...     force_create=True
+        ... )
+        MoleculeAlreadyExistsError: Molecule already exists...
     """
     if not created_by:
         raise ValueError("created_by is required")
@@ -306,6 +319,17 @@ def create_or_get_molecule(*, payload: dict, created_by: Any) -> tuple[Molecule,
                 inchikey=structure_info.inchikey, defaults=defaults
             )
             if not created:
+                # Molecule already exists - check if we should reject it
+                if force_create:
+                    from ..types import MoleculeAlreadyExistsError
+
+                    raise MoleculeAlreadyExistsError(
+                        inchikey=mol.inchikey,
+                        molecule_id=mol.id,
+                        name=mol.name,
+                    )
+
+                # Update collaborators if needed
                 if mol.created_by is None:
                     mol.created_by = created_by
                     mol.save(update_fields=["created_by", "updated_at"])

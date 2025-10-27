@@ -68,11 +68,6 @@ class BaseFlowViewSet(StandardEnvelopeMixin, viewsets.ModelViewSet):
         "principal vacía para el flujo. El usuario autenticado se asigna como propietario.",
         tags=["Flows"],
     ),
-    update=extend_schema(
-        summary="Actualizar flujo completo",
-        description="Actualiza todos los campos de un flujo existente (PUT completo).",
-        tags=["Flows"],
-    ),
     partial_update=extend_schema(
         summary="Actualizar flujo parcialmente",
         description="Actualiza campos específicos de un flujo existente (PATCH parcial).",
@@ -116,6 +111,19 @@ class FlowViewSet(BaseFlowViewSet):
         if self.request.query_params.get("mine") == "true":
             return qs.filter(owner=self.request.user)
         return flow_services.filter_flows_for_user(qs, self.request.user)
+
+    def update(self, request, *args, **kwargs):
+        """PUT method disabled for security reasons. Use PATCH instead."""
+        from rest_framework import status
+        from rest_framework.response import Response
+
+        return Response(
+            {
+                "error": "Method PUT not allowed",
+                "detail": "Use PATCH /api/flows/{id}/ para actualizaciones.",
+            },
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
 
     @action(detail=True, methods=["get"])
     @extend_schema(
@@ -299,11 +307,6 @@ class FlowViewSet(BaseFlowViewSet):
         "congeladas para hacerlas inmutables.",
         tags=["Flow Versions"],
     ),
-    update=extend_schema(
-        summary="Actualizar versión de flujo",
-        description="Actualiza una versión de flujo (solo si no está congelada).",
-        tags=["Flow Versions"],
-    ),
     partial_update=extend_schema(
         summary="Actualizar versión parcialmente",
         description="Actualiza campos específicos de una versión (solo si no está congelada).",
@@ -331,6 +334,19 @@ class FlowVersionViewSet(BaseFlowViewSet):
         if self.request.query_params.get("mine") == "true":
             return qs.filter(flow__owner=self.request.user)
         return flow_services.filter_versions_for_user(qs, self.request.user)
+
+    def update(self, request, *args, **kwargs):
+        """PUT method disabled for security reasons. Use PATCH instead."""
+        from rest_framework import status
+        from rest_framework.response import Response
+
+        return Response(
+            {
+                "error": "Method PUT not allowed",
+                "detail": "Use PATCH /api/flow-versions/{id}/ para actualizaciones.",
+            },
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
 
     @action(detail=True, methods=["post"])
     @extend_schema(

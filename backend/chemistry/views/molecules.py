@@ -82,14 +82,6 @@ class BaseChemistryViewSet(StandardEnvelopeMixin, viewsets.ModelViewSet):
         },
         tags=["Chemistry • Molecules"],
     ),
-    update=extend_schema(
-        summary="Actualizar molécula (PUT)",
-        description=(
-            "Reemplaza todos los campos de la molécula. Use PATCH para actualizaciones parciales."
-        ),
-        responses={200: MoleculeSerializer, 400: OpenApiResponse(response=dict)},
-        tags=["Chemistry • Molecules"],
-    ),
     partial_update=extend_schema(
         summary="Actualizar parcialmente molécula (PATCH)",
         description="Actualiza uno o más campos de la molécula sin reemplazar la entidad completa.",
@@ -146,10 +138,12 @@ class MoleculeViewSet(BaseChemistryViewSet):
     def create(self, request, *args, **kwargs):
         from django.core.exceptions import ValidationError
 
+        from ..types import MoleculeAlreadyExistsError
+
         payload = request.data if isinstance(request.data, dict) else dict(request.data)
         try:
             molecule, created = chem_services.create_or_get_molecule(
-                payload=payload, created_by=request.user
+                payload=payload, created_by=request.user, force_create=True
             )
             serializer = MoleculeSerializer(molecule, context={"request": request})
             status_code = status.HTTP_201_CREATED if created else status.HTTP_200_OK
@@ -157,6 +151,29 @@ class MoleculeViewSet(BaseChemistryViewSet):
             if created:
                 headers["Location"] = f"/api/chemistry/molecules/{molecule.id}/"
             return Response(serializer.data, status=status_code, headers=headers)
+        except MoleculeAlreadyExistsError as e:
+            # Obtener la molécula existente y devolverla con el error
+            try:
+                existing_molecule = Molecule.objects.get(id=e.molecule_id)
+                molecule_data = MoleculeSerializer(
+                    existing_molecule, context={"request": request}
+                ).data
+            except Molecule.DoesNotExist:
+                molecule_data = None
+
+            return Response(
+                {
+                    "error": str(e),
+                    "detail": (
+                        "Esta molécula ya existe. "
+                        f"Use PATCH /api/chemistry/molecules/{e.molecule_id}/ para actualizarla."
+                    ),
+                    "existing_molecule_id": e.molecule_id,
+                    "inchikey": e.inchikey,
+                    "existing_molecule": molecule_data,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         except ValidationError as e:
             msg = e.message if hasattr(e, "message") else str(e)
             return Response({"error": msg}, status=status.HTTP_400_BAD_REQUEST)
@@ -214,33 +231,14 @@ class MoleculeViewSet(BaseChemistryViewSet):
             return Response({"error": str(e)}, status=400)
 
     def update(self, request, *args, **kwargs):
-        from django.core.exceptions import ValidationError
-
-        molecule = self.get_object()
-        serializer = MoleculeUpdateSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        try:
-            result = chem_services.update_molecule(
-                molecule=molecule,
-                payload=serializer.validated_data,
-                user=request.user,
-                partial=False,
-            )
-            # Support both return shapes: Molecule or (Molecule, warning)
-            if isinstance(result, tuple):
-                mol, warning = result
-            else:
-                mol, warning = result, None
-            out = MoleculeSerializer(mol, context={"request": request})
-            resp = {**out.data}
-            if warning:
-                resp["warning"] = warning
-            return Response(resp, status=status.HTTP_200_OK)
-        except ValidationError as e:
-            msg = e.message if hasattr(e, "message") else str(e)
-            return Response({"error": msg}, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        """PUT method disabled for security reasons. Use PATCH instead."""
+        return Response(
+            {
+                "error": "Method PUT not allowed",
+                "detail": "Use PATCH /api/chemistry/molecules/{id}/ para actualizaciones parciales.",
+            },
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
 
     def partial_update(self, request, *args, **kwargs):
         from django.core.exceptions import ValidationError

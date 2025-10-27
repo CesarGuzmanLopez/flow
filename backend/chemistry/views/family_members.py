@@ -1,4 +1,6 @@
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
+from rest_framework import status
+from rest_framework.response import Response
 
 from ..models import FamilyMember
 from ..serializers import FamilyMemberSerializer
@@ -25,12 +27,6 @@ from .molecules import BaseChemistryViewSet
         },
         tags=["Chemistry • Families"],
     ),
-    update=extend_schema(
-        summary="Actualizar miembro de familia (PUT)",
-        description="Reemplaza todos los campos del miembro de familia. Use PATCH para cambios parciales.",
-        responses={200: FamilyMemberSerializer, 400: OpenApiResponse(response=dict)},
-        tags=["Chemistry • Families"],
-    ),
     partial_update=extend_schema(
         summary="Actualizar parcialmente miembro de familia (PATCH)",
         description="Actualiza uno o más campos del miembro de familia.",
@@ -54,3 +50,13 @@ class FamilyMemberViewSet(BaseChemistryViewSet):
     def perform_create(self, serializer):
         # Keep default behavior from legacy: no automatic created_by assignment
         serializer.save()
+
+    def update(self, request, *args, **kwargs):
+        """PUT method disabled for security reasons. Use PATCH instead."""
+        return Response(
+            {
+                "error": "Method PUT not allowed",
+                "detail": "Use PATCH /api/chemistry/family-members/{id}/ para actualizaciones.",
+            },
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
