@@ -52,8 +52,9 @@ class StepAPIExecuteTests(TestCase):
         }
         resp = self.client.post("/api/flows/steps/execute/", payload, format="json")
         self.assertEqual(resp.status_code, 200)
-        self.assertIn("outputs", resp.data)
-        self.assertIn("family_id", resp.data["outputs"])
+        self.assertIn("content", resp.data)
+        self.assertIn("outputs", resp.data["content"])
+        self.assertIn("family_id", resp.data["content"]["outputs"])
 
 
 class CadmaFlowCreationTests(TestCase):
@@ -68,5 +69,6 @@ class CadmaFlowCreationTests(TestCase):
             "/api/flows/flows/create-cadma1/", payload, format="json"
         )
         self.assertEqual(resp.status_code, 201)
-        self.assertIn("flow", resp.data)
-        self.assertEqual(resp.data["flow"]["name"], "CADMA 1")
+        self.assertIn("content", resp.data)
+        self.assertIn("flow", resp.data["content"])
+        self.assertEqual(resp.data["content"]["flow"]["name"], "CADMA 1")

@@ -2,6 +2,7 @@
 Vistas de gestión de ejecuciones (executions y SSE).
 """
 
+from back.envelope import StandardEnvelopeMixin
 from django.http import Http404, StreamingHttpResponse
 from django.utils.timezone import now
 from drf_spectacular.openapi import OpenApiParameter
@@ -22,7 +23,7 @@ from ..serializers import (
 from ..sse import step_log_broker
 
 
-class BaseFlowViewSet(viewsets.ModelViewSet):
+class BaseFlowViewSet(StandardEnvelopeMixin, viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, HasAppPermission]
     permission_resource = "flows"
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]

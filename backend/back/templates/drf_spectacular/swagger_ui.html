@@ -639,13 +639,15 @@
 
             if (!response.ok) {
               const error = await response.json();
-              throw new Error(error.detail || "Authentication failed");
+              throw new Error(error.detail || error.message || "Authentication failed");
             }
 
             const data = await response.json();
-            this.setToken(data.access);
-            this.setUser(data.user);
-            return data;
+            // Handle enveloped response: { status, message, content: { access, refresh, user } }
+            const payload = data.content || data;
+            this.setToken(payload.access);
+            this.setUser(payload.user);
+            return payload;
           } catch (error) {
             console.error("Login error:", error);
             throw error;

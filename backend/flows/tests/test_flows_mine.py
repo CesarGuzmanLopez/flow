@@ -29,5 +29,5 @@ class FlowMineTests(TestCase):
         self.client.force_authenticate(user=self.u1)
         resp = self.client.get("/api/flows/flows/mine/")
         self.assertEqual(resp.status_code, 200)
-        names = {f["name"] for f in resp.data}
+        names = {f["name"] for f in resp.data["content"]}
         self.assertEqual(names, {"F1"})

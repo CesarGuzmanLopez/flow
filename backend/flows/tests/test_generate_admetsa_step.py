@@ -44,5 +44,6 @@ class GenerateAdmetsaAPIExecuteTests(TestCase):
         payload = {"step_type": "generate_admetsa", "params": {"family_id": self.fid}}
         resp = self.client.post("/api/flows/steps/execute/", payload, format="json")
         self.assertEqual(resp.status_code, 200)
-        self.assertIn("outputs", resp.data)
-        self.assertIn("count", resp.data["outputs"])
+        self.assertIn("content", resp.data)
+        self.assertIn("outputs", resp.data["content"])
+        self.assertIn("count", resp.data["content"]["outputs"])

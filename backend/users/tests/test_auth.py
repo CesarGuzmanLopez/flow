@@ -28,7 +28,8 @@ class AuthTests(TestCase):
             "/api/token/", {"username": "alice", "password": "pass"}, format="json"
         )
         self.assertEqual(resp.status_code, 200)
-        self.assertIn("access", resp.data)
-        self.assertIn("refresh", resp.data)
-        self.assertIn("user", resp.data)
-        self.assertEqual(resp.data["user"]["username"], "alice")
+        self.assertIn("content", resp.data)
+        self.assertIn("access", resp.data["content"])
+        self.assertIn("refresh", resp.data["content"])
+        self.assertIn("user", resp.data["content"])
+        self.assertEqual(resp.data["content"]["user"]["username"], "alice")

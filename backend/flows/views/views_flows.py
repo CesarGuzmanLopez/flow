@@ -2,6 +2,7 @@
 Vistas de gestión de flujos y versiones.
 """
 
+from back.envelope import StandardEnvelopeMixin
 from django.db import models
 from drf_spectacular.openapi import OpenApiParameter
 from drf_spectacular.types import OpenApiTypes
@@ -30,7 +31,7 @@ from ..serializers import (
 )
 
 
-class BaseFlowViewSet(viewsets.ModelViewSet):
+class BaseFlowViewSet(StandardEnvelopeMixin, viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, HasAppPermission]
     permission_resource = "flows"
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]

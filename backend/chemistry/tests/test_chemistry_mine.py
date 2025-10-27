@@ -5,10 +5,11 @@ Verifica que el endpoint 'mine' retorne solo las moléculas creadas
 por el usuario autenticado.
 """
 
-from chemistry.models import Molecule
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from rest_framework.test import APIClient
+
+from chemistry.models import Molecule
 
 User = get_user_model()
 
@@ -29,5 +30,5 @@ class ChemistryMineTests(TestCase):
         self.client.force_authenticate(user=self.u1)
         resp = self.client.get("/api/chemistry/molecules/mine/")
         self.assertEqual(resp.status_code, 200)
-        names = {m["name"] for m in resp.data}
+        names = {m["name"] for m in resp.data["content"]}
         self.assertEqual(names, {"H2O"})

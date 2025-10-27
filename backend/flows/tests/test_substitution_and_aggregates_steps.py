@@ -56,7 +56,7 @@ class SubstitutionAndAggregatesAPITests(TestCase):
         }
         r1 = self.client.post("/api/flows/steps/execute/", payload_base, format="json")
         self.assertEqual(r1.status_code, 200)
-        base_fid = r1.data["outputs"]["family_id"]
+        base_fid = r1.data["content"]["outputs"]["family_id"]
 
         # Step 5
         payload_sub = {
@@ -70,8 +70,8 @@ class SubstitutionAndAggregatesAPITests(TestCase):
         }
         r2 = self.client.post("/api/flows/steps/execute/", payload_sub, format="json")
         self.assertEqual(r2.status_code, 200)
-        gen_fid = r2.data["outputs"]["family_id"]
-        self.assertEqual(r2.data["outputs"]["count"], 3)
+        gen_fid = r2.data["content"]["outputs"]["family_id"]
+        self.assertEqual(r2.data["content"]["outputs"]["count"], 3)
 
         # Step 6
         payload_ag = {
@@ -80,4 +80,4 @@ class SubstitutionAndAggregatesAPITests(TestCase):
         }
         r3 = self.client.post("/api/flows/steps/execute/", payload_ag, format="json")
         self.assertEqual(r3.status_code, 200)
-        self.assertIn("saved", r3.data["outputs"])
+        self.assertIn("saved", r3.data["content"]["outputs"])

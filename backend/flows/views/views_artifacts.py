@@ -2,6 +2,7 @@
 Vistas de gestión de artefactos (artifacts).
 """
 
+from back.envelope import StandardEnvelopeMixin
 from drf_spectacular.openapi import OpenApiParameter
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, extend_schema_view
@@ -15,7 +16,7 @@ from ..models import Artifact
 from ..serializers import ArtifactSerializer
 
 
-class BaseFlowViewSet(viewsets.ModelViewSet):
+class BaseFlowViewSet(StandardEnvelopeMixin, viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, HasAppPermission]
     permission_resource = "flows"
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]

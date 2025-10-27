@@ -69,4 +69,4 @@ class PermissionTests(TestCase):
         self.client.force_authenticate(user=self.user_viewer)
         resp = self.client.get("/api/users/users/me/")
         self.assertEqual(resp.status_code, 200)
-        self.assertEqual(resp.data["username"], "viewer")
+        self.assertEqual(resp.data["content"]["username"], "viewer")

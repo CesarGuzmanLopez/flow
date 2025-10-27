@@ -23,6 +23,17 @@ from chemistry.models import (
 User = get_user_model()
 
 
+def content_of(resp):
+    """Return the 'content' of the standard envelope or the raw data if not enveloped."""
+    try:
+        d = resp.data
+    except Exception:
+        return resp
+    if isinstance(d, dict) and "content" in d:
+        return d["content"]
+    return d
+
+
 @override_settings(CHEM_ENGINE="mock")
 class ChemistryViewsCRUDTests(TestCase):
     """Tests comprehensivos de CRUD para todas las vistas de Chemistry."""
@@ -68,13 +79,14 @@ class ChemistryViewsCRUDTests(TestCase):
         }
         response = self.client.post("/api/chemistry/molecules/", molecule_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        molecule_id = response.data["id"]
-        self.assertEqual(response.data["created_by"], self.user.id)
+        data = content_of(response)
+        molecule_id = data["id"]
+        self.assertEqual(data["created_by"], self.user.id)
 
         # READ - Obtener molécula
         response = self.client.get(f"/api/chemistry/molecules/{molecule_id}/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["name"], "Test Molecule")
+        self.assertEqual(content_of(response)["name"], "Test Molecule")
 
         # UPDATE - Actualizar molécula
         update_data = {"name": "Updated Molecule"}
@@ -82,8 +94,9 @@ class ChemistryViewsCRUDTests(TestCase):
             f"/api/chemistry/molecules/{molecule_id}/", update_data
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["name"], "Updated Molecule")
-        self.assertEqual(response.data["updated_by"], self.user.id)
+        data = content_of(response)
+        self.assertEqual(data["name"], "Updated Molecule")
+        self.assertEqual(data["updated_by"], self.user.id)
 
         # DELETE - Eliminar molécula
         response = self.client.delete(f"/api/chemistry/molecules/{molecule_id}/")
@@ -104,9 +117,10 @@ class ChemistryViewsCRUDTests(TestCase):
             "/api/chemistry/molecules/from_smiles/", smiles_data, format="json"
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data["name"], "Ethanol")
-        self.assertEqual(response.data["created_by"], self.user.id)
-        self.assertIn("source", response.data["metadata"])
+        data = content_of(response)
+        self.assertEqual(data["name"], "Ethanol")
+        self.assertEqual(data["created_by"], self.user.id)
+        self.assertIn("source", data["metadata"])
 
     def test_molecule_add_property(self):
         """Test agregar propiedad a molécula."""
@@ -126,8 +140,9 @@ class ChemistryViewsCRUDTests(TestCase):
             f"/api/chemistry/molecules/{molecule.id}/add_property/", property_data
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data["property_type"], "LogP")
-        self.assertEqual(response.data["created_by"], self.user.id)
+        data = content_of(response)
+        self.assertEqual(data["property_type"], "LogP")
+        self.assertEqual(data["created_by"], self.user.id)
 
     def test_family_full_crud_cycle(self):
         """Test CRUD completo para familias."""
@@ -140,13 +155,14 @@ class ChemistryViewsCRUDTests(TestCase):
         }
         response = self.client.post("/api/chemistry/families/", family_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        family_id = response.data["id"]
-        self.assertEqual(response.data["created_by"], self.user.id)
+        data = content_of(response)
+        family_id = data["id"]
+        self.assertEqual(data["created_by"], self.user.id)
 
         # READ - Obtener familia
         response = self.client.get(f"/api/chemistry/families/{family_id}/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["name"], "Test Family")
+        self.assertEqual(content_of(response)["name"], "Test Family")
 
         # UPDATE - Actualizar familia
         update_data = {"description": "Updated description"}
@@ -154,8 +170,9 @@ class ChemistryViewsCRUDTests(TestCase):
             f"/api/chemistry/families/{family_id}/", update_data
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["description"], "Updated description")
-        self.assertEqual(response.data["updated_by"], self.user.id)
+        data = content_of(response)
+        self.assertEqual(data["description"], "Updated description")
+        self.assertEqual(data["updated_by"], self.user.id)
 
         # DELETE - Eliminar familia
         response = self.client.delete(f"/api/chemistry/families/{family_id}/")
@@ -170,8 +187,9 @@ class ChemistryViewsCRUDTests(TestCase):
         }
         response = self.client.post("/api/chemistry/families/from_smiles/", smiles_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data["name"], "Alcohol Family")
-        self.assertEqual(response.data["created_by"], self.user.id)
+        data = content_of(response)
+        self.assertEqual(data["name"], "Alcohol Family")
+        self.assertEqual(data["created_by"], self.user.id)
 
     def test_family_generate_properties(self):
         """Test generación de propiedades para familia usando nuevo sistema."""
@@ -194,7 +212,7 @@ class ChemistryViewsCRUDTests(TestCase):
             f"/api/chemistry/families/{family.id}/generate-properties/admetsa/rdkit/"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn("properties_created", response.data)
+        self.assertIn("properties_created", content_of(response))
 
     def test_family_add_property(self):
         """Test agregar propiedad a familia."""
@@ -217,8 +235,9 @@ class ChemistryViewsCRUDTests(TestCase):
             f"/api/chemistry/families/{family.id}/add_property/", property_data
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data["property_type"], "AvgLogP")
-        self.assertEqual(response.data["created_by"], self.user.id)
+        data = content_of(response)
+        self.assertEqual(data["property_type"], "AvgLogP")
+        self.assertEqual(data["created_by"], self.user.id)
 
     def test_molecular_properties_crud(self):
         """Test CRUD para propiedades moleculares."""
@@ -238,7 +257,7 @@ class ChemistryViewsCRUDTests(TestCase):
             "/api/chemistry/molecular-properties/", property_data
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        prop_id = response.data["id"]
+        prop_id = content_of(response)["id"]
 
         # READ propiedad
         response = self.client.get(f"/api/chemistry/molecular-properties/{prop_id}/")
@@ -250,7 +269,7 @@ class ChemistryViewsCRUDTests(TestCase):
             f"/api/chemistry/molecular-properties/{prop_id}/", update_data
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["updated_by"], self.user.id)
+        self.assertEqual(content_of(response)["updated_by"], self.user.id)
 
         # DELETE propiedad
         response = self.client.delete(f"/api/chemistry/molecular-properties/{prop_id}/")
@@ -275,7 +294,7 @@ class ChemistryViewsCRUDTests(TestCase):
         }
         response = self.client.post("/api/chemistry/family-properties/", property_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        prop_id = response.data["id"]
+        prop_id = content_of(response)["id"]
 
         # READ, UPDATE, DELETE similares a molecular properties
         response = self.client.get(f"/api/chemistry/family-properties/{prop_id}/")
@@ -298,7 +317,7 @@ class ChemistryViewsCRUDTests(TestCase):
         member_data = {"family": family.id, "molecule": molecule.id}
         response = self.client.post("/api/chemistry/family-members/", member_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        member_id = response.data["id"]
+        member_id = content_of(response)["id"]
 
         # READ miembro
         response = self.client.get(f"/api/chemistry/family-members/{member_id}/")
@@ -333,14 +352,14 @@ class ChemistryViewsCRUDTests(TestCase):
         # Test molecules/mine/
         response = self.client.get("/api/chemistry/molecules/mine/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        names = {mol["name"] for mol in response.data}
+        names = {mol["name"] for mol in content_of(response)}
         self.assertIn("My Mol", names)
         self.assertNotIn("Other Mol", names)
 
         # Test families/mine/
         response = self.client.get("/api/chemistry/families/mine/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        names = {fam["name"] for fam in response.data}
+        names = {fam["name"] for fam in content_of(response)}
         self.assertIn("My Family", names)
         self.assertNotIn("Other Family", names)
 
@@ -359,7 +378,7 @@ class ChemistryViewsCRUDTests(TestCase):
                 "/api/chemistry/molecules/from_smiles/", mol_data, format="json"
             )
             self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-            molecule_ids.append(response.data["id"])
+            molecule_ids.append(content_of(response)["id"])
 
         # 2. Crear familia desde SMILES
         family_data = {
@@ -369,7 +388,7 @@ class ChemistryViewsCRUDTests(TestCase):
         }
         response = self.client.post("/api/chemistry/families/from_smiles/", family_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        family_id = response.data["id"]
+        family_id = content_of(response)["id"]
 
         # 3. Generar propiedades ADMETSA usando nuevo sistema
         response = self.client.post(
@@ -391,7 +410,7 @@ class ChemistryViewsCRUDTests(TestCase):
         # 5. Verificar que todo se creó correctamente
         response = self.client.get(f"/api/chemistry/families/{family_id}/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(len(response.data["properties"]) > 0)
+        self.assertTrue(len(content_of(response)["properties"]) > 0)
 
     def test_error_handling(self):
         """Test manejo de errores en operaciones especiales."""
@@ -401,4 +420,4 @@ class ChemistryViewsCRUDTests(TestCase):
             "/api/chemistry/molecules/from_smiles/", invalid_smiles
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("error", response.data)
+        self.assertIn("error", content_of(response))

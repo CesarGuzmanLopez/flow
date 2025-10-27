@@ -5,6 +5,7 @@ Extiende SimpleJWT para incluir datos del usuario en la respuesta de login,
 facilitando la inicialización del estado del frontend.
 """
 
+from back.envelope import StandardEnvelopeMixin
 from django.contrib.auth import get_user_model
 from drf_spectacular.utils import OpenApiExample, OpenApiResponse, extend_schema
 from rest_framework import status
@@ -50,7 +51,7 @@ class ChemflowTokenObtainPairSerializer(TokenObtainPairSerializer):
         return data
 
 
-class ChemflowTokenObtainPairView(TokenObtainPairView):
+class ChemflowTokenObtainPairView(StandardEnvelopeMixin, TokenObtainPairView):
     """
     Vista JWT personalizada para login que retorna access, refresh y user.
 

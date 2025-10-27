@@ -20,6 +20,17 @@ from chemistry.models import Family, MolecularProperty, Molecule
 User = get_user_model()
 
 
+def content_of(resp):
+    """Return the 'content' of the standard envelope or the raw data if not enveloped."""
+    try:
+        d = resp.data
+    except Exception:
+        return resp
+    if isinstance(d, dict) and "content" in d:
+        return d["content"]
+    return d
+
+
 @override_settings(CHEM_ENGINE="mock")
 class MoleculeViewSetTests(TestCase):
     """Tests para MoleculeViewSet."""
@@ -70,7 +81,7 @@ class MoleculeViewSetTests(TestCase):
 
         response = self.client.get("/api/chemistry/molecules/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)  # Reader ve todas
+        self.assertEqual(len(content_of(response)), 2)  # Reader ve todas
 
     def test_list_molecules_mine_filter(self):
         """Test filtro 'mine' para ver solo moléculas propias."""
@@ -82,8 +93,8 @@ class MoleculeViewSetTests(TestCase):
 
         response = self.client.get("/api/chemistry/molecules/?mine=true")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]["id"], mol1.id)
+        self.assertEqual(len(content_of(response)), 1)
+        self.assertEqual(content_of(response)[0]["id"], mol1.id)
 
     def test_mine_endpoint(self):
         """Test endpoint /mine/ específico."""
@@ -95,8 +106,8 @@ class MoleculeViewSetTests(TestCase):
 
         response = self.client.get("/api/chemistry/molecules/mine/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]["id"], mol1.id)
+        self.assertEqual(len(content_of(response)), 1)
+        self.assertEqual(content_of(response)[0]["id"], mol1.id)
 
     def test_create_molecule_success(self):
         """Test creación exitosa de molécula."""
@@ -107,8 +118,8 @@ class MoleculeViewSetTests(TestCase):
 
         response = self.client.post("/api/chemistry/molecules/", data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data["name"], "Ethanol")
-        self.assertEqual(response.data["created_by"], self.user.id)
+        self.assertEqual(content_of(response)["name"], "Ethanol")
+        self.assertEqual(content_of(response)["created_by"], self.user.id)
 
     def test_create_molecule_without_permission(self):
         """Test creación sin permisos de escritura."""
@@ -129,7 +140,7 @@ class MoleculeViewSetTests(TestCase):
 
         response = self.client.get(f"/api/chemistry/molecules/{molecule.id}/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["id"], molecule.id)
+        self.assertEqual(content_of(response)["id"], molecule.id)
 
     def test_update_molecule(self):
         """Test actualización de molécula."""
@@ -143,7 +154,7 @@ class MoleculeViewSetTests(TestCase):
             f"/api/chemistry/molecules/{molecule.id}/", data, format="json"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["name"], "Updated Test")
+        self.assertEqual(content_of(response)["name"], "Updated Test")
 
         # Verificar auditoría
         molecule.refresh_from_db()
@@ -189,8 +200,8 @@ class FamilyViewSetTests(TestCase):
 
         response = self.client.post("/api/chemistry/families/", data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data["name"], "Test Family")
-        self.assertEqual(response.data["created_by"], self.user.id)
+        self.assertEqual(content_of(response)["name"], "Test Family")
+        self.assertEqual(content_of(response)["created_by"], self.user.id)
 
     def test_family_mine_endpoint(self):
         """Test endpoint /mine/ para familias."""
@@ -236,8 +247,8 @@ class MolecularPropertyViewSetTests(TestCase):
             "/api/chemistry/molecular-properties/", data, format="json"
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data["property_type"], "MolWt")
-        self.assertEqual(response.data["created_by"], self.user.id)
+        self.assertEqual(content_of(response)["property_type"], "MolWt")
+        self.assertEqual(content_of(response)["created_by"], self.user.id)
 
     def test_update_molecular_property_audit(self):
         """Test auditoría en actualización de propiedad."""
@@ -302,8 +313,8 @@ class FamilyPropertyViewSetTests(TestCase):
             "/api/chemistry/family-properties/", data, format="json"
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data["property_type"], "avg_MolWt")
-        self.assertEqual(response.data["created_by"], self.user.id)
+        self.assertEqual(content_of(response)["property_type"], "avg_MolWt")
+        self.assertEqual(content_of(response)["created_by"], self.user.id)
 
 
 class PermissionTests(TestCase):

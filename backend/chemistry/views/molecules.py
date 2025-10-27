@@ -1,5 +1,6 @@
 import logging
 
+from back.envelope import StandardEnvelopeMixin
 from drf_spectacular.utils import (
     OpenApiExample,
     OpenApiResponse,
@@ -30,7 +31,7 @@ from ..services.properties import (
 logger = logging.getLogger(__name__)
 
 
-class BaseChemistryViewSet(viewsets.ModelViewSet):
+class BaseChemistryViewSet(StandardEnvelopeMixin, viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, HasAppPermission]
     permission_resource = "chemistry"
 

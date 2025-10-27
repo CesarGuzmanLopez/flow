@@ -13,6 +13,7 @@ Define los endpoints REST API para:
 Implementa control de acceso basado en propiedad y permisos de usuario.
 """
 
+from back.envelope import StandardEnvelopeMixin
 from django.db import models
 from django.http import Http404, StreamingHttpResponse
 from django.utils.timezone import now
@@ -97,7 +98,7 @@ from .sse import step_log_broker
         tags=["Flows"],
     ),
 )
-class FlowViewSet(viewsets.ModelViewSet):
+class FlowViewSet(StandardEnvelopeMixin, viewsets.ModelViewSet):
     """ViewSet para gestión de flujos de trabajo (workflows)."""
 
     queryset = Flow.objects.all()
@@ -349,7 +350,7 @@ class FlowViewSet(viewsets.ModelViewSet):
         tags=["Flow Versions"],
     ),
 )
-class FlowVersionViewSet(viewsets.ModelViewSet):
+class FlowVersionViewSet(StandardEnvelopeMixin, viewsets.ModelViewSet):
     """ViewSet para gestión de versiones de flujos (snapshots inmutables)."""
 
     queryset = FlowVersion.objects.all()
@@ -437,7 +438,7 @@ class FlowVersionViewSet(viewsets.ModelViewSet):
         tags=["Steps"],
     ),
 )
-class StepViewSet(viewsets.ModelViewSet):
+class StepViewSet(StandardEnvelopeMixin, viewsets.ModelViewSet):
     """ViewSet para gestión de pasos (tareas) en flujos de trabajo."""
 
     queryset = Step.objects.all()
@@ -639,7 +640,7 @@ class StepViewSet(viewsets.ModelViewSet):
         tags=["Artifacts"],
     ),
 )
-class ArtifactViewSet(viewsets.ModelViewSet):
+class ArtifactViewSet(StandardEnvelopeMixin, viewsets.ModelViewSet):
     """ViewSet para gestión de artefactos content-addressable (archivos y datos)."""
 
     queryset = Artifact.objects.all()
@@ -692,7 +693,7 @@ class ArtifactViewSet(viewsets.ModelViewSet):
         tags=["Executions"],
     ),
 )
-class ExecutionSnapshotViewSet(viewsets.ModelViewSet):
+class ExecutionSnapshotViewSet(StandardEnvelopeMixin, viewsets.ModelViewSet):
     """ViewSet para gestión de snapshots de ejecución de flujos."""
 
     queryset = ExecutionSnapshot.objects.all()
@@ -733,7 +734,7 @@ class ExecutionSnapshotViewSet(viewsets.ModelViewSet):
         tags=["Step Executions"],
     ),
 )
-class StepExecutionViewSet(viewsets.ModelViewSet):
+class StepExecutionViewSet(StandardEnvelopeMixin, viewsets.ModelViewSet):
     """ViewSet para gestión de ejecuciones individuales de pasos."""
 
     queryset = StepExecution.objects.all()

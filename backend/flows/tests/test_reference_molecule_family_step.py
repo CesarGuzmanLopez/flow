@@ -34,4 +34,4 @@ class ReferenceMoleculeFamilyAPIExecuteTests(TestCase):
         }
         resp = self.client.post("/api/flows/steps/execute/", payload, format="json")
         self.assertEqual(resp.status_code, 200)
-        self.assertIn("family_id", resp.data["outputs"])
+        self.assertIn("family_id", resp.data["content"]["outputs"])

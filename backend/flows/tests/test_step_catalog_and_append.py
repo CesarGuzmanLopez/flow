@@ -15,7 +15,7 @@ class StepCatalogAndAppendTests(TestCase):
     def test_catalog_lists_steps(self):
         resp = self.client.get("/api/flows/steps/catalog/")
         self.assertEqual(resp.status_code, 200)
-        steps = resp.data.get("steps", [])
+        steps = resp.data["content"].get("steps", [])
         types = {s.get("step_type") for s in steps}
         self.assertIn("create_reference_family", types)
         self.assertIn("generate_admetsa", types)

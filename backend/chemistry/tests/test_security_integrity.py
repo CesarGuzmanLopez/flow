@@ -190,7 +190,12 @@ class TestOwnershipValidation:
 
         assert response.status_code == 201
 
-        mol = Molecule.objects.get(id=response.data["id"])
+        payload = (
+            response.data["content"]
+            if isinstance(response.data, dict) and "content" in response.data
+            else response.data
+        )
+        mol = Molecule.objects.get(id=payload["id"])
         assert mol.created_by == users["alice"]
 
 

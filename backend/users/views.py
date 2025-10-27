@@ -12,6 +12,7 @@ Define los endpoints REST API para:
 Incluye control de acceso basado en roles y permisos personalizados.
 """
 
+from back.envelope import StandardEnvelopeMixin
 from django.contrib.auth import get_user_model
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import permissions, status, viewsets
@@ -78,7 +79,7 @@ User = get_user_model()
         tags=["Users"],
     ),
 )
-class UserViewSet(viewsets.ModelViewSet):
+class UserViewSet(StandardEnvelopeMixin, viewsets.ModelViewSet):
     """ViewSet para gestión de usuarios con RBAC (control de acceso basado en roles)."""
 
     queryset = User.objects.all()
@@ -519,7 +520,7 @@ class UserViewSet(viewsets.ModelViewSet):
         tags=["Roles"],
     ),
 )
-class RoleViewSet(viewsets.ModelViewSet):
+class RoleViewSet(StandardEnvelopeMixin, viewsets.ModelViewSet):
     """ViewSet para gestión de roles del sistema RBAC."""
 
     queryset = Role.objects.all()
@@ -542,7 +543,7 @@ class RoleViewSet(viewsets.ModelViewSet):
         tags=["Permissions"],
     ),
 )
-class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
+class PermissionViewSet(StandardEnvelopeMixin, viewsets.ReadOnlyModelViewSet):
     """ViewSet para listado de permisos del sistema (solo lectura)."""
 
     queryset = Permission.objects.all()

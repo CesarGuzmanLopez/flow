@@ -66,6 +66,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # Wrap JSON responses in standard envelope across the API
+    "back.middleware.StandardResponseEnvelopeMiddleware",
 ]
 
 ROOT_URLCONF = "back.urls"
@@ -108,6 +110,13 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    # Global renderer to wrap responses in the standard envelope
+    "DEFAULT_RENDERER_CLASSES": (
+        "back.renderers.StandardJSONRenderer",
+        "rest_framework.renderers.BrowsableAPIRenderer",
+    ),
+    # Normalize error responses
+    "EXCEPTION_HANDLER": "back.exceptions.custom_exception_handler",
 }
 
 SPECTACULAR_SETTINGS = {
