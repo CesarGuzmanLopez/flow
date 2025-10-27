@@ -21,6 +21,8 @@ Resumen en inglés:
 Domain services for managing molecular families (aggregates of molecules).
 """
 
+# mypy: disable-error-code="attr-defined"
+
 import hashlib
 import logging
 from typing import Any, Dict, Iterable, List

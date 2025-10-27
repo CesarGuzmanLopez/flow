@@ -101,8 +101,8 @@ class ExperimentalPropertyProvider(AbstractPropertyProvider):
         }
 
     def _calculate_properties_impl(
-        self, smiles: str, properties_data: Dict[str, Any] = None, **kwargs
-    ) -> Dict[str, Any]:
+        self, smiles: str, category: str, **kwargs: Any
+    ) -> Dict[str, str]:
         """
         Implementación: Validar y guardar datos.
 
@@ -110,11 +110,13 @@ class ExperimentalPropertyProvider(AbstractPropertyProvider):
 
         Parámetros:
         - smiles: SMILES (validación básica)
-        - properties_data: Dict con valores ingresados por usuario
+        - category: Category for property calculation
+        - properties_data: Dict con valores ingresados por usuario (from kwargs)
 
         >>> provider = ExperimentalPropertyProvider()
         >>> result = provider._calculate_properties_impl(
         ...     smiles="CCO",
+        ...     category="experimental",
         ...     properties_data={
         ...         "MolWt": {"value": 46.07, "units": "g/mol"},
         ...         "LogP": {"value": -0.31, "units": ""},
@@ -123,11 +125,12 @@ class ExperimentalPropertyProvider(AbstractPropertyProvider):
         ... )
         >>> print(result)
         {
-            "MolWt": {"value": 46.07, "units": "g/mol", "source": "experimental"},
-            "LogP": {"value": -0.31, "units": "", "source": "experimental"},
-            "HBD": {"value": 1, "units": "count", "source": "experimental"}
+            "MolWt": "46.07",
+            "LogP": "-0.31",
+            "HBD": "1"
         }
         """
+        properties_data = kwargs.get("properties_data", None)
         if not properties_data:
             return {}
 
@@ -153,13 +156,8 @@ class ExperimentalPropertyProvider(AbstractPropertyProvider):
                         f"{prop_name}: value {value} > max {prop_info.range_max}"
                     )
 
-            # Guardar con source
-            validated[prop_name] = {
-                "value": value,
-                "units": prop_data.get("units", ""),
-                "source": "experimental",
-                "method": "user_input",
-            }
+            # Return as string (as required by interface)
+            validated[prop_name] = str(value)
 
         return validated
 

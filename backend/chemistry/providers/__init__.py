@@ -47,29 +47,29 @@ def _resolve_engine() -> Any:
     ).lower()
 
     if provider_choice == "mock":
-        from .mock_chem import mock_engine as engine
+        from .mock_chem import mock_engine as mock_eng
 
-        return engine
+        return mock_eng  # type: ignore[return-value]
 
     # Try to load requested provider (rdkit by default)
     try:
         if provider_choice == "rdkit":
-            from .rdkit_chem import engine
+            from .rdkit_chem import engine as rdkit_eng
 
-            return engine
+            return rdkit_eng  # type: ignore[return-value]
         else:
             mod = __import__(f"chemistry.providers.{provider_choice}", fromlist=["*"])
-            engine = getattr(mod, "engine", None)
-            if engine is not None:
-                return engine
+            eng = getattr(mod, "engine", None)
+            if eng is not None:
+                return eng  # type: ignore[return-value]
     except Exception:
         pass
 
     # Last resort: try to return mock provider
     try:
-        from .mock_chem import mock_engine as engine
+        from .mock_chem import mock_engine as mock_eng
 
-        return engine
+        return mock_eng  # type: ignore[return-value]
     except Exception as exc:
         raise ImportError(
             "No chemistry provider available (rdkit import failed and mock unavailable)"

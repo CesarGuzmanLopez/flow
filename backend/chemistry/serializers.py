@@ -6,6 +6,8 @@ incluyendo relaciones anidadas (propiedades dentro de moléculas/familias)
 con tipado fuerte para garantizar consistencia de datos.
 """
 
+# mypy: disable-error-code="attr-defined"
+
 from typing import Any, Dict
 
 from rest_framework import serializers
@@ -29,6 +31,7 @@ from .services.properties import (
 
 
 class MolecularPropertySerializer(serializers.ModelSerializer):
+    """Serializer for molecular properties."""
     """Serializador para propiedades moleculares EAV."""
 
     class Meta:
@@ -153,7 +156,7 @@ class MoleculeSerializer(serializers.ModelSerializer):
         """Get structure identifiers using type-safe interface."""
         try:
             identifiers = get_molecule_structure_info(obj)
-            return identifiers.to_dict()
+            return identifiers.to_dict()  # type: ignore[return-value]
         except Exception:
             # Fallback to direct field access
             return {
@@ -167,7 +170,7 @@ class MoleculeSerializer(serializers.ModelSerializer):
         """Get computed properties using type-safe interface."""
         try:
             properties = rehydrate_molecule_properties(obj)
-            return properties.to_dict()
+            return properties.to_dict()  # type: ignore[return-value]
         except Exception:
             # Fallback to empty dict
             return {}

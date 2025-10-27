@@ -19,38 +19,34 @@ class TestComputePropertyStatistics(TestCase):
         member_props = [
             {
                 "properties": MolecularProperties(
-                    logp=1.5,
+                    log_p=1.5,
                     tpsa=10.0,
-                    mw=100.0,
-                    hbd=1,
-                    hba=2,
-                    rotb=0,
-                    aromatic_rings=0,
-                    aliphatic_rings=0,
-                    num_rings=0,
-                    num_heavy_atoms=10,
+                    mol_wt=100.0,
+                    hbd=1.0,
+                    hba=2.0,
+                    rotatable_bonds=0.0,
                 )
             }
         ]
         stats = _compute_property_statistics(member_props)
-        assert stats["logp"]["mean"] == 1.5
-        assert stats["logp"]["std"] == 0.0  # single value => std 0.0
-        assert stats["mw"]["min"] == 100.0
-        assert stats["mw"]["max"] == 100.0
-        assert stats["mw"]["count"] == 1
+        assert stats["LogP"]["mean"] == 1.5
+        assert stats["LogP"]["std"] == 0.0  # single value => std 0.0
+        assert stats["MolWt"]["min"] == 100.0
+        assert stats["MolWt"]["max"] == 100.0
+        assert stats["MolWt"]["count"] == 1
 
     def test_statistics_multiple_values_std_positive(self):
         member_props = [
-            {"properties": MolecularProperties(logp=1.0)},
-            {"properties": MolecularProperties(logp=2.0)},
-            {"properties": MolecularProperties(logp=3.0)},
+            {"properties": MolecularProperties(log_p=1.0)},
+            {"properties": MolecularProperties(log_p=2.0)},
+            {"properties": MolecularProperties(log_p=3.0)},
         ]
         stats = _compute_property_statistics(member_props)
-        assert stats["logp"]["mean"] == 2.0
-        assert stats["logp"]["min"] == 1.0
-        assert stats["logp"]["max"] == 3.0
-        assert stats["logp"]["count"] == 3
-        assert stats["logp"]["std"] > 0.0
+        assert stats["LogP"]["mean"] == 2.0
+        assert stats["LogP"]["min"] == 1.0
+        assert stats["LogP"]["max"] == 3.0
+        assert stats["LogP"]["count"] == 3
+        assert stats["LogP"]["std"] > 0.0
 
 
 @override_settings(CHEM_ENGINE="mock")
@@ -66,6 +62,6 @@ class TestProviderEnrichSmiles(TestCase):
         )
         # Descriptors as dict, may be empty if provider failed; mock should return values
         assert isinstance(descriptors, dict)
-        # If mock engine is active, expect known keys like 'mw' or 'logp'
+        # If mock engine is active, expect known keys like 'MolWt' or 'LogP'
         if descriptors:
-            assert any(k in descriptors for k in ("mw", "logp", "tpsa"))
+            assert any(k in descriptors for k in ("MolWt", "LogP", "TPSA", "PSA"))

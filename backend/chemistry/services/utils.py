@@ -9,7 +9,7 @@ def _compute_property_statistics(
 ) -> Dict[str, Dict[str, float]]:
     from statistics import mean, stdev
 
-    property_values = {}
+    property_values: Dict[str, List[float]] = {}
     for member in member_properties:
         props_dict = member["properties"].to_dict()
         for prop_name, value in props_dict.items():
@@ -18,7 +18,7 @@ def _compute_property_statistics(
                     property_values[prop_name] = []
                 property_values[prop_name].append(float(value))
 
-    stats = {}
+    stats: Dict[str, Dict[str, float]] = {}
     for prop_name, values in property_values.items():
         if len(values) > 0:
             stats[prop_name] = {

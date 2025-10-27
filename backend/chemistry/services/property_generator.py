@@ -59,6 +59,8 @@ Examples:
     ... )
 """
 
+# mypy: disable-error-code="attr-defined"
+
 import logging
 from typing import Any, Dict, List, Optional
 
@@ -230,16 +232,28 @@ def generate_properties_for_family(
             # Save to database if persist=True
             if persist:
                 for prop_key, prop_value in props_dict.items():
+                    # Extraer valor y metadatos estandarizados si el provider devuelve estructura enriquecida
+                    if isinstance(prop_value, dict) and "value" in prop_value:
+                        _val = prop_value.get("value")
+                        _units = str(prop_value.get("units", ""))
+                        _method = str(prop_value.get("method", provider.lower()))
+                        _source = str(prop_value.get("source", f"provider:{provider}"))
+                    else:
+                        _val = prop_value
+                        _units = ""
+                        _method = provider.lower()
+                        _source = f"provider:{provider}"
+
                     MolecularProperty.objects.update_or_create(
                         molecule=molecule,
                         property_type=prop_key,
-                        method=provider.lower(),
+                        method=_method,
                         relation=f"endpoint /generate-properties/{category}/{provider}",
-                        source_id=f"provider:{provider}",
+                        source_id=_source,
                         defaults={
-                            "value": str(prop_value),
+                            "value": str(_val),
                             "is_invariant": False,
-                            "units": "",
+                            "units": _units,
                             "metadata": molecule_metadata,
                             "created_by": created_by,
                         },

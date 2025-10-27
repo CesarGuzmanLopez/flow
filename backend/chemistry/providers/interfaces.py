@@ -194,7 +194,7 @@ class PropertyProviderInterface(Protocol):
 
     def calculate_properties(
         self, smiles: str, category: str, **kwargs
-    ) -> Dict[str, str]:
+    ) -> Dict[str, Any]:
         """Calculate properties for a molecule.
 
         Args:
@@ -320,7 +320,7 @@ class AbstractPropertyProvider(ABC):
     @abstractmethod
     def _calculate_properties_impl(
         self, smiles: str, category: str, **kwargs
-    ) -> Dict[str, str]:
+    ) -> Dict[str, Any]:
         """Internal implementation of property calculation.
 
         Subclasses MUST implement this with their specific calculation logic.
@@ -345,8 +345,13 @@ class AbstractPropertyProvider(ABC):
         """Get category information (implements interface)."""
         self._ensure_metadata_initialized()
         if category not in self._category_definitions:
+            provider_label = (
+                self._provider_info.name
+                if self._provider_info
+                else self.__class__.__name__
+            )
             raise ValueError(
-                f"Category '{category}' not supported by {self._provider_info.name}. "
+                f"Category '{category}' not supported by {provider_label}. "
                 f"Supported: {list(self._category_definitions.keys())}"
             )
         return self._category_definitions[category]
@@ -382,10 +387,64 @@ class AbstractPropertyProvider(ABC):
 
         # Delegate to subclass implementation
         try:
-            return self._calculate_properties_impl(smiles, category, **kwargs)
+            raw = self._calculate_properties_impl(smiles, category, **kwargs)
         except TypeError:
             # Allow implementations that don't accept 'category' explicitly
-            return self._calculate_properties_impl(smiles, **kwargs)  # type: ignore[arg-type]
+            raw = self._calculate_properties_impl(smiles, **kwargs)  # type: ignore[arg-type]
+
+        # Normalización de salida: convertir valores escalares a estructura enriquecida
+        # Estructura estándar esperada por tests:
+        # { prop: { "value": <num/str>, "units": <str>, "source": <provider>, "method": <str> } }
+        try:
+            info = self.get_info()
+            provider_name = getattr(info, "name", self.__class__.__name__.lower())
+            method = (
+                "computed" if getattr(info, "is_computational", True) else "user_input"
+            )
+        except Exception:
+            provider_name = self.__class__.__name__.lower()
+            method = "computed"
+
+        # Obtener definición de unidades cuando esté disponible
+        prop_units: Dict[str, str] = {}
+        try:
+            for cat in (self._category_definitions or {}).values():
+                for p in getattr(cat, "properties", []) or []:
+                    prop_units[p.name] = getattr(p, "units", "")
+        except Exception:
+            # Si no hay categorías definidas, intentar a partir de _properties
+            for name, p in (getattr(self, "_properties", {}) or {}).items():
+                prop_units[name] = getattr(p, "units", "")
+
+        normalized: Dict[str, Any] = {}
+        for key, val in (raw or {}).items():
+            if isinstance(val, dict) and "value" in val:
+                # Completar metadatos faltantes
+                v = dict(val)
+                v.setdefault("units", prop_units.get(key, ""))
+                v.setdefault("source", provider_name)
+                v.setdefault("method", method)
+                normalized[key] = v
+            else:
+                # Convertir valor escalar a estructura estándar
+                v_val: Any = val
+                # Intentar parsear a número si viene como string numérico
+                if isinstance(v_val, str):
+                    try:
+                        if "." in v_val or "e" in v_val.lower():
+                            v_val = float(v_val)
+                        else:
+                            v_val = int(v_val)
+                    except Exception:
+                        pass
+                normalized[key] = {
+                    "value": v_val,
+                    "units": prop_units.get(key, ""),
+                    "source": provider_name,
+                    "method": method,
+                }
+
+        return normalized
 
     def validate_input(self, category: str, **kwargs) -> None:
         """Validate input parameters (default implementation).

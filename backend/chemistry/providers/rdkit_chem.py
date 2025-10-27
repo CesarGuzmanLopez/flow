@@ -9,7 +9,7 @@ an ImportError. Use the package-level selector in `chemistry.providers` to
 fall back gracefully to the mock engine for dev/test.
 """
 
-from typing import Union
+from typing import Literal, Union, overload
 
 from chemistry.providers.interface import ChemEngineInterface
 from chemistry.types import (
@@ -35,6 +35,16 @@ except Exception as exc:  # pragma: no cover - handled by provider selector
 
 class RDKitChemEngine(ChemEngineInterface):
     """RDKit-backed engine for chemistry operations."""
+
+    @overload
+    def smiles_to_inchi(
+        self, smiles: str, *, return_dataclass: Literal[True] = True
+    ) -> StructureIdentifiers: ...
+
+    @overload
+    def smiles_to_inchi(
+        self, smiles: str, *, return_dataclass: Literal[False]
+    ) -> StructureIdentifiersDict: ...
 
     def smiles_to_inchi(
         self, smiles: str, *, return_dataclass: bool = True
@@ -66,6 +76,16 @@ class RDKitChemEngine(ChemEngineInterface):
                 "molecular_formula": formula,
             }
 
+    @overload
+    def calculate_properties(
+        self, smiles: str, *, return_dataclass: Literal[True] = True
+    ) -> MolecularProperties: ...
+
+    @overload
+    def calculate_properties(
+        self, smiles: str, *, return_dataclass: Literal[False]
+    ) -> MolecularPropertiesDict: ...
+
     def calculate_properties(
         self, smiles: str, *, return_dataclass: bool = True
     ) -> Union[MolecularProperties, MolecularPropertiesDict]:
@@ -76,8 +96,8 @@ class RDKitChemEngine(ChemEngineInterface):
 
         try:
             # Calculate properties
-            mol_wt = float(Descriptors.MolWt(mol))
-            log_p = float(Crippen.MolLogP(mol))
+            mol_wt = float(Descriptors.MolWt(mol))  # type: ignore[attr-defined]
+            log_p = float(Crippen.MolLogP(mol))  # type: ignore[attr-defined]
             tpsa = float(rdMolDescriptors.CalcTPSA(mol))
             hba = float(rdMolDescriptors.CalcNumHBA(mol))
             hbd = float(rdMolDescriptors.CalcNumHBD(mol))
@@ -104,6 +124,16 @@ class RDKitChemEngine(ChemEngineInterface):
                 }
         except Exception as e:
             raise PropertyCalculationError(smiles, message=str(e)) from e
+
+    @overload
+    def generate_substitutions(
+        self, smiles: str, count: int = 3, *, return_dataclass: Literal[True] = True
+    ) -> SubstitutionResult: ...
+
+    @overload
+    def generate_substitutions(
+        self, smiles: str, count: int = 3, *, return_dataclass: Literal[False]
+    ) -> list[str]: ...
 
     def generate_substitutions(
         self, smiles: str, count: int = 3, *, return_dataclass: bool = True

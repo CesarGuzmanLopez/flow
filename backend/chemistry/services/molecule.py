@@ -20,8 +20,10 @@ Resumen en inglés:
 Domain services for molecule management (creation, lookup, updates).
 """
 
+# mypy: disable-error-code="attr-defined"
+
 import logging
-from typing import Any, Dict
+from typing import Any, Dict, cast
 
 from django.core.exceptions import ValidationError
 
@@ -343,17 +345,20 @@ def rehydrate_molecule_properties(molecule: Molecule) -> MolecularProperties:
                 f"Failed to rehydrate from metadata for molecule {molecule.id}: {e}"
             )
 
-    properties = {}
+    from ..types import MolecularPropertiesDict
+
+    # Usar un dict normal mientras se itera y luego hacer cast para TypedDict.
+    properties: Dict[str, float] = {}
     for prop in molecule.properties.all():
         try:
-            properties[prop.property_type] = float(prop.value)
+            properties[prop.property_type] = float(prop.value)  # type: ignore[index]
         except (ValueError, TypeError):
             logger.warning(
                 f"Invalid property value for molecule {molecule.id}, property {prop.property_type}: {prop.value}"
             )
             continue
 
-    return MolecularProperties.from_dict(properties)
+    return MolecularProperties.from_dict(cast(MolecularPropertiesDict, properties))
 
 
 def get_molecule_structure_info(molecule: Molecule) -> StructureIdentifiers:

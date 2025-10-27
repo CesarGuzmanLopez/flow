@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Literal, Union, overload
 
 from ..types import (
     InvalidSmilesError,
@@ -13,6 +13,16 @@ from .interface import ChemEngineInterface
 
 class MockChemEngine(ChemEngineInterface):
     """Lightweight mock of a chemistry engine (substitute for RDKit in tests)."""
+
+    @overload
+    def smiles_to_inchi(
+        self, smiles: str, *, return_dataclass: Literal[True] = True
+    ) -> StructureIdentifiers: ...
+
+    @overload
+    def smiles_to_inchi(
+        self, smiles: str, *, return_dataclass: Literal[False]
+    ) -> StructureIdentifiersDict: ...
 
     def smiles_to_inchi(
         self, smiles: str, *, return_dataclass: bool = True
@@ -39,7 +49,18 @@ class MockChemEngine(ChemEngineInterface):
                 "inchi": inchi,
                 "inchikey": inchikey,
                 "canonical_smiles": canonical_smiles,
+                "molecular_formula": None,
             }
+
+    @overload
+    def calculate_properties(
+        self, smiles: str, *, return_dataclass: Literal[True] = True
+    ) -> MolecularProperties: ...
+
+    @overload
+    def calculate_properties(
+        self, smiles: str, *, return_dataclass: Literal[False]
+    ) -> MolecularPropertiesDict: ...
 
     def calculate_properties(
         self, smiles: str, *, return_dataclass: bool = True
@@ -84,6 +105,16 @@ class MockChemEngine(ChemEngineInterface):
                 "DevelopmentalToxicity": float((base // 2) % 2),
                 "SyntheticAccessibility": round((base % 90) / 10.0, 1),
             }
+
+    @overload
+    def generate_substitutions(
+        self, smiles: str, count: int = 3, *, return_dataclass: Literal[True] = True
+    ) -> SubstitutionResult: ...
+
+    @overload
+    def generate_substitutions(
+        self, smiles: str, count: int = 3, *, return_dataclass: Literal[False]
+    ) -> list[str]: ...
 
     def generate_substitutions(
         self, smiles: str, count: int = 3, *, return_dataclass: bool = True

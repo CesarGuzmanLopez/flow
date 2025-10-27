@@ -5,14 +5,16 @@ Funciones auxiliares para crear y obtener usuarios del sistema,
 especialmente el usuario administrador por defecto.
 """
 
-from typing import Any
+from typing import Type
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AbstractBaseUser
 
-User = get_user_model()
+# Nota: get_user_model() devuelve un subtipo de AbstractBaseUser, usamos Type para mypy
+User: Type[AbstractBaseUser] = get_user_model()
 
 
-def get_or_create_admin_user() -> Any:
+def get_or_create_admin_user() -> AbstractBaseUser:
     """
     Obtiene o crea el usuario administrador principal del sistema.
 
@@ -24,18 +26,18 @@ def get_or_create_admin_user() -> Any:
     """
     # Primero buscar el usuario administrador específico de ChemFlow
     try:
-        admin_user = User.objects.get(username="chemflow_admin")
-        return admin_user
+        admin_exact = User.objects.get(username="chemflow_admin")
+        return admin_exact
     except User.DoesNotExist:
         pass
 
     # Si no existe, buscar cualquier superusuario
-    admin_user = User.objects.filter(is_superuser=True).first()
-    if admin_user:
-        return admin_user
+    admin_opt: AbstractBaseUser | None = User.objects.filter(is_superuser=True).first()
+    if admin_opt is not None:
+        return admin_opt
 
     # Como último recurso, crear el usuario administrador
-    admin_user = User.objects.create_superuser(
+    admin_user = User.objects.create_superuser(  # type: ignore[attr-defined]
         username="chemflow_admin",
         email="admin@chemflow.local",
         password="ChemFlow2024!",
@@ -55,4 +57,4 @@ def get_default_user_id() -> int:
         ID del usuario administrador
     """
     admin_user = get_or_create_admin_user()
-    return admin_user.id
+    return int(getattr(admin_user, "id"))

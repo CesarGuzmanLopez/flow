@@ -26,6 +26,8 @@ Implements business rules for:
 - Controlled validation and updates
 """
 
+# mypy: disable-error-code="attr-defined"
+
 import logging
 from typing import Any, Dict, Optional
 
@@ -86,7 +88,7 @@ def create_or_update_molecular_property(
     source_id: str = "",
     units: str = "",
     is_invariant: bool = False,
-    metadata: Dict[str, Any] = None,
+    metadata: Optional[Dict[str, Any]] = None,
     created_by: Any = None,
     force_create: bool = False,
 ) -> MolecularProperty:
@@ -250,7 +252,7 @@ def create_or_update_family_property(
     source_id: str = "",
     units: str = "",
     is_invariant: bool = False,
-    metadata: Dict[str, Any] = None,
+    metadata: Optional[Dict[str, Any]] = None,
     created_by: Any = None,
     force_create: bool = False,
 ) -> FamilyProperty:

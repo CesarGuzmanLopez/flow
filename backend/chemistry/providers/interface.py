@@ -5,7 +5,7 @@ This module defines the contract that all chemistry engine implementations must 
 with precise type annotations and detailed documentation for each method.
 """
 
-from typing import Protocol, Union, overload, runtime_checkable
+from typing import Literal, Protocol, Union, overload, runtime_checkable
 
 from ..types import (
     MolecularProperties,
@@ -27,14 +27,14 @@ class ChemEngineInterface(Protocol):
 
     @overload
     def smiles_to_inchi(
-        self, smiles: str, *, return_dataclass: bool = True
+        self, smiles: str, *, return_dataclass: Literal[True] = True
     ) -> StructureIdentifiers:
         """Return structure identifiers as a dataclass (default)."""
         ...
 
     @overload
     def smiles_to_inchi(
-        self, smiles: str, *, return_dataclass: bool = False
+        self, smiles: str, *, return_dataclass: Literal[False]
     ) -> StructureIdentifiersDict:
         """Return structure identifiers as a dictionary."""
         ...
@@ -64,14 +64,14 @@ class ChemEngineInterface(Protocol):
 
     @overload
     def calculate_properties(
-        self, smiles: str, *, return_dataclass: bool = True
+        self, smiles: str, *, return_dataclass: Literal[True] = True
     ) -> MolecularProperties:
         """Return molecular properties as a dataclass (default)."""
         ...
 
     @overload
     def calculate_properties(
-        self, smiles: str, *, return_dataclass: bool = False
+        self, smiles: str, *, return_dataclass: Literal[False]
     ) -> MolecularPropertiesDict:
         """Return molecular properties as a dictionary."""
         ...
@@ -101,14 +101,14 @@ class ChemEngineInterface(Protocol):
 
     @overload
     def generate_substitutions(
-        self, smiles: str, count: int = 3, *, return_dataclass: bool = True
+        self, smiles: str, count: int = 3, *, return_dataclass: Literal[True] = True
     ) -> SubstitutionResult:
         """Return substitutions as a dataclass (default)."""
         ...
 
     @overload
     def generate_substitutions(
-        self, smiles: str, count: int = 3, *, return_dataclass: bool = False
+        self, smiles: str, count: int = 3, *, return_dataclass: Literal[False]
     ) -> list[str]:
         """Return substitutions as a list."""
         ...

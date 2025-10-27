@@ -17,7 +17,7 @@ from typing_extensions import TypedDict
 # ========== Type definitions for smiles_to_inchi method ==========
 
 
-class StructureIdentifiersDict(TypedDict):
+class StructureIdentifiersDict(TypedDict, total=False):
     """Structure identifiers returned by smiles_to_inchi method."""
 
     inchi: str
@@ -37,7 +37,7 @@ class StructureIdentifiers:
 
     def to_dict(self) -> StructureIdentifiersDict:
         """Convert to dictionary format."""
-        result = {
+        result: StructureIdentifiersDict = {
             "inchi": self.inchi,
             "inchikey": self.inchikey,
             "canonical_smiles": self.canonical_smiles,
@@ -108,7 +108,7 @@ class MolecularProperties:
 
     def to_dict(self) -> MolecularPropertiesDict:
         """Convert to dictionary format with standard keys."""
-        result = {}
+        result: MolecularPropertiesDict = {}
 
         if self.mol_wt is not None:
             result["MolWt"] = self.mol_wt
