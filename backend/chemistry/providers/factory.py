@@ -104,6 +104,7 @@ class PropertyProviderRegistry:
             KeyError: If provider not found
         """
         name_lower = name.lower()
+
         if name_lower not in self._providers:
             raise KeyError(f"Provider '{name}' not registered")
 
