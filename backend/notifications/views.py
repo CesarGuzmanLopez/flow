@@ -69,7 +69,11 @@ class UserNotificationViewSet(viewsets.ModelViewSet):
 
     serializer_class = UserNotificationSerializer
     permission_classes = [IsAuthenticated]
-    lookup_field = "pk"
+    # Expose a base queryset so schema generation can infer model/field types
+    queryset = UserNotification.objects.all()
+    # Use explicit 'id' as lookup to align URL kwarg and schema parameter name
+    lookup_field = "id"
+    lookup_url_kwarg = "id"
 
     def get_queryset(self):
         """Retorna solo las notificaciones del usuario autenticado."""
@@ -100,7 +104,7 @@ class UserNotificationViewSet(viewsets.ModelViewSet):
         ],
     )
     @action(detail=True, methods=["post"])
-    def mark_as_read(self, request, pk=None):
+    def mark_as_read(self, request, id=None):
         """Marca una notificación específica como leída."""
         notification = self.get_object()
         notification.mark_as_read()

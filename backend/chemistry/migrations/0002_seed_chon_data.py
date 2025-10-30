@@ -18,28 +18,24 @@ def create_chon_family_and_molecules(apps, schema_editor):
             "smiles": "C",
             "canonical_smiles": "C",
             "molecular_formula": "C",
-            "metadata": {"type": "atom", "element": "C", "atomic_number": 6},
         },
         {
             "name": "Hidrógeno",
             "smiles": "[H][H]",
             "canonical_smiles": "[H][H]",
             "molecular_formula": "H2",
-            "metadata": {"type": "molecule", "elements": ["H"], "bond_type": "single"},
         },
         {
             "name": "Oxígeno",
             "smiles": "O=O",
             "canonical_smiles": "O=O",
             "molecular_formula": "O2",
-            "metadata": {"type": "molecule", "elements": ["O"], "bond_type": "double"},
         },
         {
             "name": "Nitrógeno",
             "smiles": "N#N",
             "canonical_smiles": "N#N",
             "molecular_formula": "N2",
-            "metadata": {"type": "molecule", "elements": ["N"], "bond_type": "triple"},
         },
     ]
 
@@ -50,44 +46,24 @@ def create_chon_family_and_molecules(apps, schema_editor):
             "smiles": "O",
             "canonical_smiles": "O",
             "molecular_formula": "H2O",
-            "metadata": {
-                "type": "compound",
-                "elements": ["H", "O"],
-                "common_name": "water",
-            },
         },
         {
             "name": "Metano",
             "smiles": "C",
             "canonical_smiles": "C",
             "molecular_formula": "CH4",
-            "metadata": {
-                "type": "compound",
-                "elements": ["C", "H"],
-                "common_name": "methane",
-            },
         },
         {
             "name": "Amoníaco",
             "smiles": "N",
             "canonical_smiles": "N",
             "molecular_formula": "NH3",
-            "metadata": {
-                "type": "compound",
-                "elements": ["N", "H"],
-                "common_name": "ammonia",
-            },
         },
         {
             "name": "Dióxido de carbono",
             "smiles": "C(=O)=O",
             "canonical_smiles": "O=C=O",
             "molecular_formula": "CO2",
-            "metadata": {
-                "type": "compound",
-                "elements": ["C", "O"],
-                "common_name": "carbon_dioxide",
-            },
         },
     ]
 
@@ -99,8 +75,9 @@ def create_chon_family_and_molecules(apps, schema_editor):
         try:
             from chemistry.providers.utils import enrich_smiles
 
-            structure, descriptors = enrich_smiles(mol_data["smiles"])
+            structure = enrich_smiles(mol_data["smiles"])
             inchi_val = structure.get("inchi") or None
+            name = structure.get("name") or mol_data["name"]
             inchikey_val = structure.get("inchikey") or None
             canonical_val = structure.get("canonical_smiles") or mol_data.get(
                 "canonical_smiles"
@@ -111,14 +88,11 @@ def create_chon_family_and_molecules(apps, schema_editor):
 
             defaults = {
                 "smiles": mol_data["smiles"],
+                "name": name,
                 "canonical_smiles": canonical_val,
                 "inchi": inchi_val,
                 "inchikey": inchikey_val,
                 "molecular_formula": molformula_val,
-                "metadata": {
-                    **mol_data.get("metadata", {}),
-                    "descriptors": descriptors,
-                },
                 "frozen": False,
             }
         except Exception:
@@ -127,12 +101,8 @@ def create_chon_family_and_molecules(apps, schema_editor):
                 "smiles": mol_data["smiles"],
                 "canonical_smiles": mol_data.get("canonical_smiles"),
                 "molecular_formula": mol_data.get("molecular_formula"),
-                "metadata": mol_data.get("metadata", {}),
                 "frozen": False,
             }
-
-        # Use inchikey as uniqueness key when available to avoid creating
-        # duplicate structures (different names but same chemical entity).
         if defaults.get("inchikey"):
             molecule, created = Molecule.objects.get_or_create(
                 inchikey=defaults["inchikey"], defaults=defaults
@@ -160,18 +130,11 @@ def create_chon_family_and_molecules(apps, schema_editor):
             "family_hash": family_hash,
             "provenance": "system_seed",
             "frozen": True,
-            "metadata": {
-                "type": "element_family",
-                "elements": ["C", "H", "O", "N"],
-                "description": "Basic organic chemistry elements",
-            },
         },
     )
 
     if created:
         print(f"✓ Familia creada: {chon_family.name}")
-
-        # Agregar moléculas CHON a la familia
         for molecule in chon_molecules:
             member, created = FamilyMember.objects.get_or_create(
                 family=chon_family, molecule=molecule

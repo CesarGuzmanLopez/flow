@@ -24,12 +24,7 @@ def enrich_smiles(smiles: str) -> Tuple[Dict[str, str], Dict[str, object]]:
         from . import engine as chem_engine
 
         structure = chem_engine.smiles_to_inchi(smiles, return_dataclass=False)
-        try:
-            descriptors = chem_engine.calculate_properties(
-                smiles, return_dataclass=False
-            )
-        except Exception:
-            descriptors = {}
+        descriptors = chem_engine.calculate_properties(smiles, return_dataclass=False)
 
         # Normalize structure keys to strings
         structure = {k: (v if v is not None else "") for k, v in structure.items()}

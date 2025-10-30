@@ -1,12 +1,4 @@
 """
-Fábrica y Registro de Proveedores de Propiedades.
-
-Este módulo implementa los patrones Factory y Registry para gestionar
-proveedores de propiedades con inyección de dependencias y tipado fuerte.
-Objetivos: descubrimiento seguro de proveedores, extensibilidad sin modificar
-servicios, y control centralizado para permitir pruebas y configuración.
-
-Resumen en inglés:
 Factory and Registry for Property Providers.
 
 This module implements the Factory and Registry patterns to manage property providers
@@ -89,19 +81,18 @@ class PropertyProviderRegistry:
         # Validate provider implements interface
         validate_provider(provider)
 
-        # Check for duplicates: tests expect later registrations to override by default
+        # Register (override by default to match extension tests)
         if name_lower in self._providers and not force:
-            logger.info(f"Overriding existing provider registration for '{name_lower}'")
-        # Register/override
-        self._providers[name_lower] = provider
-        # Log safely without forcing provider metadata initialization
-        try:
-            display_name = getattr(
-                provider.get_info(), "display_name", provider.__class__.__name__
+            logger.warning(
+                f"Provider '{name_lower}' already registered. Overriding with new instance."
             )
+
+        self._providers[name_lower] = provider
+        try:
+            display = provider.get_info().display_name
         except Exception:
-            display_name = provider.__class__.__name__
-        logger.info(f"Registered provider: {name_lower} ({display_name})")
+            display = name_lower
+        logger.info(f"Registered provider: {name_lower} ({display})")
 
     def unregister(self, name: str) -> None:
         """Unregister a provider.
@@ -162,9 +153,9 @@ class PropertyProviderRegistry:
         """
         return sorted(self._providers.keys())
 
-    # Compatibility sugar for tests: they call registry.list_providers()
+    # Backward-compatible alias expected by some tests
     def list_providers(self) -> List[str]:
-        """Alias for list_provider_names used in tests."""
+        """Alias returning provider names for backward compatibility."""
         return self.list_provider_names()
 
     def list_providers_info(self) -> List[PropertyProviderInfo]:
@@ -197,16 +188,6 @@ class PropertyProviderRegistry:
         """
         result = []
         for name, provider in self._providers.items():
-            try:
-                # Prefer using provider metadata when explicit categories aren't defined
-                info = provider.get_info()
-                if getattr(info, "supports_category", None) and info.supports_category(
-                    category
-                ):
-                    result.append(name)
-                    continue
-            except Exception:
-                pass
             try:
                 provider.get_category_info(category)
                 result.append(name)
@@ -286,8 +267,7 @@ class PropertyProviderFactory:
         Args:
             registry: Registry instance to use for provider storage
         """
-        # Use global registry by default for convenience in tests
-        self._registry = registry if registry is not None else globals()["registry"]
+        self._registry = registry or PropertyProviderRegistry()
 
     def create_provider(
         self, name: str, provider: PropertyProviderInterface, force: bool = False
@@ -313,7 +293,7 @@ class PropertyProviderFactory:
         try:
             return self._registry.get_provider(name)
         except KeyError as e:
-            # Tests expect ValueError for unknown providers
+            # Backward-compatible error type expected by tests
             raise ValueError(str(e))
 
     def list_providers(self) -> List[str]:

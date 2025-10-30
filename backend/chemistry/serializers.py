@@ -429,6 +429,10 @@ class CreateFamilyFromSmilesSerializer(serializers.Serializer):
     provenance = serializers.CharField(
         max_length=200, default="user", help_text="Origen de la familia"
     )
+    frozen = serializers.BooleanField(
+        required=False,
+        help_text="Si es True, la familia queda congelada y no permitirá agregar o quitar miembros",
+    )
 
 
 class GenerateADMETSASerializer(serializers.Serializer):
@@ -602,3 +606,48 @@ class PropertyGenerationRequestSerializer(serializers.Serializer):
                 )
 
         return data
+
+
+class FamilyMemberInputSerializer(serializers.Serializer):
+    """Descriptor flexible para identificar o crear moléculas al operar membresías.
+
+    Soporta una de las siguientes combinaciones:
+      - {"id": 123}
+      - {"inchikey": "XXXX"}  (solo si ya existe)
+      - {"smiles": "CCO", "name": "Ethanol"}  (creación si no existe)
+      - {"inchikey": "XXXX", "smiles": "CCO"}  (valida consistencia y crea si falta)
+
+    Notas:
+      - No se permite creación solo por inchikey para proteger integridad química.
+    """
+
+    id = serializers.IntegerField(required=False)
+    inchikey = serializers.CharField(required=False, allow_blank=True, max_length=27)
+    smiles = serializers.CharField(required=False, allow_blank=True, max_length=1000)
+    name = serializers.CharField(required=False, allow_blank=True, max_length=200)
+    extra_metadata = serializers.JSONField(required=False)
+    compute_descriptors = serializers.BooleanField(required=False, default=False)
+
+    def validate(self, attrs):
+        provided = [k for k in ("id", "inchikey", "smiles") if attrs.get(k)]
+        if not provided:
+            raise serializers.ValidationError(
+                "Each member must include one of: id, inchikey, smiles"
+            )
+        # If only inchikey is provided, ensure molecule exists; creation from inchikey alone is not allowed
+        if provided == ["inchikey"]:
+            # The service layer will validate existence; keep serializer light
+            pass
+        # If smiles longer than limit
+        smiles = attrs.get("smiles")
+        if smiles and len(smiles) > 1000:
+            raise serializers.ValidationError("smiles is too long (max 1000 chars)")
+        return attrs
+
+
+class AddMembersSerializer(serializers.Serializer):
+    members = FamilyMemberInputSerializer(many=True)
+
+
+class RemoveMembersSerializer(serializers.Serializer):
+    members = FamilyMemberInputSerializer(many=True)

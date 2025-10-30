@@ -60,3 +60,4 @@ class FamilyMemberViewSet(BaseChemistryViewSet):
             },
             status=status.HTTP_405_METHOD_NOT_ALLOWED,
         )
+

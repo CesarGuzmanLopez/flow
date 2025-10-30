@@ -25,11 +25,12 @@ Domain services for managing molecular families (aggregates of molecules).
 
 import hashlib
 import logging
-from typing import Any, Dict, Iterable, List
+from typing import Any, Dict, Iterable, List, Optional, Sequence
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
+from .. import providers as providers
 from ..models import Family, FamilyMember, Molecule
 from .molecule import create_molecule_from_smiles
 
@@ -52,6 +53,7 @@ def create_family_from_smiles(
     smiles_list: List[str],
     created_by: Any,
     provenance: str = "user",
+    frozen: bool | None = None,
     metadata: Dict[str, Any] | None = None,  # compatibility alias for tests
 ) -> Family:
     """Crea una familia a partir de una lista de SMILES, con deduplicación automática.
@@ -59,7 +61,7 @@ def create_family_from_smiles(
     Servicio transaccional que:
     1. Normaliza y crea/busca cada molécula por InChIKey (idempotente)
     2. Deduplica moléculas repetidas dentro de la familia
-    3. Crea la familia con hash determinista y marca como frozen=True (inmutable)
+    3. Crea la familia con hash determinista y marca como frozen (inmutable si True)
     4. Crea membresías (FamilyMember) en bulk
 
     Usado desde:
@@ -142,7 +144,8 @@ def create_family_from_smiles(
                 "name": name.strip(),
                 "description": "",
                 "provenance": provenance,
-                "frozen": True,
+                # If explicit value provided use it, default to True for backward compatibility
+                "frozen": True if frozen is None else bool(frozen),
                 "created_by": created_by,
                 "metadata": meta,
             },
@@ -197,6 +200,219 @@ def create_single_molecule_family(
     )
     FamilyMember.objects.get_or_create(family=fam, molecule=molecule)
     return fam
+
+
+# --- Membership administration services -------------------------------------------------
+
+
+class FamilyFrozenError(ValidationError):
+    pass
+
+
+def _ensure_family_not_frozen(family: Family) -> None:
+    if getattr(family, "frozen", False):
+        raise FamilyFrozenError("Family is frozen; cannot modify members")
+
+
+def _resolve_member_spec(
+    spec: Dict[str, Any],
+    *,
+    created_by: Any,
+    allow_create: bool,
+) -> Molecule:
+    """Resolve a member specification to a Molecule instance.
+
+    Supported keys in spec:
+      - id: int
+      - inchikey: str
+      - smiles: str
+
+    Rules:
+      - If id is provided, fetch or raise DoesNotExist
+      - If inchikey provided, try lookup by inchikey (case-insensitive).
+        If not found and allow_create is True AND a 'smiles' is also provided,
+        create from smiles; otherwise, raise ValidationError (no creation from
+        inchikey alone to preserve chemical integrity).
+      - If only smiles provided, create or get by computed InChIKey.
+    """
+    mol_id = spec.get("id")
+    inchikey = (spec.get("inchikey") or "").strip() or None
+    smiles = (spec.get("smiles") or "").strip() or None
+
+    if mol_id:
+        try:
+            return Molecule.objects.get(id=int(mol_id))
+        except (Molecule.DoesNotExist, ValueError):
+            raise ValidationError(f"Molecule with id={mol_id} does not exist")
+
+    if inchikey:
+        try:
+            return Molecule.objects.get(inchikey__iexact=inchikey)
+        except Molecule.DoesNotExist:
+            # creation from inchikey alone is not allowed
+            if allow_create and smiles:
+                # Validate that smiles maps to the same inchikey if possible
+                try:
+                    struct = providers.engine.smiles_to_inchi(
+                        smiles, return_dataclass=True
+                    )
+                    if struct.inchikey and struct.inchikey != inchikey:
+                        raise ValidationError(
+                            "Provided inchikey does not match the one computed from smiles"
+                        )
+                except Exception:
+                    # Defer to molecule service for detailed error
+                    pass
+                return create_molecule_from_smiles(smiles=smiles, created_by=created_by)
+            raise ValidationError(
+                "Cannot create molecule from inchikey alone; include 'smiles' or use an existing 'id'"
+            )
+
+    if smiles:
+        return create_molecule_from_smiles(smiles=smiles, created_by=created_by)
+
+    raise ValidationError("Member spec must include one of: id, inchikey, smiles")
+
+
+def add_members_to_family(
+    *,
+    family_id: int,
+    members: Sequence[Dict[str, Any]],
+    created_by: Any,
+) -> Dict[str, Any]:
+    """Add one or more molecules as members of a family.
+
+    - Resolves members by id/inchikey/smiles (creates molecules from smiles when needed)
+    - Enforces frozen family rule
+    - Ignores duplicate memberships
+
+    Returns a summary dict: {added: int, skipped: int, member_ids: [..]}
+    """
+    if not created_by:
+        raise ValueError("created_by is required")
+
+    if not isinstance(members, (list, tuple)) or not members:
+        raise ValidationError("'members' must be a non-empty list")
+
+    with transaction.atomic():
+        try:
+            family = Family.objects.select_for_update().get(id=family_id)
+        except Family.DoesNotExist:
+            raise ValidationError(f"Family with id={family_id} does not exist")
+
+        _ensure_family_not_frozen(family)
+
+        added = 0
+        skipped = 0
+        member_ids: list[int] = []
+
+        for spec in members:
+            mol = _resolve_member_spec(
+                spec or {}, created_by=created_by, allow_create=True
+            )
+            _, created = FamilyMember.objects.get_or_create(family=family, molecule=mol)
+            if created:
+                added += 1
+                member_ids.append(mol.id)
+            else:
+                skipped += 1
+
+        # Update family metadata size if present
+        try:
+            family.metadata = dict(family.metadata or {})
+            family.metadata["size"] = family.members.count()
+            family.save(update_fields=["metadata", "updated_at"])
+        except Exception:
+            pass
+
+        return {
+            "family_id": family.id,
+            "added": added,
+            "skipped": skipped,
+            "member_ids": member_ids,
+        }
+
+
+def remove_members_from_family(
+    *,
+    family_id: int,
+    members: Sequence[Dict[str, Any]],
+    requested_by: Any,
+) -> Dict[str, Any]:
+    """Remove one or more molecules from a family.
+
+    - Resolves members by id/inchikey/smiles (NO creation on remove)
+    - Enforces frozen family rule
+    - Ignores non-existent memberships
+
+    Returns: {removed: int, attempted: int}
+    """
+    if not requested_by:
+        raise ValueError("requested_by is required")
+
+    if not isinstance(members, (list, tuple)) or not members:
+        raise ValidationError("'members' must be a non-empty list")
+
+    with transaction.atomic():
+        try:
+            family = Family.objects.select_for_update().get(id=family_id)
+        except Family.DoesNotExist:
+            raise ValidationError(f"Family with id={family_id} does not exist")
+
+        _ensure_family_not_frozen(family)
+
+        removed = 0
+        attempted = 0
+
+        for spec in members:
+            attempted += 1
+            # Resolve without creating: for smiles, compute inchikey and try lookup
+            mol_id = spec.get("id") if isinstance(spec, dict) else None
+            inchikey = (
+                (spec.get("inchikey") or "").strip() if isinstance(spec, dict) else ""
+            )
+            smiles = (
+                (spec.get("smiles") or "").strip() if isinstance(spec, dict) else ""
+            )
+
+            mol: Optional[Molecule] = None
+            try:
+                if mol_id:
+                    mol = Molecule.objects.get(id=int(mol_id))
+                elif inchikey:
+                    mol = Molecule.objects.get(inchikey__iexact=inchikey)
+                elif smiles:
+                    try:
+                        struct = providers.engine.smiles_to_inchi(
+                            smiles, return_dataclass=True
+                        )
+                        if struct.inchikey:
+                            mol = Molecule.objects.get(inchikey__iexact=struct.inchikey)
+                    except Molecule.DoesNotExist:
+                        mol = None
+                    except Exception:
+                        mol = None
+            except (Molecule.DoesNotExist, ValueError):
+                mol = None
+
+            if not mol:
+                continue
+
+            deleted, _ = FamilyMember.objects.filter(
+                family=family, molecule=mol
+            ).delete()
+            if deleted:
+                removed += 1
+
+        # Update family metadata size if present
+        try:
+            family.metadata = dict(family.metadata or {})
+            family.metadata["size"] = family.members.count()
+            family.save(update_fields=["metadata", "updated_at"])
+        except Exception:
+            pass
+
+        return {"family_id": family.id, "removed": removed, "attempted": attempted}
 
 
 def generate_substituted_family(

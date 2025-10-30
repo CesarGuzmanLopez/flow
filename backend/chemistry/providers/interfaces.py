@@ -1,12 +1,4 @@
 """
-Interfaces y abstracciones centrales del sistema de generación de propiedades.
-
-Este módulo define contratos estrictos usando Protocol y ABC para garantizar
-seguridad de tipos y cumplir SOLID dentro de una arquitectura hexagonal.
-Objetivos: desacoplar cálculos de proveedores, facilitar pruebas con DI y
-ofrecer una base estable para extender categorías/proveedores sin romper APIs.
-
-Resumen en inglés:
 Core interfaces and abstractions for the property generation system.
 
 This module defines strict interfaces using Python's Protocol and ABC (Abstract Base Classes)
@@ -26,7 +18,7 @@ Architecture Pattern: Hexagonal (Ports & Adapters)
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any, Dict, List, Protocol, runtime_checkable
+from typing import Dict, List, Protocol, runtime_checkable
 
 # ========== Value Objects ==========
 
@@ -194,7 +186,7 @@ class PropertyProviderInterface(Protocol):
 
     def calculate_properties(
         self, smiles: str, category: str, **kwargs
-    ) -> Dict[str, Any]:
+    ) -> Dict[str, str]:
         """Calculate properties for a molecule.
 
         Args:
@@ -239,88 +231,68 @@ class AbstractPropertyProvider(ABC):
     Attributes:
         _provider_info: Cached provider metadata
         _category_definitions: Mapping of category to PropertyCategoryInfo
+        _properties: Flat mapping of property name to PropertyInfo (BC layer)
     """
 
     def __init__(self):
-        """Initialize provider with metadata.
-
-        Supports two extension styles used in tests:
-        - Subclasses that set self._provider_info and self._category_definitions
-        - Subclasses that RETURN a PropertyProviderInfo from _initialize_metadata()
-          and define an optional _initialize_properties() that returns a
-          mapping of property name -> PropertyInfo. In this case we build a
-          default category automatically.
-        """
+        """Initialize provider with metadata."""
         self._provider_info: PropertyProviderInfo | None = None
         self._category_definitions: Dict[str, PropertyCategoryInfo] = {}
-        # Optional map used by simple providers (like the test Experimental provider)
+        # Backward-compatible flat property map used by some extensions/tests
         self._properties: Dict[str, PropertyInfo] = {}
 
-        maybe_info = self._initialize_metadata()
-        # If subclass returned a PropertyProviderInfo, accept it
-        if isinstance(maybe_info, PropertyProviderInfo):
-            self._provider_info = maybe_info
+        # Allow subclasses to either set attributes OR return values (BC)
+        meta = self._initialize_metadata()
+        if meta is not None:
+            # Some implementations return PropertyProviderInfo
+            if isinstance(meta, PropertyProviderInfo):
+                self._provider_info = meta
 
-        # If subclass provides _initialize_properties(), consume it
+        # Optional: initialize flat properties (older extension point)
         init_props = getattr(self, "_initialize_properties", None)
         if callable(init_props):
             try:
-                props = init_props()
+                props = init_props()  # type: ignore[misc]
                 if isinstance(props, dict):
-                    self._properties = props
-            except TypeError:
-                # Some implementations may not require parameters; ignore signature mismatches
-                try:
-                    props = init_props()  # type: ignore[misc]
-                    if isinstance(props, dict):
-                        self._properties = props
-                except Exception:
-                    pass
+                    self._properties = props  # type: ignore[assignment]
+            except Exception:
+                # Keep empty on failure (provider can still work with categories)
+                self._properties = {}
 
-        # If no categories were defined but we have properties, create a default category
-        if not self._category_definitions and self._properties:
-            provider_name = (
-                self._provider_info.name if self._provider_info else "default"
-            )
-            self._category_definitions["default"] = PropertyCategoryInfo(
-                name="default",
-                display_name="Default",
-                description="Default property set",
-                properties=list(self._properties.values()),
-                available_providers=[provider_name],
-            )
+        # If categories weren't explicitly defined, synthesize them from provider info
+        if self._provider_info and not self._category_definitions:
+            # Build a generic category definition for each declared supported category
+            cat_names = self._provider_info.supported_categories or []
+            properties_list = list(self._properties.values())
+            for cat in cat_names:
+                try:
+                    self._category_definitions[cat] = PropertyCategoryInfo(
+                        name=cat,
+                        display_name=cat.capitalize(),
+                        description=self._provider_info.description,
+                        properties=properties_list if properties_list else [],
+                        available_providers=[self._provider_info.name],
+                    )
+                except Exception:
+                    # Skip invalid category definitions
+                    continue
 
     @abstractmethod
-    def _initialize_metadata(self) -> PropertyProviderInfo | None:
+    def _initialize_metadata(self) -> None | PropertyProviderInfo:
         """Initialize provider and category metadata.
 
-        Subclasses MUST implement this to set:
+        Subclasses SHOULD set:
         - self._provider_info
         - self._category_definitions
 
-        Examples:
-            >>> def _initialize_metadata(self):
-            ...     self._provider_info = PropertyProviderInfo(
-            ...         name="rdkit",
-            ...         display_name="RDKit",
-            ...         description="RDKit computational provider",
-            ...         supported_categories=["admetsa"],
-            ...         requires_external_data=False,
-            ...         is_computational=True
-            ...     )
-            ...     self._category_definitions["admetsa"] = PropertyCategoryInfo(
-            ...         name="admetsa",
-            ...         display_name="ADMET-SA",
-            ...         description="Basic ADMET properties",
-            ...         properties=[...],
-            ...         available_providers=["rdkit"]
-            ...     )
+        Or return a PropertyProviderInfo (backward compatibility).
         """
+        pass
 
     @abstractmethod
     def _calculate_properties_impl(
         self, smiles: str, category: str, **kwargs
-    ) -> Dict[str, Any]:
+    ) -> Dict[str, str]:
         """Internal implementation of property calculation.
 
         Subclasses MUST implement this with their specific calculation logic.
@@ -335,131 +307,107 @@ class AbstractPropertyProvider(ABC):
         """
         pass
 
+    # ---- Backward-compat public aliases -------------------------------------------------
+    def get_metadata(self) -> PropertyProviderInfo:
+        """Alias for get_info() for backward compatibility in extensions/tests."""
+        return self.get_info()
+
+    def get_properties(self) -> Dict[str, PropertyInfo]:
+        """Expose flat property definitions for legacy extensions/tests."""
+        return dict(self._properties)
+
+    # ---- Modern interface ---------------------------------------------------------------
     def get_info(self) -> PropertyProviderInfo:
         """Get provider information (implements interface)."""
-        self._ensure_metadata_initialized()
-        assert self._provider_info is not None
+        if self._provider_info is None:
+            raise RuntimeError(
+                f"{self.__class__.__name__} did not initialize provider info"
+            )
         return self._provider_info
 
     def get_category_info(self, category: str) -> PropertyCategoryInfo:
         """Get category information (implements interface)."""
-        self._ensure_metadata_initialized()
         if category not in self._category_definitions:
-            provider_label = (
-                self._provider_info.name
-                if self._provider_info
-                else self.__class__.__name__
-            )
             raise ValueError(
-                f"Category '{category}' not supported by {provider_label}. "
+                f"Category '{category}' not supported by {self._provider_info.name}. "
                 f"Supported: {list(self._category_definitions.keys())}"
             )
         return self._category_definitions[category]
 
     def calculate_properties(
         self, smiles: str, category: str | None = None, **kwargs
-    ) -> Dict[str, Any]:
-        """Calculate properties (implements interface with validation).
+    ) -> Dict[str, Dict[str, object]]:
+        """Calculate properties (implements interface with validation and BC output).
 
-        Template Method: Validates inputs, then delegates to subclass implementation.
+        If category is None (legacy calls), a reasonable default is chosen:
+        - "experimental" if supported; otherwise the first supported category.
+
+        Returns a structured mapping per property with metadata suitable
+        for persistence (value, units, source, method).
         """
-        self._ensure_metadata_initialized()
-
-        # Resolve default category when not provided and only one exists
+        # Choose category when omitted (backward compatibility)
         if category is None:
-            if self._category_definitions:
-                if len(self._category_definitions) == 1:
-                    category = next(iter(self._category_definitions.keys()))
-                else:
-                    raise ValueError(
-                        "Multiple categories supported; 'category' must be provided"
-                    )
-            else:
-                # Allow providers that don't declare categories (experimental/manual adapters)
-                category = "default"
+            info = self.get_info()
+            supported = info.supported_categories or []
+            category = (
+                "experimental"
+                if "experimental" in supported
+                else (supported[0] if supported else "experimental")
+            )
+
+        # Validate category is supported
+        if category not in self._category_definitions:
+            raise ValueError(
+                f"Category '{category}' not supported by {self._provider_info.name}"
+            )
 
         # Validate inputs
-        try:
-            self.validate_input(category, **kwargs)
-        except TypeError:
-            # Some simple providers may not accept extra kwargs in validation
-            self.validate_input(category)
+        self.validate_input(category, **kwargs)
 
-        # Delegate to subclass implementation
-        try:
-            raw = self._calculate_properties_impl(smiles, category, **kwargs)
-        except TypeError:
-            # Allow implementations that don't accept 'category' explicitly
-            raw = self._calculate_properties_impl(smiles, **kwargs)  # type: ignore[arg-type]
+        # Delegate to subclass implementation (raw values)
+        raw = self._calculate_properties_impl(smiles, category, **kwargs)
 
-        # Normalización de salida: convertir valores escalares a estructura enriquecida
-        # Estructura estándar esperada por tests:
-        # { prop: { "value": <num/str>, "units": <str>, "source": <provider>, "method": <str> } }
-        try:
-            info = self.get_info()
-            provider_name = getattr(info, "name", self.__class__.__name__.lower())
-            method = (
-                "computed" if getattr(info, "is_computational", True) else "user_input"
-            )
-        except Exception:
-            provider_name = self.__class__.__name__.lower()
-            method = "computed"
+        # Build structured response with metadata
+        cat_info = self.get_category_info(category)
+        info = self.get_info()
+        props_index = {p.name: p for p in cat_info.properties}
 
-        # Obtener definición de unidades cuando esté disponible
-        prop_units: Dict[str, str] = {}
-        try:
-            for cat in (self._category_definitions or {}).values():
-                for p in getattr(cat, "properties", []) or []:
-                    prop_units[p.name] = getattr(p, "units", "")
-        except Exception:
-            # Si no hay categorías definidas, intentar a partir de _properties
-            for name, p in (getattr(self, "_properties", {}) or {}).items():
-                prop_units[name] = getattr(p, "units", "")
+        result: Dict[str, Dict[str, object]] = {}
+        for key, raw_val in (raw or {}).items():
+            pinfo = props_index.get(key) or self._properties.get(key)
+            # Try to coerce to numeric types based on declared value_type
+            val: object = raw_val
+            if pinfo and isinstance(raw_val, str):
+                try:
+                    if pinfo.value_type == "int":
+                        val = int(float(raw_val))
+                    elif pinfo.value_type == "float":
+                        val = float(raw_val)
+                except Exception:
+                    # keep as string if conversion fails
+                    val = raw_val
 
-        normalized: Dict[str, Any] = {}
-        for key, val in (raw or {}).items():
-            if isinstance(val, dict) and "value" in val:
-                # Completar metadatos faltantes
-                v = dict(val)
-                v.setdefault("units", prop_units.get(key, ""))
-                v.setdefault("source", provider_name)
-                v.setdefault("method", method)
-                normalized[key] = v
-            else:
-                # Convertir valor escalar a estructura estándar
-                v_val: Any = val
-                # Intentar parsear a número si viene como string numérico
-                if isinstance(v_val, str):
-                    try:
-                        if "." in v_val or "e" in v_val.lower():
-                            v_val = float(v_val)
-                        else:
-                            v_val = int(v_val)
-                    except Exception:
-                        pass
-                normalized[key] = {
-                    "value": v_val,
-                    "units": prop_units.get(key, ""),
-                    "source": provider_name,
-                    "method": method,
-                }
+            units = pinfo.units if pinfo else ""
+            method = "user_input" if info.requires_external_data else info.name
+            source = info.name
 
-        return normalized
+            result[key] = {
+                "value": val,
+                "units": units,
+                "source": source,
+                "method": method,
+            }
+
+        return result
 
     def validate_input(self, category: str, **kwargs) -> None:
         """Validate input parameters (default implementation).
 
         Subclasses can override to add specific validation.
         """
-        # Base validation: category must be supported unless provider doesn't declare categories
-        if not self._category_definitions:
-            # Allow simple providers that only define properties without categories
-            # Accept "default" category implicitly
-            if category not in (None, "default"):
-                raise ValueError(f"Unsupported category: {category}")
-        else:
-            if category not in self._category_definitions:
-                raise ValueError(f"Unsupported category: {category}")
+        # Base validation: category must be supported
+        if category not in self._category_definitions:
+            raise ValueError(f"Unsupported category: {category}")
 
         # Subclasses can add more validation by overriding
 
@@ -470,71 +418,6 @@ class AbstractPropertyProvider(ABC):
     def supports_category(self, category: str) -> bool:
         """Check if this provider supports a category."""
         return category in self._category_definitions
-
-    # --------- Convenience API expected by tests ---------
-    def get_metadata(self) -> PropertyProviderInfo:
-        """Compatibility sugar for tests: returns provider info.
-
-        Some tests call provider.get_metadata(); map to get_info().
-        """
-        return self.get_info()
-
-    def get_properties(self) -> Dict[str, PropertyInfo]:
-        """Compatibility sugar used by tests: return mapping of property name -> PropertyInfo.
-
-        Preferred behavior (for simple providers used in tests): if self._properties exists,
-        return it. Otherwise, build a mapping from the (sole or first) category.
-        """
-        if getattr(self, "_properties", None):
-            return dict(self._properties)
-        if not self._category_definitions:
-            return {}
-        if len(self._category_definitions) == 1:
-            info = next(iter(self._category_definitions.values()))
-            return {p.name: p for p in info.properties}
-        # If multiple, pick the first deterministically
-        first = self._category_definitions[sorted(self._category_definitions.keys())[0]]
-        return {p.name: p for p in first.properties}
-
-    # --------- Internal helpers ---------
-    def _ensure_metadata_initialized(self) -> None:
-        """Lazy-initialize provider info if subclass didn't set it explicitly.
-
-        Attempts to build minimal metadata from conventional attributes.
-        """
-        if self._provider_info is not None:
-            return
-        # Try to infer basic info from attributes commonly used in simple providers
-        name = getattr(self, "name", None) or getattr(self, "NAME", None)
-        if not isinstance(name, str) or not name:
-            cls_name = self.__class__.__name__
-            if cls_name.endswith("PropertyProvider"):
-                base = cls_name[: -len("PropertyProvider")]
-            elif cls_name.endswith("Provider"):
-                base = cls_name[: -len("Provider")]
-            else:
-                base = cls_name
-            name = base.lower()
-        display_name = getattr(self, "display_name", None) or name.title()
-        description = getattr(self, "description", None) or f"{display_name} provider"
-        requires_external_data = bool(getattr(self, "requires_external_data", False))
-        is_computational = bool(
-            getattr(self, "is_computational", not requires_external_data)
-        )
-        supported_categories = list(getattr(self, "supported_categories", []) or [])
-        if not supported_categories and self._category_definitions:
-            supported_categories = list(self._category_definitions.keys())
-        if not supported_categories:
-            supported_categories = ["default"]
-
-        self._provider_info = PropertyProviderInfo(
-            name=name,
-            display_name=display_name,
-            description=description,
-            supported_categories=supported_categories,
-            requires_external_data=requires_external_data,
-            is_computational=is_computational,
-        )
 
 
 # ========== Type Guards ==========
@@ -549,9 +432,7 @@ def is_property_provider(obj: object) -> bool:
     Returns:
         True if obj implements the interface
     """
-    return isinstance(obj, PropertyProviderInterface) or (
-        hasattr(obj, "get_info") and hasattr(obj, "calculate_properties")
-    )
+    return isinstance(obj, PropertyProviderInterface)
 
 
 def validate_provider(provider: object) -> None:

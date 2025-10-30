@@ -14,11 +14,13 @@ from .. import services as chem_services
 from ..models import Family, FamilyProperty
 from ..providers import registry as provider_registry
 from ..serializers import (
+    AddMembersSerializer,
     AddPropertySerializer,
     CreateFamilyFromSmilesSerializer,
     FamilyPropertySerializer,
     FamilySerializer,
     PropertyGenerationRequestSerializer,
+    RemoveMembersSerializer,
 )
 from ..services.properties import (
     InvariantPropertyError,
@@ -63,6 +65,39 @@ from .molecules import BaseChemistryViewSet
 class FamilyViewSet(BaseChemistryViewSet):
     queryset = Family.objects.all()
     serializer_class = FamilySerializer
+
+    @extend_schema(
+        summary="Crear familia",
+        description=(
+            "Crea una familia a partir de una lista de SMILES. Si 'frozen' es True,"
+            " la familia quedará congelada y no permitirá agregar o quitar miembros."
+            " Si no se envía 'smiles_list', realiza la creación estándar con family_hash."
+        ),
+        request=CreateFamilyFromSmilesSerializer,
+        responses={201: FamilySerializer, 400: OpenApiResponse(response=dict)},
+        tags=["Chemistry • Families"],
+    )
+    def create(self, request, *args, **kwargs):
+        data = request.data if isinstance(request.data, dict) else dict(request.data)
+        if "smiles_list" not in data:
+            # Fallback to standard create for legacy payloads (name, family_hash, provenance, ...)
+            return super().create(request, *args, **kwargs)
+
+        serializer = CreateFamilyFromSmilesSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            family = chem_services.create_family_from_smiles(
+                name=serializer.validated_data["name"],
+                smiles_list=serializer.validated_data["smiles_list"],
+                created_by=request.user,
+                provenance=serializer.validated_data.get("provenance", "user"),
+                frozen=serializer.validated_data.get("frozen"),
+            )
+            out = FamilySerializer(family, context={"request": request})
+            headers = {"Location": f"/api/chemistry/families/{family.id}/"}
+            return Response(out.data, status=status.HTTP_201_CREATED, headers=headers)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     @extend_schema(
         summary="Mis familias",
@@ -115,10 +150,69 @@ class FamilyViewSet(BaseChemistryViewSet):
                 smiles_list=serializer.validated_data["smiles_list"],
                 created_by=request.user,
                 provenance=serializer.validated_data.get("provenance", "user"),
+                frozen=serializer.validated_data.get("frozen"),
             )
             return Response(FamilySerializer(family).data, status=201)
         except Exception as e:
             return Response({"error": str(e)}, status=400)
+
+    @extend_schema(
+        summary="Agregar miembros a una familia",
+        description=(
+            "Agrega moléculas a la familia por id, inchikey o smiles."
+            " Si se envían smiles y la molécula no existe, será creada."
+            " No permitido si la familia está congelada."
+        ),
+        request=AddMembersSerializer,
+        responses={
+            200: OpenApiResponse(response=dict),
+            400: OpenApiResponse(response=dict),
+        },
+        tags=["Chemistry • Families"],
+    )
+    @action(detail=True, methods=["post"], url_path="members/add")
+    def add_members(self, request, pk=None):
+        family = self.get_object()
+        payload = AddMembersSerializer(data=request.data)
+        payload.is_valid(raise_exception=True)
+        try:
+            result = chem_services.add_members_to_family(
+                family_id=family.id,
+                members=payload.validated_data["members"],
+                created_by=request.user,
+            )
+            return Response(result, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @extend_schema(
+        summary="Quitar miembros de una familia",
+        description=(
+            "Quita asociaciones de moléculas por id, inchikey o smiles."
+            " No se crean moléculas en este proceso."
+            " No permitido si la familia está congelada."
+        ),
+        request=RemoveMembersSerializer,
+        responses={
+            200: OpenApiResponse(response=dict),
+            400: OpenApiResponse(response=dict),
+        },
+        tags=["Chemistry • Families"],
+    )
+    @action(detail=True, methods=["post"], url_path="members/remove")
+    def remove_members(self, request, pk=None):
+        family = self.get_object()
+        payload = RemoveMembersSerializer(data=request.data)
+        payload.is_valid(raise_exception=True)
+        try:
+            result = chem_services.remove_members_from_family(
+                family_id=family.id,
+                members=payload.validated_data["members"],
+                requested_by=request.user,
+            )
+            return Response(result, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     @extend_schema(
         summary="Agregar propiedad a una familia",
