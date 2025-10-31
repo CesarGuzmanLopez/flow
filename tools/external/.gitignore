@@ -2,10 +2,10 @@
 *.jar
 
 # Allow the lightweight AMBIT SyntheticAccessibility JAR to be versioned
-!ambit/SyntheticAccessibilityCli.jar
+!ambitSA/SyntheticAccessibilityCli.jar
 
 # Keep folder structure
 !.gitignore
 !README.md
-!ambit/
+!ambitSA/
 !test/

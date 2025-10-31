@@ -86,3 +86,4 @@ schema.yml
 #java binaries
 java-bin
 java-bin/**
+tools/java/**
