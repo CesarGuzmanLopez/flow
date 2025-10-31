@@ -256,6 +256,116 @@ class MoleculeAlreadyExistsError(ChemEngineError):
 # ========== Property Generation System Types ==========
 
 
+# ========== Synthetic Accessibility (AMBIT-SA) Types ==========
+
+
+class DescriptorValueDict(TypedDict):
+    """Value-score pair for a molecular descriptor.
+
+    Note: score can be None if the provider doesn't calculate contribution scores.
+    """
+
+    value: float
+    score: Optional[float]
+
+
+class SyntheticAccessibilityDescriptorsDict(TypedDict, total=False):
+    """Detailed descriptor breakdown for Synthetic Accessibility.
+
+    Each descriptor contains a value (the raw molecular feature) and a score
+    (0-100, contribution to overall SA score).
+    """
+
+    molecular_complexity: DescriptorValueDict
+    stereochemical_complexity: DescriptorValueDict
+    cyclomatic_number: DescriptorValueDict
+    ring_complexity: DescriptorValueDict
+
+
+class SyntheticAccessibilityResultDict(TypedDict):
+    """Serializable result for Synthetic Accessibility calculations.
+
+    Structure:
+    - smiles: str - The molecule SMILES string
+    - sa_score: float - Overall synthetic accessibility (0-100, higher = easier)
+    - descriptors: dict - Detailed breakdown of contributing factors
+    """
+
+    smiles: str
+    sa_score: float
+    descriptors: SyntheticAccessibilityDescriptorsDict
+
+
+@dataclass(frozen=True)
+class DescriptorValue:
+    """Immutable value-score pair for a molecular descriptor.
+
+    Attributes:
+        value: The raw descriptor value (e.g., complexity measure)
+        score: The normalized score (0-100) for this descriptor's contribution.
+               Can be None if the provider doesn't calculate contribution scores.
+    """
+
+    value: float
+    score: Optional[float]
+
+    def to_dict(self) -> DescriptorValueDict:
+        return {"value": self.value, "score": self.score}
+
+
+@dataclass(frozen=True)
+class SyntheticAccessibilityDescriptors:
+    """Immutable descriptor details for Synthetic Accessibility.
+
+    Contains four main descriptors that contribute to the overall SA score:
+    - molecular_complexity: Topological and structural complexity
+    - stereochemical_complexity: Number and complexity of stereocenters
+    - cyclomatic_number: Ring system complexity
+    - ring_complexity: Fused and bridged ring systems
+    """
+
+    molecular_complexity: DescriptorValue | None = None
+    stereochemical_complexity: DescriptorValue | None = None
+    cyclomatic_number: DescriptorValue | None = None
+    ring_complexity: DescriptorValue | None = None
+
+    def to_dict(self) -> SyntheticAccessibilityDescriptorsDict:
+        """Convert to dictionary, omitting None descriptors."""
+        data: SyntheticAccessibilityDescriptorsDict = {}
+        if self.molecular_complexity is not None:
+            data["molecular_complexity"] = self.molecular_complexity.to_dict()
+        if self.stereochemical_complexity is not None:
+            data["stereochemical_complexity"] = self.stereochemical_complexity.to_dict()
+        if self.cyclomatic_number is not None:
+            data["cyclomatic_number"] = self.cyclomatic_number.to_dict()
+        if self.ring_complexity is not None:
+            data["ring_complexity"] = self.ring_complexity.to_dict()
+        return data
+
+
+@dataclass(frozen=True)
+class SyntheticAccessibilityResult:
+    """Immutable Synthetic Accessibility result object.
+
+    Attributes:
+        smiles: The molecule SMILES string
+        sa_score: Overall synthetic accessibility score (0-100)
+                 100 = easiest to synthesize, 0 = hardest
+        descriptors: Detailed breakdown of contributing descriptors
+    """
+
+    smiles: str
+    sa_score: float
+    descriptors: SyntheticAccessibilityDescriptors = SyntheticAccessibilityDescriptors()
+
+    def to_dict(self) -> SyntheticAccessibilityResultDict:
+        return {
+            "smiles": self.smiles,
+            "sa_score": self.sa_score,
+            "descriptors": self.descriptors.to_dict(),
+        }
+
+
 class PropertyCategory(str, Enum):
     """Categories of molecular/family properties that can be generated.
 

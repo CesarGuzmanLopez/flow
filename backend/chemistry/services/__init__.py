@@ -9,6 +9,7 @@ from .family import *  # noqa: F401,F403
 from .molecule import *  # noqa: F401,F403
 from .properties import *  # noqa: F401,F403
 from .property_generator import *  # noqa: F401,F403
+from .synthetic_accessibility import *  # noqa: F401,F403
 from .utils import *  # noqa: F401,F403
 
 __all__ = [name for name in globals().keys() if not name.startswith("_")]

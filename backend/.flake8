@@ -1,3 +1,6 @@
 [flake8]
 max-line-length = 100
 exclude = .git,__pycache__,env,**/migrations/**
+ignore = E203
+#ignorar //whitespace before ':'Flake8(E203)
+ignore = E203
