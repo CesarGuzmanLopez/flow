@@ -6,7 +6,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")"/.. && pwd)"
 TOOLS_DIR="$ROOT_DIR/tools/external"
 
 # Subfolders (already exist in repo structure)
-AMBIT_DIR="$TOOLS_DIR/ambit"
+AMBIT_DIR="$TOOLS_DIR/ambitSA"
 TEST_DIR="$TOOLS_DIR/test"
 
 # URLs requested by user
