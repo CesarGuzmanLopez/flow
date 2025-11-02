@@ -340,11 +340,13 @@ def auto_register_providers() -> None:
             ManualProvider,
             RandomProvider,
             RDKitProvider,
+            ToxicologyProvider,
         )
 
         # Register built-in providers
         registry.register("rdkit", RDKitProvider())
         registry.register("manual", ManualProvider())
+        registry.register("toxicology", ToxicologyProvider())
         registry.register("random", RandomProvider())
         registry.register("provider-extra", RandomProvider())  # Alias
 

@@ -1,0 +1,2 @@
+xvfb-run -a java -cp WebTEST.jar ToxPredictor.Application.Calculations.RunFromCommandLine -i input/salida.smi -o output/viscosity.csv -e viscosity -m conse
+nsus
