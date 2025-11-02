@@ -54,25 +54,23 @@ class Flow(models.Model):
 class FlowVersion(models.Model):
     """Version control for flows - allows branching without merging"""
 
-    flow: models.ForeignKey = models.ForeignKey(
-        Flow, on_delete=models.CASCADE, related_name="versions"
-    )
-    version_number: models.IntegerField = models.IntegerField()
-    parent_version: models.ForeignKey = models.ForeignKey(
+    flow = models.ForeignKey(Flow, on_delete=models.CASCADE, related_name="versions")
+    version_number = models.IntegerField()
+    parent_version = models.ForeignKey(
         "self",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="child_versions",
     )
-    created_at: models.DateTimeField = models.DateTimeField(auto_now_add=True)
-    created_by: models.ForeignKey = models.ForeignKey(
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="created_versions",
     )
-    metadata: models.JSONField = models.JSONField(default=dict, blank=True)
-    is_frozen: models.BooleanField = models.BooleanField(default=False)
+    metadata = models.JSONField(default=dict, blank=True)
+    is_frozen = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["-version_number"]
@@ -85,16 +83,16 @@ class FlowVersion(models.Model):
 class Step(models.Model):
     """Individual step in a flow version"""
 
-    flow_version: models.ForeignKey = models.ForeignKey(
+    flow_version = models.ForeignKey(
         FlowVersion, on_delete=models.CASCADE, related_name="steps"
     )
-    name: models.CharField = models.CharField(max_length=200)
-    description: models.TextField = models.TextField(blank=True)
-    step_type: models.CharField = models.CharField(max_length=100)
-    order: models.IntegerField = models.IntegerField()
-    config: models.JSONField = models.JSONField(default=dict, blank=True)
-    created_at: models.DateTimeField = models.DateTimeField(auto_now_add=True)
-    updated_at: models.DateTimeField = models.DateTimeField(auto_now=True)
+    name = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    step_type = models.CharField(max_length=100)
+    order = models.IntegerField()
+    config = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ["order"]
@@ -107,10 +105,8 @@ class Step(models.Model):
 class StepDependency(models.Model):
     """Defines dependencies between steps"""
 
-    step: models.ForeignKey = models.ForeignKey(
-        Step, on_delete=models.CASCADE, related_name="depends_on"
-    )
-    depends_on_step: models.ForeignKey = models.ForeignKey(
+    step = models.ForeignKey(Step, on_delete=models.CASCADE, related_name="depends_on")
+    depends_on_step = models.ForeignKey(
         Step, on_delete=models.CASCADE, related_name="required_by"
     )
 
@@ -124,16 +120,14 @@ class StepDependency(models.Model):
 class Artifact(models.Model):
     """Content-addressable artifacts (files, data) with SHA256 hash"""
 
-    sha256: models.CharField = models.CharField(
-        max_length=64, unique=True, db_index=True
-    )
-    filename: models.CharField = models.CharField(max_length=255)
-    content_type: models.CharField = models.CharField(max_length=100)
-    size: models.BigIntegerField = models.BigIntegerField()
-    storage_path: models.CharField = models.CharField(max_length=500)
-    metadata: models.JSONField = models.JSONField(default=dict, blank=True)
-    created_at: models.DateTimeField = models.DateTimeField(auto_now_add=True)
-    created_by: models.ForeignKey = models.ForeignKey(
+    sha256 = models.CharField(max_length=64, unique=True, db_index=True)
+    filename = models.CharField(max_length=255)
+    content_type = models.CharField(max_length=100)
+    size = models.BigIntegerField()
+    storage_path = models.CharField(max_length=500)
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="artifacts"
     )
 
@@ -154,19 +148,17 @@ class ExecutionSnapshot(models.Model):
         ("partial", "Partial"),
     ]
 
-    flow_version: models.ForeignKey = models.ForeignKey(
+    flow_version = models.ForeignKey(
         FlowVersion, on_delete=models.CASCADE, related_name="executions"
     )
-    created_at: models.DateTimeField = models.DateTimeField(auto_now_add=True)
-    triggered_by: models.ForeignKey = models.ForeignKey(
+    created_at = models.DateTimeField(auto_now_add=True)
+    triggered_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="triggered_executions",
     )
-    metadata: models.JSONField = models.JSONField(default=dict, blank=True)
-    status: models.CharField = models.CharField(
-        max_length=20, choices=STATUS_CHOICES, default="running"
-    )
+    metadata = models.JSONField(default=dict, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="running")
 
     class Meta:
         ordering = ["-created_at"]
@@ -186,20 +178,16 @@ class StepExecution(models.Model):
         ("cancelled", "Cancelled"),
     ]
 
-    step: models.ForeignKey = models.ForeignKey(
-        Step, on_delete=models.CASCADE, related_name="executions"
-    )
-    execution_snapshot: models.ForeignKey = models.ForeignKey(
+    step = models.ForeignKey(Step, on_delete=models.CASCADE, related_name="executions")
+    execution_snapshot = models.ForeignKey(
         ExecutionSnapshot, on_delete=models.CASCADE, related_name="step_executions"
     )
-    started_at: models.DateTimeField = models.DateTimeField(auto_now_add=True)
-    completed_at: models.DateTimeField = models.DateTimeField(null=True, blank=True)
-    status: models.CharField = models.CharField(
-        max_length=20, choices=STATUS_CHOICES, default="pending"
-    )
-    inputs: models.JSONField = models.JSONField(default=dict, blank=True)
-    outputs: models.JSONField = models.JSONField(default=dict, blank=True)
-    error_message: models.TextField = models.TextField(blank=True)
+    started_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
+    inputs = models.JSONField(default=dict, blank=True)
+    outputs = models.JSONField(default=dict, blank=True)
+    error_message = models.TextField(blank=True)
 
     class Meta:
         ordering = ["started_at"]
@@ -211,13 +199,13 @@ class StepExecution(models.Model):
 class StepExecutionArtifact(models.Model):
     """Links artifacts produced during step execution"""
 
-    step_execution: models.ForeignKey = models.ForeignKey(
+    step_execution = models.ForeignKey(
         StepExecution, on_delete=models.CASCADE, related_name="execution_artifacts"
     )
-    artifact: models.ForeignKey = models.ForeignKey(
+    artifact = models.ForeignKey(
         Artifact, on_delete=models.CASCADE, related_name="produced_by_executions"
     )
-    artifact_type: models.CharField = models.CharField(max_length=100)
+    artifact_type = models.CharField(max_length=100)
 
     class Meta:
         unique_together = ["step_execution", "artifact"]
@@ -238,22 +226,18 @@ class FlowNode(models.Model):
     permite un árbol de flujo con ramas sin merges y sin duplicación de contenido.
     """
 
-    flow: models.ForeignKey = models.ForeignKey(
-        Flow, on_delete=models.CASCADE, related_name="nodes"
-    )
-    parent: models.ForeignKey = models.ForeignKey(
+    flow = models.ForeignKey(Flow, on_delete=models.CASCADE, related_name="nodes")
+    parent = models.ForeignKey(
         "self",
         null=True,
         blank=True,
         on_delete=models.CASCADE,
         related_name="children_nodes",
     )
-    content: models.JSONField = models.JSONField()  # Configuración del paso
-    content_hash: models.CharField = models.CharField(
-        max_length=64, db_index=True
-    )  # SHA256 del content
-    created_at: models.DateTimeField = models.DateTimeField(auto_now_add=True)
-    created_by: models.ForeignKey = models.ForeignKey(
+    content = models.JSONField()  # Configuración del paso
+    content_hash = models.CharField(max_length=64, db_index=True)  # SHA256 del content
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="created_flow_nodes",
@@ -276,25 +260,23 @@ class FlowBranch(models.Model):
     es una vista lineal del árbol desde la raíz hasta el head.
     """
 
-    flow: models.ForeignKey = models.ForeignKey(
-        Flow, on_delete=models.CASCADE, related_name="branches"
-    )
-    name: models.CharField = models.CharField(max_length=200)
-    head: models.ForeignKey = models.ForeignKey(
+    flow = models.ForeignKey(Flow, on_delete=models.CASCADE, related_name="branches")
+    name = models.CharField(max_length=200)
+    head = models.ForeignKey(
         FlowNode, on_delete=models.CASCADE, related_name="branch_heads"
     )
-    start_node: models.ForeignKey = models.ForeignKey(
+    start_node = models.ForeignKey(
         FlowNode, on_delete=models.CASCADE, related_name="branch_starts"
     )
-    parent_branch: models.ForeignKey = models.ForeignKey(
+    parent_branch = models.ForeignKey(
         "self",
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
         related_name="child_branches",
     )
-    created_at: models.DateTimeField = models.DateTimeField(auto_now_add=True)
-    created_by: models.ForeignKey = models.ForeignKey(
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="created_branches",

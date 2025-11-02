@@ -29,32 +29,32 @@ class Molecule(models.Model):
     """
 
     # Convenience display name (optional)
-    name: models.CharField = models.CharField(max_length=200, blank=True)
+    name = models.CharField(max_length=200, blank=True)
 
     # Invariant identifiers/structures
-    inchikey: models.CharField = models.CharField(
+    inchikey = models.CharField(
         max_length=27, blank=True, null=True, unique=True, db_index=True
     )
-    smiles: models.TextField = models.TextField(blank=True)
-    inchi: models.TextField = models.TextField(blank=True)
-    canonical_smiles: models.TextField = models.TextField(blank=True)
-    molecular_formula: models.CharField = models.CharField(max_length=200, blank=True)
+    smiles = models.TextField(blank=True)
+    inchi = models.TextField(blank=True)
+    canonical_smiles = models.TextField(blank=True)
+    molecular_formula = models.CharField(max_length=200, blank=True)
 
     # Flexible metadata and lifecycle
-    metadata: models.JSONField = models.JSONField(default=dict, blank=True)
-    frozen: models.BooleanField = models.BooleanField(default=False)
+    metadata = models.JSONField(default=dict, blank=True)
+    frozen = models.BooleanField(default=False)
 
     # Audit fields
-    created_at: models.DateTimeField = models.DateTimeField(auto_now_add=True)
-    updated_at: models.DateTimeField = models.DateTimeField(auto_now=True)
-    created_by: models.ForeignKey = models.ForeignKey(
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
         related_name="created_molecules",
         null=True,
         blank=True,
     )
-    updated_by: models.ForeignKey = models.ForeignKey(
+    updated_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
         related_name="updated_molecules",
@@ -72,24 +72,24 @@ class Molecule(models.Model):
 class Family(models.Model):
     """Familia de moléculas relacionadas (agregados)."""
 
-    name: models.CharField = models.CharField(max_length=200, blank=True)
-    description: models.TextField = models.TextField(blank=True)
-    family_hash: models.CharField = models.CharField(max_length=128)
-    provenance: models.CharField = models.CharField(max_length=200)
-    frozen: models.BooleanField = models.BooleanField(default=True)
-    metadata: models.JSONField = models.JSONField(default=dict, blank=True)
+    name = models.CharField(max_length=200, blank=True)
+    description = models.TextField(blank=True)
+    family_hash = models.CharField(max_length=128)
+    provenance = models.CharField(max_length=200)
+    frozen = models.BooleanField(default=True)
+    metadata = models.JSONField(default=dict, blank=True)
 
     # Audit fields
-    created_at: models.DateTimeField = models.DateTimeField(auto_now_add=True)
-    updated_at: models.DateTimeField = models.DateTimeField(auto_now=True)
-    created_by: models.ForeignKey = models.ForeignKey(
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
         related_name="created_families",
         null=True,
         blank=True,
     )
-    updated_by: models.ForeignKey = models.ForeignKey(
+    updated_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
         related_name="updated_families",
@@ -107,29 +107,29 @@ class Family(models.Model):
 class FamilyProperty(models.Model):
     """Propiedades EAV para familias con campos contextuales (método, unidades, fuente)."""
 
-    family: models.ForeignKey = models.ForeignKey(
+    family = models.ForeignKey(
         Family, on_delete=models.CASCADE, related_name="properties"
     )
-    property_type: models.CharField = models.CharField(max_length=200)
-    value: models.TextField = models.TextField()
-    is_invariant: models.BooleanField = models.BooleanField(default=False)
-    method: models.CharField = models.CharField(max_length=100, blank=True)
-    units: models.CharField = models.CharField(max_length=50, blank=True)
-    relation: models.CharField = models.CharField(max_length=10, blank=True)
-    source_id: models.CharField = models.CharField(max_length=100, blank=True)
-    metadata: models.JSONField = models.JSONField(default=dict, blank=True)
+    property_type = models.CharField(max_length=200)
+    value = models.TextField()
+    is_invariant = models.BooleanField(default=False)
+    method = models.CharField(max_length=100, blank=True)
+    units = models.CharField(max_length=50, blank=True)
+    relation = models.CharField(max_length=10, blank=True)
+    source_id = models.CharField(max_length=100, blank=True)
+    metadata = models.JSONField(default=dict, blank=True)
 
     # Audit fields
-    created_at: models.DateTimeField = models.DateTimeField(auto_now_add=True)
-    updated_at: models.DateTimeField = models.DateTimeField(auto_now=True)
-    created_by: models.ForeignKey = models.ForeignKey(
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
         related_name="created_family_properties",
         null=True,
         blank=True,
     )
-    updated_by: models.ForeignKey = models.ForeignKey(
+    updated_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
         related_name="updated_family_properties",
@@ -153,31 +153,31 @@ class FamilyProperty(models.Model):
 class MolecularProperty(models.Model):
     """Propiedades EAV para moléculas con campos contextuales (método, unidades, fuente)."""
 
-    molecule: models.ForeignKey = models.ForeignKey(
+    molecule = models.ForeignKey(
         Molecule, on_delete=models.CASCADE, related_name="properties"
     )
-    property_type: models.CharField = models.CharField(max_length=200)
-    value: models.TextField = models.TextField()
-    is_invariant: models.BooleanField = models.BooleanField(default=False)
-    method: models.CharField = models.CharField(max_length=100, blank=True)
-    units: models.CharField = models.CharField(max_length=50, blank=True)
-    relation: models.CharField = models.CharField(max_length=10, blank=True)
-    source_id: models.CharField = models.CharField(
+    property_type = models.CharField(max_length=200)
+    value = models.TextField()
+    is_invariant = models.BooleanField(default=False)
+    method = models.CharField(max_length=100, blank=True)
+    units = models.CharField(max_length=50, blank=True)
+    relation = models.CharField(max_length=10, blank=True)
+    source_id = models.CharField(
         max_length=100, blank=True
     )  # ID de la fuente o referencias
-    metadata: models.JSONField = models.JSONField(default=dict, blank=True)
+    metadata = models.JSONField(default=dict, blank=True)
 
     # Audit fields
-    created_at: models.DateTimeField = models.DateTimeField(auto_now_add=True)
-    updated_at: models.DateTimeField = models.DateTimeField(auto_now=True)
-    created_by: models.ForeignKey = models.ForeignKey(
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
         related_name="created_molecular_properties",
         null=True,
         blank=True,
     )
-    updated_by: models.ForeignKey = models.ForeignKey(
+    updated_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
         related_name="updated_molecular_properties",
@@ -201,10 +201,8 @@ class MolecularProperty(models.Model):
 class FamilyMember(models.Model):
     """Membresía que vincula moléculas con familias (relación many-to-many)."""
 
-    family: models.ForeignKey = models.ForeignKey(
-        Family, on_delete=models.CASCADE, related_name="members"
-    )
-    molecule: models.ForeignKey = models.ForeignKey(
+    family = models.ForeignKey(Family, on_delete=models.CASCADE, related_name="members")
+    molecule = models.ForeignKey(
         Molecule, on_delete=models.CASCADE, related_name="families"
     )
 
@@ -219,17 +217,17 @@ class MoleculeFlow(models.Model):
     """Relación entre moléculas y flujos para asociación en workflows."""
 
     # reference Flow model from flows app by label to avoid circular import
-    flow: models.ForeignKey = models.ForeignKey(
+    flow = models.ForeignKey(
         "flows.Flow", on_delete=models.CASCADE, related_name="flow_molecules"
     )
-    molecule: models.ForeignKey = models.ForeignKey(
+    molecule = models.ForeignKey(
         Molecule, on_delete=models.CASCADE, related_name="flow_links"
     )
     # Optional role of the molecule in the flow context (e.g., input, generated, reference)
-    role: models.CharField = models.CharField(max_length=50, blank=True)
+    role = models.CharField(max_length=50, blank=True)
     # Optional step ordering/number where this link was recorded
-    step_number: models.IntegerField = models.IntegerField(null=True, blank=True)
-    created_at: models.DateTimeField = models.DateTimeField(auto_now_add=True)
+    step_number = models.IntegerField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         unique_together = ["flow", "molecule"]

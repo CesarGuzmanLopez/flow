@@ -71,7 +71,7 @@ class ExecutionSnapshotViewSet(BaseFlowViewSet):
     search_fields = ["metadata"]
     ordering_fields = ["id", "created_at"]
 
-    def get_queryset(self):  # type: ignore[override]
+    def get_queryset(self):
         qs = super().get_queryset()
         if self.request.query_params.get("mine") == "true":
             return qs.filter(flow_version__flow__owner=self.request.user)
@@ -127,7 +127,7 @@ class StepExecutionViewSet(BaseFlowViewSet):
     search_fields = ["status", "error_message"]
     ordering_fields = ["id", "started_at", "completed_at"]
 
-    def get_queryset(self):  # type: ignore[override]
+    def get_queryset(self):
         qs = super().get_queryset()
         if self.request.query_params.get("mine") == "true":
             return qs.filter(
@@ -142,7 +142,7 @@ class StepExecutionViewSet(BaseFlowViewSet):
         description="Retorna el estado actual, timestamps y salida de la ejecución.",
         tags=["Step Executions"],
     )
-    def status(self, request, pk=None):  # type: ignore[override]
+    def status(self, request, pk=None):
         step_exec = self.get_object()
         flow = step_exec.step.flow_version.flow
         if not FlowPermissionService.can_user_read_flow(request.user, flow):
@@ -166,7 +166,7 @@ class StepExecutionViewSet(BaseFlowViewSet):
         ),
         tags=["Step Executions"],
     )
-    def cancel(self, request, pk=None):  # type: ignore[override]
+    def cancel(self, request, pk=None):
         step_exec = self.get_object()
         flow = step_exec.step.flow_version.flow
         if not FlowPermissionService.can_user_execute_flow(request.user, flow):
@@ -209,7 +209,7 @@ class StepExecutionViewSet(BaseFlowViewSet):
         )
     ],
 )
-def step_execution_logs_stream(request, pk: str):  # type: ignore[override]
+def step_execution_logs_stream(request, pk: str):
     """Endpoint SSE para consumir logs en tiempo real de un StepExecution."""
     if not request.user or not request.user.is_authenticated:
         # Forzamos auth; si se requiere público, cambiar a AllowAny + tokens firmados
@@ -232,12 +232,12 @@ def step_execution_logs_stream(request, pk: str):  # type: ignore[override]
         yield ": connected\n\n"
         # Anunciar inicio
         step_log_broker.publish(
-            step_execution.id,
+            str(step_execution.id),
             event="start",
             data={"at": now().isoformat()},
         )
         # Reenviar el stream del broker
-        for chunk in step_log_broker.stream(step_execution.id):
+        for chunk in step_log_broker.stream(str(step_execution.id)):
             yield chunk
 
     response = StreamingHttpResponse(event_stream(), content_type="text/event-stream")
@@ -256,7 +256,7 @@ def step_execution_logs_stream(request, pk: str):  # type: ignore[override]
     ),
     tags=["Executions", "SSE"],
 )
-def step_execution_logs_append(request, pk: str):  # type: ignore[override]
+def step_execution_logs_append(request, pk: str):
     """Endpoint para publicar logs a un StepExecution (solo usuarios autorizados)."""
     if request.method != "POST":
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
@@ -266,7 +266,7 @@ def step_execution_logs_append(request, pk: str):  # type: ignore[override]
 
     try:
         step_execution = StepExecution.objects.select_related(
-            "execution_snapshot__flow_version__flow__owner", "step__flow"
+            "execution_snapshot__flow_version__flow__owner"
         ).get(pk=pk)
     except StepExecution.DoesNotExist:
         raise Http404()
@@ -283,12 +283,12 @@ def step_execution_logs_append(request, pk: str):  # type: ignore[override]
 
     if line:
         step_log_broker.publish(
-            step_execution.id,
+            str(step_execution.id),
             event=event_name,
             data={"line": str(line), "at": now().isoformat()},
         )
 
     if end_flag:
-        step_log_broker.complete(step_execution.id)
+        step_log_broker.complete(str(step_execution.id))
 
     return Response({"ok": True})

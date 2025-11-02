@@ -1,8 +1,10 @@
+from typing import Any
+
 import pytest
 
 
 @pytest.fixture(scope="session", autouse=True)
-def ensure_flows_migrations(django_db_setup, django_db_blocker):
+def ensure_flows_migrations(django_db_setup: Any, django_db_blocker: Any) -> None:
     """Ensure the `flows` app models and migrations are available before tests run.
 
     This fixture runs once per test session (autouse). It will attempt to import

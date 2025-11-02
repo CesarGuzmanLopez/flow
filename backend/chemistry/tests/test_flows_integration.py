@@ -116,7 +116,7 @@ class TestMoleculeFlowTracking:
         try:
             from flows.models import Flow
 
-            flow = Flow.objects.create(name="Test Flow", created_by=user)
+            flow = Flow.objects.create(name="Test Flow", owner=user)
 
             mf = MoleculeFlow.objects.create(
                 molecule=mol, flow=flow, role="generated", step_number=1
@@ -143,7 +143,7 @@ class TestMoleculeFlowTracking:
         try:
             from flows.models import Flow
 
-            flow = Flow.objects.create(name="Test Flow", created_by=user)
+            flow = Flow.objects.create(name="Test Flow", owner=user)
 
             mol_input = create_molecule_from_smiles(smiles="CCO", created_by=user)
 
@@ -204,7 +204,7 @@ class TestFlowQueries:
         try:
             from flows.models import Flow
 
-            flow = Flow.objects.create(name="Test Flow", created_by=user)
+            flow = Flow.objects.create(name="Test Flow", owner=user)
 
             # Create molecules
             mol1 = create_molecule_from_smiles(smiles="CCO", created_by=user)
@@ -289,7 +289,7 @@ class TestCascadeDeletion:
         try:
             from flows.models import Flow
 
-            flow = Flow.objects.create(name="Test Flow", created_by=user)
+            flow = Flow.objects.create(name="Test Flow", owner=user)
 
             mol = create_molecule_from_smiles(smiles="CCO", created_by=user)
 
@@ -316,7 +316,7 @@ class TestCascadeDeletion:
         try:
             from flows.models import Flow
 
-            flow = Flow.objects.create(name="Test Flow", created_by=user)
+            flow = Flow.objects.create(name="Test Flow", owner=user)
 
             mol1 = create_molecule_from_smiles(smiles="CCO", created_by=user)
             mol2 = create_molecule_from_smiles(smiles="CC(C)O", created_by=user)
@@ -370,7 +370,7 @@ class TestMetadataConsistency:
         try:
             from flows.models import Flow
 
-            flow = Flow.objects.create(name="Test Flow", created_by=user)
+            flow = Flow.objects.create(name="Test Flow", owner=user)
 
             mol = create_molecule_from_smiles(
                 smiles="CCO",

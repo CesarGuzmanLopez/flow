@@ -12,20 +12,23 @@ Design goals:
 """
 
 import warnings
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 
 from rdkit import Chem, RDLogger
-from rdkit.Chem import Descriptors, GraphDescriptors, Lipinski
+from rdkit.Chem import Descriptors, GraphDescriptors
 
-from chemistry.types import (
+from chemistry.type_definitions import (
     DescriptorValue,
     InvalidSmilesError,
     SyntheticAccessibilityDescriptors,
     SyntheticAccessibilityResult,
+    SyntheticAccessibilityResultDict,
 )
 
 # Suppress RDKit warnings for cleaner output
-RDLogger.DisableLog("rdApp.*")
+if hasattr(RDLogger, "DisableLog"):
+    DisableLog = getattr(RDLogger, "DisableLog")
+    DisableLog("rdApp.*")
 
 # Try to import SAScore (may not be available in all RDKit distributions)
 try:
@@ -164,13 +167,13 @@ class RDKitSAProvider:
         mw = Descriptors.MolWt(mol)
         score -= min(30, (mw - 150) / 15)  # Penalty for high MW
 
-        num_rings = Lipinski.RingCount(mol)
+        num_rings = mol.GetRingInfo().NumRings()
         score -= min(20, num_rings * 5)  # Penalty for multiple rings
 
-        num_rot_bonds = Lipinski.NumRotatableBonds(mol)
+        num_rot_bonds = Descriptors.NumRotatableBonds(mol)
         score -= min(15, num_rot_bonds * 2)  # Penalty for flexibility
 
-        num_hetero = Lipinski.NumHeteroatoms(mol)
+        num_hetero = Descriptors.NumHeteroatoms(mol)
         score -= min(10, (num_hetero - 2) * 2)  # Penalty for heteroatoms
 
         # Chiral centers (stereo complexity)
@@ -226,8 +229,8 @@ class RDKitSAProvider:
         cyclomatic_number = None
         try:
             # Approximate cyclomatic number from ring count
-            num_rings = Lipinski.RingCount(mol)
-            cyclo_value = float(num_rings)
+            num_rings = float(mol.GetRingInfo().NumRings())
+            cyclo_value = num_rings
             # Score inversely correlated with ring count
             cyclo_score = max(0, 100 - (num_rings * 10))
             cyclomatic_number = DescriptorValue(
@@ -287,7 +290,7 @@ def get_rdkit_sa_provider() -> RDKitSAProvider:
 
 def calculate_synthetic_accessibility_rdkit(
     smiles: str, verbose: bool = False
-) -> Dict[str, Any]:
+) -> SyntheticAccessibilityResultDict:
     """Calculate synthetic accessibility using RDKit.
 
     Convenience function that uses the global provider instance.
@@ -298,15 +301,10 @@ def calculate_synthetic_accessibility_rdkit(
 
     Returns:
         Dictionary with SA score and optional descriptors
+
+    Raises:
+        InvalidSmilesError: If the SMILES string is invalid
     """
     provider = get_rdkit_sa_provider()
-    try:
-        result = provider.calculate_sa(smiles, verbose=verbose)
-        return result.to_dict()
-    except InvalidSmilesError as e:
-        # Structured error response for clients
-        return {
-            "smiles": smiles,
-            "error": "invalid_smiles",
-            "message": str(e),
-        }
+    result = provider.calculate_sa(smiles, verbose=verbose)
+    return result.to_dict()

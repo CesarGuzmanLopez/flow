@@ -8,7 +8,7 @@ vistas (adaptadores) queden delgadas y fáciles de testear.
 
 import hashlib
 import json
-from typing import Any, List
+from typing import TYPE_CHECKING, Any, List
 
 from django.contrib.auth import get_user_model
 from django.db import transaction
@@ -23,6 +23,9 @@ from .models import (
     FlowVersion,
     Step,
 )
+
+if TYPE_CHECKING:
+    pass
 
 User = get_user_model()
 
@@ -161,7 +164,7 @@ def get_path(branch_name: str, flow: Flow) -> List[FlowNode]:
         raise ValueError(f"Rama '{branch_name}' no existe en el flujo {flow.name}")
 
     path = []
-    current = branch.head
+    current: "FlowNode | None" = branch.head
     while current is not None:
         path.append(current)
         current = current.parent
@@ -247,7 +250,7 @@ def delete_branch(branch_name: str, flow: Flow) -> None:
         delete_branch(child_branch.name, flow)
 
     # Eliminar nodos exclusivos (desde head hasta start_node, sin incluir start_node)
-    current = branch.head
+    current: "FlowNode | None" = branch.head
     start_node = branch.start_node
 
     nodes_to_delete = []
@@ -264,7 +267,7 @@ def delete_branch(branch_name: str, flow: Flow) -> None:
 
 
 def initialize_main_branch(
-    flow: Flow, user: Any, initial_content: dict = None
+    flow: Flow, user: Any, initial_content: "dict[Any, Any] | None" = None
 ) -> FlowBranch:
     """Inicializa la rama principal de un flujo con un nodo raíz.
 

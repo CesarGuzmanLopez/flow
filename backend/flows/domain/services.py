@@ -4,9 +4,9 @@ Servicios de dominio para ejecución de flujos con notificaciones.
 Integra el sistema de notificaciones en la ejecución de flujos y steps.
 """
 
-import secrets
 from datetime import datetime
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
+from uuid import uuid4
 
 from django.contrib.auth import get_user_model
 from flows.models import ExecutionSnapshot, Flow, Step, StepExecution
@@ -19,7 +19,10 @@ from notifications.domain.events import (
     FlowStepStarted,
 )
 
-User = get_user_model()
+if TYPE_CHECKING:
+    from users.models import User
+else:
+    User = get_user_model()
 
 
 class FlowExecutionService:
@@ -58,11 +61,11 @@ class FlowExecutionService:
 
         # Emitir evento y notificar
         event = FlowStepStarted(
-            event_id=secrets.token_urlsafe(16),
+            event_id=uuid4(),
             flow_id=step.flow_version.flow.id,
             step_id=step.id,
             step_name=step.name,
-            user_id=step.flow_version.flow.owner.id,
+            user_id=int(getattr(step.flow_version.flow.owner, "id", 0)),
         )
 
         use_case = container.notify_step_started_use_case()
@@ -101,11 +104,11 @@ class FlowExecutionService:
 
         # Emitir evento y notificar
         event = FlowStepCompleted(
-            event_id=secrets.token_urlsafe(16),
+            event_id=uuid4(),
             flow_id=step_execution.step.flow_version.flow.id,
             step_id=step_execution.step.id,
             step_name=step_execution.step.name,
-            user_id=step_execution.step.flow_version.flow.owner.id,
+            user_id=int(getattr(step_execution.step.flow_version.flow.owner, "id", 0)),
             duration=duration,
         )
 
@@ -118,7 +121,7 @@ class FlowExecutionService:
     ) -> None:
         """Publica una línea de log al stream SSE del StepExecution."""
         step_log_broker.publish(
-            step_execution.id,
+            str(step_execution.id),
             event=event,
             data={"line": str(line), "at": datetime.now().isoformat()},
         )
@@ -141,16 +144,19 @@ class FlowExecutionService:
         step_execution.completed_at = datetime.now()
         step_execution.error_message = error_message
         step_execution.save(update_fields=["status", "completed_at", "error_message"])
+        # Emitir evento de fallo
         event = FlowStepFailed(
-            event_id=secrets.token_urlsafe(16),
+            event_id=uuid4(),
             flow_id=step_execution.step.flow_version.flow.id,
             step_id=step_execution.step.id,
             step_name=step_execution.step.name,
-            user_id=step_execution.step.flow_version.flow.owner.id,
+            user_id=int(getattr(step_execution.step.flow_version.flow.owner, "id", 0)),
             error_message=error_message,
         )
 
-        user_email = step_execution.step.flow_version.flow.owner.email
+        user_email = str(
+            getattr(step_execution.step.flow_version.flow.owner, "email", "")
+        )
         use_case = container.notify_step_failed_use_case()
         use_case.execute(event=event, user_email=user_email, send_webhook=webhook_url)
 
@@ -193,22 +199,24 @@ class FlowExecutionService:
 
         # Emitir evento y notificar
         event = FlowCompleted(
-            event_id=secrets.token_urlsafe(16),
+            event_id=uuid4(),
             flow_id=execution_snapshot.flow_version.flow.id,
             flow_name=execution_snapshot.flow_version.flow.name,
-            user_id=execution_snapshot.flow_version.flow.owner.id,
+            user_id=int(getattr(execution_snapshot.flow_version.flow.owner, "id", 0)),
             total_steps=total_steps,
             duration=duration,
         )
 
-        user_email = execution_snapshot.flow_version.flow.owner.email
+        user_email = str(
+            getattr(execution_snapshot.flow_version.flow.owner, "email", "")
+        )
         use_case = container.notify_flow_completed_use_case()
         use_case.execute(event=event, user_email=user_email, send_webhook=webhook_url)
 
     @staticmethod
     def complete_step_logs(step_execution: StepExecution) -> None:
         """Marca el stream SSE de logs del StepExecution como completado."""
-        step_log_broker.complete(step_execution.id)
+        step_log_broker.complete(str(step_execution.id))
 
 
 class FlowPermissionService:

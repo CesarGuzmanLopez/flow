@@ -29,7 +29,7 @@ from django.core.exceptions import ValidationError
 
 from .. import providers as providers
 from ..models import Molecule
-from ..types import (
+from ..type_definitions import (
     InvalidSmilesError,
     MolecularProperties,
     PropertyCalculationError,
@@ -267,7 +267,7 @@ def create_or_get_molecule(
                 smiles, return_dataclass=True
             )
         except Exception as e:
-            from ..types import InvalidSmilesError
+            from ..type_definitions import InvalidSmilesError
 
             raise InvalidSmilesError(str(e))
 
@@ -321,7 +321,7 @@ def create_or_get_molecule(
             if not created:
                 # Molecule already exists - check if we should reject it
                 if force_create:
-                    from ..types import MoleculeAlreadyExistsError
+                    from ..type_definitions import MoleculeAlreadyExistsError
 
                     raise MoleculeAlreadyExistsError(
                         inchikey=mol.inchikey,
@@ -369,13 +369,13 @@ def rehydrate_molecule_properties(molecule: Molecule) -> MolecularProperties:
                 f"Failed to rehydrate from metadata for molecule {molecule.id}: {e}"
             )
 
-    from ..types import MolecularPropertiesDict
+    from ..type_definitions import MolecularPropertiesDict
 
     # Usar un dict normal mientras se itera y luego hacer cast para TypedDict.
     properties: Dict[str, float] = {}
     for prop in molecule.properties.all():
         try:
-            properties[prop.property_type] = float(prop.value)  # type: ignore[index]
+            properties[prop.property_type] = float(prop.value)
         except (ValueError, TypeError):
             logger.warning(
                 f"Invalid property value for molecule {molecule.id}, property {prop.property_type}: {prop.value}"

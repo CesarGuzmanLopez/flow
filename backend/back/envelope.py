@@ -14,10 +14,18 @@ Attach this mixin to APIView/ViewSet classes (before DRF base class) to ensure
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Protocol, cast
 
 from rest_framework import status as drf_status
 from rest_framework.response import Response
+
+
+class HasFinalizeResponse(Protocol):
+    """Protocol for objects that have finalize_response method."""
+
+    def finalize_response(
+        self, request: Any, response: Any, *args: Any, **kwargs: Any
+    ) -> Any: ...
 
 
 def _default_message_for_status(status_code: int) -> str:
@@ -54,7 +62,9 @@ class StandardEnvelopeMixin:
 
     skip_standard_envelope: bool = False
 
-    def finalize_response(self, request, response, *args, **kwargs):  # type: ignore[override]
+    def finalize_response(
+        self, request: Any, response: Any, *args: Any, **kwargs: Any
+    ) -> Any:
         # Wrap BEFORE DRF renders the response so that tests see enveloped resp.data
         if isinstance(response, Response):
             if (
@@ -86,5 +96,6 @@ class StandardEnvelopeMixin:
                         "content": content,
                     }
 
-        # Now let DRF render
-        return super().finalize_response(request, response, *args, **kwargs)
+        # Now let DRF render - superclass will have finalize_response at runtime
+        parent = cast(HasFinalizeResponse, super())
+        return parent.finalize_response(request, response, *args, **kwargs)

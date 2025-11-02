@@ -64,7 +64,7 @@ class HasAppPermission(BasePermission):
         # For custom actions, views should define mapping; otherwise treat safe as read
         return None
 
-    def has_permission(self, request, view) -> bool:  # type: ignore[override]
+    def has_permission(self, request, view) -> bool:
         """
         Verifica si el usuario tiene permiso para acceder a la vista.
 
@@ -117,7 +117,7 @@ class HasAppPermission(BasePermission):
             # If custom method not present, deny by default
             return False
 
-    def has_object_permission(self, request, view, obj) -> bool:  # type: ignore[override]
+    def has_object_permission(self, request, view, obj) -> bool:
         """
         Verifica permiso a nivel de objeto.
 

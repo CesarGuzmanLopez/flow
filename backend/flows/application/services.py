@@ -60,7 +60,7 @@ class FlowApplicationService:
 
     def create_flow_version(self, flow: Flow, created_by: Any) -> FlowVersion:
         """Crea nueva versión de flujo."""
-        latest_version = flow.flowversion_set.order_by("-version_number").first()
+        latest_version = flow.versions.order_by("-version_number").first()
         next_version_number = latest_version.version_number + 1 if latest_version else 1
 
         return FlowVersion.objects.create(

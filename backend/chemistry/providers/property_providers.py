@@ -32,7 +32,7 @@ import random
 from typing import Dict
 
 from .. import providers as chem_providers
-from ..types import MolecularProperties
+from ..type_definitions import MolecularProperties
 from .interfaces import (
     AbstractPropertyProvider,
     PropertyCategoryInfo,

@@ -156,7 +156,7 @@ class MoleculeSerializer(serializers.ModelSerializer):
         """Get structure identifiers using type-safe interface."""
         try:
             identifiers = get_molecule_structure_info(obj)
-            return identifiers.to_dict()  # type: ignore[return-value]
+            return identifiers.to_dict()
         except Exception:
             # Fallback to direct field access
             return {
@@ -170,7 +170,7 @@ class MoleculeSerializer(serializers.ModelSerializer):
         """Get computed properties using type-safe interface."""
         try:
             properties = rehydrate_molecule_properties(obj)
-            return properties.to_dict()  # type: ignore[return-value]
+            return properties.to_dict()
         except Exception:
             # Fallback to empty dict
             return {}

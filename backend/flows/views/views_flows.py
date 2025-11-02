@@ -101,7 +101,7 @@ class FlowViewSet(BaseFlowViewSet):
             # Si ya existe, ignorar (no debería pasar en creación)
             pass
 
-    def get_queryset(self):  # type: ignore[override]
+    def get_queryset(self):
         """Soporta filtrado por propiedad del usuario y query param ?mine=true.
 
         - Si ?mine=true, devuelve solo flows del usuario.
@@ -329,7 +329,7 @@ class FlowVersionViewSet(BaseFlowViewSet):
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
 
-    def get_queryset(self):  # type: ignore[override]
+    def get_queryset(self):
         qs = super().get_queryset()
         if self.request.query_params.get("mine") == "true":
             return qs.filter(flow__owner=self.request.user)

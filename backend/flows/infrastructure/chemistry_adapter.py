@@ -26,8 +26,21 @@ class ChemistryAdapter(IChemistryPort):
 
         return Family.objects.get(pk=family_id)
 
-    def generate_admetsa_properties(self, family_id: int) -> Dict[str, Any]:
-        return chem_services.generate_admetsa_properties_for_family(family_id=family_id)
+    def generate_admetsa_properties(
+        self, family_id: int, created_by: Any
+    ) -> Dict[str, Any]:
+        """Generate ADMETSA properties for a family.
+
+        Args:
+            family_id: ID of the family
+            created_by: User who triggered the generation
+
+        Returns:
+            Dictionary with generation results
+        """
+        return chem_services.generate_admetsa_properties_for_family(
+            family_id=family_id, created_by=created_by
+        )
 
     def create_molecule_from_smiles(self, smiles: str, created_by: Any) -> Any:
         return chem_services.create_molecule_from_smiles(

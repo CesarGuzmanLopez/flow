@@ -5,8 +5,8 @@ Contiene la lógica de negocio relacionada con usuarios, autenticación,
 tokens y recuperación de contraseña.
 """
 
-import secrets
-from typing import Optional, Tuple
+from typing import TYPE_CHECKING, Optional, Tuple
+from uuid import uuid4
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -18,7 +18,10 @@ from notifications.domain.events import (
 )
 from users.models import UserToken
 
-User = get_user_model()
+if TYPE_CHECKING:
+    from users.models import User
+else:
+    User = get_user_model()
 
 
 class UserAuthenticationService:
@@ -40,17 +43,18 @@ class UserAuthenticationService:
         Returns:
             Tupla (usuario creado, es_nuevo)
         """
+        user_model = get_user_model()
         try:
-            user = User.objects.get(username=username)
+            user = user_model.objects.get(username=username)
             return user, False
-        except User.DoesNotExist:
-            user = User.objects.create_user(
+        except user_model.DoesNotExist:
+            user = user_model.objects.create_user(
                 username=username, email=email, password=password, **extra_fields
             )
 
             # Emitir evento de registro
             event = UserRegistered(
-                event_id=secrets.token_urlsafe(16),
+                event_id=uuid4(),
                 user_id=user.id,
                 username=user.username,
                 email=user.email,
@@ -135,7 +139,7 @@ class UserTokenService:
 
         # Emitir evento y enviar email
         event = PasswordResetRequested(
-            event_id=secrets.token_urlsafe(16),
+            event_id=uuid4(),
             user_id=user.id,
             email=user.email,
             token=token.token,
@@ -195,7 +199,7 @@ class UserTokenService:
 
         # Emitir evento y enviar email
         event = EmailVerificationRequested(
-            event_id=secrets.token_urlsafe(16),
+            event_id=uuid4(),
             user_id=user.id,
             email=user.email,
             token=token.token,

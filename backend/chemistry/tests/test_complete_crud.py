@@ -8,9 +8,12 @@ Verifica que las vistas puedan realizar todas las operaciones en la base de dato
 - Filtrado por usuario
 """
 
+from typing import Any
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
 from rest_framework import status
+from rest_framework.response import Response
 from rest_framework.test import APIClient
 from users.models import Permission, Role
 
@@ -23,7 +26,7 @@ from chemistry.models import (
 User = get_user_model()
 
 
-def content_of(resp):
+def content_of(resp: Response) -> Any:
     """Return the 'content' of the standard envelope or the raw data if not enveloped."""
     try:
         d = resp.data

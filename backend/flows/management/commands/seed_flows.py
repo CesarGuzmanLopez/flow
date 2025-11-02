@@ -30,7 +30,7 @@ class Command(BaseCommand):
                 self.stdout.write(
                     self.style.WARNING(f"Eliminados {deleted[0]} flujos existentes")
                 )
-        created_flows = []
+        created_flows: list[Flow] = []
         self.stdout.write("")
         self.stdout.write(self.style.SUCCESS("=" * 60))
         self.stdout.write(
@@ -40,4 +40,5 @@ class Command(BaseCommand):
         self.stdout.write("")
         self.stdout.write("Flujos creados:")
         for flow in created_flows:
-            self.stdout.write(f"  • {flow.name} (propietario: {flow.owner.username})")
+            owner_username = str(getattr(flow.owner, "username", "Unknown"))
+            self.stdout.write(f"  • {flow.name} (propietario: {owner_username})")

@@ -35,12 +35,15 @@ try:
     descriptors = result_v.descriptors.to_dict()
     print(f"  Available descriptors: {len(descriptors)}")
     for name, desc in descriptors.items():
-        value = desc["value"]
-        score = desc.get("score")
-        if score is not None:
-            print(f"  {name}: value={value:.2f}, score={score:.2f}")
+        if isinstance(desc, dict):
+            value = desc.get("value")
+            score = desc.get("score")
+            if score is not None and value is not None:
+                print(f"  {name}: value={value:.2f}, score={score:.2f}")
+            elif value is not None:
+                print(f"  {name}: value={value:.2f}, score=NA")
         else:
-            print(f"  {name}: value={value:.2f}, score=NA")
+            print(f"  {name}: {desc}")
 
     # Test simple molecules
     print("\n" + "=" * 60)

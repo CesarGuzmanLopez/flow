@@ -7,7 +7,7 @@ The tool outputs a score from 0 to 100 where 100 is maximal synthetic accessibil
 (easiest to synthesize).
 
 Design goals:
-- Strongly typed results using chemistry.types structures
+- Strongly typed results using chemistry.type_definitions structures
 - Robust parsing supporting both comma and dot decimal separators
 - Clear error mapping to domain exceptions (InvalidSmilesError)
 """
@@ -19,7 +19,7 @@ from typing import Any, Dict, List, Optional
 
 from django.conf import settings
 
-from chemistry.types import (
+from chemistry.type_definitions import (
     DescriptorValue,
     InvalidSmilesError,
     SyntheticAccessibilityDescriptors,
@@ -27,7 +27,7 @@ from chemistry.types import (
 )
 
 # Backward-compatibility note: Previously this module exposed AmbitSAResult.
-# Now we use SyntheticAccessibilityResult from chemistry.types for stronger typing.
+# Now we use SyntheticAccessibilityResult from chemistry.type_definitions for stronger typing.
 
 
 class AmbitSAProvider:
@@ -51,8 +51,11 @@ class AmbitSAProvider:
     def _get_java_path(self) -> str:
         """Get Java 8 path from settings or project structure."""
         # Try settings first
-        if hasattr(settings, "AMBIT_JAVA_PATH"):
-            return settings.AMBIT_JAVA_PATH
+        java_path_from_settings: Optional[str] = getattr(
+            settings, "AMBIT_JAVA_PATH", None
+        )
+        if java_path_from_settings:
+            return java_path_from_settings
 
         # Try project portable Java 8
         project_root = Path(__file__).parent.parent.parent.parent
@@ -66,8 +69,11 @@ class AmbitSAProvider:
     def _get_jar_path(self) -> str:
         """Get AMBIT-SA jar path from settings or project structure."""
         # Try settings first
-        if hasattr(settings, "AMBIT_JAR_PATH"):
-            return settings.AMBIT_JAR_PATH
+        jar_path_from_settings: Optional[str] = getattr(
+            settings, "AMBIT_JAR_PATH", None
+        )
+        if jar_path_from_settings:
+            return jar_path_from_settings
 
         # Try project structure
         project_root = Path(__file__).parent.parent.parent.parent
@@ -364,7 +370,7 @@ def calculate_synthetic_accessibility(
     provider = get_ambit_provider()
     try:
         result = provider.calculate_sa(smiles, verbose=verbose)
-        return result.to_dict()
+        return dict(result.to_dict())  # Convert to regular dict for mypy
     except InvalidSmilesError as e:
         # Structured error response for clients
         return {

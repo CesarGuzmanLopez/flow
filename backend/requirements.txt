@@ -16,6 +16,7 @@ numpy>=1.26
 matplotlib>=3.8
 rdkit>=2023.9.1
 setuptools>=65.0
+types-requests
 # BRSAScore requires pkg_resources from setuptools
 # Install with: pip install BRSAScore --no-deps
 # (BRSAScore has hardcoded rdkit-pypi dependency which doesn't exist)

@@ -138,7 +138,7 @@ class MoleculeViewSet(BaseChemistryViewSet):
     def create(self, request, *args, **kwargs):
         from django.core.exceptions import ValidationError
 
-        from ..types import MoleculeAlreadyExistsError
+        from ..type_definitions import MoleculeAlreadyExistsError
 
         payload = request.data if isinstance(request.data, dict) else dict(request.data)
         try:

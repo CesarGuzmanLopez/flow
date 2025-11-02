@@ -7,6 +7,7 @@ y permiten desacoplar componentes siguiendo Event-Driven Architecture.
 
 from dataclasses import dataclass, field
 from datetime import datetime
+from typing import Optional
 from uuid import UUID
 
 
@@ -23,7 +24,7 @@ class DomainEvent:
 class NotificationCreated(DomainEvent):
     """Evento: Se ha creado una nueva notificación."""
 
-    notification_id: UUID = None
+    notification_id: Optional[UUID] = None
     notification_type: str = ""
     recipient: str = ""
     event_type: str = field(default="notification.created", init=False)
@@ -33,7 +34,7 @@ class NotificationCreated(DomainEvent):
 class NotificationSent(DomainEvent):
     """Evento: Una notificación se ha enviado exitosamente."""
 
-    notification_id: UUID = None
+    notification_id: Optional[UUID] = None
     sent_at: datetime = field(default_factory=datetime.now)
     event_type: str = field(default="notification.sent", init=False)
 
@@ -42,7 +43,7 @@ class NotificationSent(DomainEvent):
 class NotificationFailed(DomainEvent):
     """Evento: Una notificación ha fallado al enviarse."""
 
-    notification_id: UUID = None
+    notification_id: Optional[UUID] = None
     error_message: str = ""
     retry_count: int = 0
     event_type: str = field(default="notification.failed", init=False)
@@ -52,7 +53,7 @@ class NotificationFailed(DomainEvent):
 class NotificationRetrying(DomainEvent):
     """Evento: Se está reintentando enviar una notificación."""
 
-    notification_id: UUID = None
+    notification_id: Optional[UUID] = None
     retry_count: int = 0
     event_type: str = field(default="notification.retrying", init=False)
 

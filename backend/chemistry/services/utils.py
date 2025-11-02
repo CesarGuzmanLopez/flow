@@ -1,5 +1,9 @@
 import logging
-from typing import Any, Dict, List
+from typing import TYPE_CHECKING, Any, Dict, List
+
+if TYPE_CHECKING:
+    from django.contrib.auth.models import AbstractUser
+    from django.db.models import QuerySet
 
 logger = logging.getLogger(__name__)
 
@@ -35,8 +39,11 @@ def _compute_property_statistics(
     return stats
 
 
-def filter_molecules_for_user(qs, user):
+def filter_molecules_for_user(
+    qs: "QuerySet[Any]", user: "AbstractUser"
+) -> "QuerySet[Any]":
     """Restrict molecules to those created by the user unless they have global perms."""
-    if getattr(user, "is_superuser", False) or user.has_permission("chemistry", "read"):
+    has_perm = getattr(user, "has_permission", lambda *args: False)
+    if getattr(user, "is_superuser", False) or has_perm("chemistry", "read"):
         return qs
     return qs.filter(created_by=user)

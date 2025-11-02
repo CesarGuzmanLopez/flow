@@ -185,17 +185,18 @@ class PropertyProviderInterface(Protocol):
         ...
 
     def calculate_properties(
-        self, smiles: str, category: str, **kwargs
-    ) -> Dict[str, str]:
+        self, smiles: str, category: str | None = None, **kwargs
+    ) -> Dict[str, Dict[str, object]]:
         """Calculate properties for a molecule.
 
         Args:
             smiles: SMILES string of the molecule
-            category: Property category to calculate
+            category: Property category to calculate (None for default)
             **kwargs: Provider-specific additional arguments
 
         Returns:
-            Dictionary mapping property names to string values
+            Dictionary mapping property names to structured property data
+            with value, units, source, and method information
 
         Raises:
             ValueError: If category not supported or SMILES invalid
@@ -212,6 +213,14 @@ class PropertyProviderInterface(Protocol):
 
         Raises:
             ValueError: If validation fails
+        """
+        ...
+
+    def list_categories(self) -> List[str]:
+        """List all supported category names.
+
+        Returns:
+            List of category names supported by this provider
         """
         ...
 
@@ -252,9 +261,9 @@ class AbstractPropertyProvider(ABC):
         init_props = getattr(self, "_initialize_properties", None)
         if callable(init_props):
             try:
-                props = init_props()  # type: ignore[misc]
+                props = init_props()
                 if isinstance(props, dict):
-                    self._properties = props  # type: ignore[assignment]
+                    self._properties = props
             except Exception:
                 # Keep empty on failure (provider can still work with categories)
                 self._properties = {}
@@ -327,9 +336,10 @@ class AbstractPropertyProvider(ABC):
 
     def get_category_info(self, category: str) -> PropertyCategoryInfo:
         """Get category information (implements interface)."""
+        provider_info = self.get_info()  # This handles the None case
         if category not in self._category_definitions:
             raise ValueError(
-                f"Category '{category}' not supported by {self._provider_info.name}. "
+                f"Category '{category}' not supported by {provider_info.name}. "
                 f"Supported: {list(self._category_definitions.keys())}"
             )
         return self._category_definitions[category]
@@ -356,9 +366,10 @@ class AbstractPropertyProvider(ABC):
             )
 
         # Validate category is supported
+        provider_info = self.get_info()  # This handles the None case
         if category not in self._category_definitions:
             raise ValueError(
-                f"Category '{category}' not supported by {self._provider_info.name}"
+                f"Category '{category}' not supported by {provider_info.name}"
             )
 
         # Validate inputs

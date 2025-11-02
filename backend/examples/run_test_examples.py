@@ -13,6 +13,10 @@ providers registry.
 
 import os
 import sys
+from typing import TYPE_CHECKING, List
+
+if TYPE_CHECKING:
+    from chemistry.providers.interfaces import PropertyProviderInterface
 
 SMILES = [
     "CCO",
@@ -24,7 +28,9 @@ SMILES = [
 ]
 
 
-def print_provider_results(provider, smiles_list):
+def print_provider_results(
+    provider: "PropertyProviderInterface", smiles_list: List[str]
+) -> None:
     print("=" * 60)
     print("Toxicology provider outputs (values with units)")
     print("=" * 60)
@@ -68,7 +74,7 @@ def print_provider_results(provider, smiles_list):
         print()
 
 
-def main():
+def main() -> None:
     # Setup Django and project path like other examples
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "back.settings")
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

@@ -17,7 +17,7 @@ from __future__ import annotations
 from .definitions import FlowDefinition, FlowStepDef, register_definition
 
 
-def _register():
+def _register() -> None:
     steps = [
         FlowStepDef(
             name="Crear familia de referencia",

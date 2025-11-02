@@ -21,7 +21,7 @@ class ChemflowTokenObtainPairSerializer(TokenObtainPairSerializer):
     """Serializador JWT personalizado que incluye username en el token."""
 
     @classmethod
-    def get_token(cls, user):  # type: ignore[override]
+    def get_token(cls, user):
         """
         Genera el token JWT incluyendo el username en los claims.
 
@@ -35,7 +35,7 @@ class ChemflowTokenObtainPairSerializer(TokenObtainPairSerializer):
         token["username"] = user.username
         return token
 
-    def validate(self, attrs):  # type: ignore[override]
+    def validate(self, attrs):
         """
         Valida las credenciales y añade datos del usuario a la respuesta.
 

@@ -6,17 +6,22 @@ Supports multiple providers:
 - BR-SAScore: Bayesian model, machine learning-based (state-of-the-art accuracy)
 """
 
-from typing import Any, Dict, List, Literal
+from typing import Dict, List, Literal, Union
 
 from chemistry.providers.ambit_sa import AmbitSAProvider
 from chemistry.providers.brsascore_sa import BRSAScoreProvider
 from chemistry.providers.rdkit_sa import RDKitSAProvider
+from chemistry.type_definitions import SyntheticAccessibilityResultDict
 
 ProviderType = Literal["ambit", "rdkit", "brsascore"]
+SAProviderUnion = Union[AmbitSAProvider, RDKitSAProvider, BRSAScoreProvider]
 
 
 class SyntheticAccessibilityService:
     """Service for calculating synthetic accessibility of molecules."""
+
+    provider: SAProviderUnion
+    provider_name: ProviderType
 
     def __init__(self, provider: ProviderType = "ambit"):
         """Initialize the service with the specified provider.
@@ -38,7 +43,7 @@ class SyntheticAccessibilityService:
 
     def calculate_for_molecule(
         self, smiles: str, include_details: bool = False
-    ) -> Dict[str, Any]:
+    ) -> SyntheticAccessibilityResultDict:
         """Calculate synthetic accessibility for a single molecule.
 
         Args:
@@ -63,7 +68,7 @@ class SyntheticAccessibilityService:
 
     def calculate_for_molecules(
         self, smiles_list: List[str], include_details: bool = False
-    ) -> List[Dict[str, Any]]:
+    ) -> List[SyntheticAccessibilityResultDict]:
         """Calculate synthetic accessibility for multiple molecules.
 
         Args:
@@ -78,7 +83,7 @@ class SyntheticAccessibilityService:
 
     def rank_by_synthetic_accessibility(
         self, smiles_list: List[str], reverse: bool = True
-    ) -> List[Dict[str, Any]]:
+    ) -> List[SyntheticAccessibilityResultDict]:
         """Rank molecules by synthetic accessibility.
 
         Args:

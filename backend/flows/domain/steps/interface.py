@@ -14,8 +14,8 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, fields, is_dataclass
 from typing import Any, Dict, List, Optional, Protocol, Type, TypeVar, get_type_hints
 
-TIn = TypeVar("TIn")
-TOut = TypeVar("TOut")
+TIn = TypeVar("TIn", contravariant=True)
+TOut = TypeVar("TOut", covariant=True)
 
 
 @dataclass
@@ -159,7 +159,10 @@ def execute_step(
         )
     # Ensure outputs is a dict representation for API
     if result.value is not None and not result.outputs:
-        result.outputs = asdict(result.value)  # type: ignore[arg-type]
+        if is_dataclass(result.value) and not isinstance(result.value, type):
+            result.outputs = asdict(result.value)
+        else:
+            result.outputs = {"value": result.value}
     return result
 
 

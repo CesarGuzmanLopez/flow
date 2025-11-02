@@ -21,10 +21,10 @@ class Role(models.Model):
     """Rol para control de acceso basado en roles (RBAC)."""
 
     # Campos tipados con django-stubs
-    name: models.CharField = models.CharField(max_length=100, unique=True)
-    description: models.TextField = models.TextField(blank=True)
-    created_at: models.DateTimeField = models.DateTimeField(auto_now_add=True)
-    updated_at: models.DateTimeField = models.DateTimeField(auto_now=True)
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ["name"]
@@ -36,12 +36,12 @@ class Role(models.Model):
 class Permission(models.Model):
     """Permiso para control de acceso granular (resource:action)."""
 
-    name: models.CharField = models.CharField(max_length=100)
-    codename: models.CharField = models.CharField(max_length=100, unique=True)
-    resource: models.CharField = models.CharField(max_length=100)
-    action: models.CharField = models.CharField(max_length=50)
-    description: models.TextField = models.TextField(blank=True)
-    created_at: models.DateTimeField = models.DateTimeField(auto_now_add=True)
+    name = models.CharField(max_length=100)
+    codename = models.CharField(max_length=100, unique=True)
+    resource = models.CharField(max_length=100)
+    action = models.CharField(max_length=50)
+    description = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ["resource", "action"]
@@ -54,32 +54,30 @@ class Permission(models.Model):
 class RolePermission(models.Model):
     """Relación many-to-many entre roles y permisos."""
 
-    role: models.ForeignKey = models.ForeignKey(
+    role = models.ForeignKey(
         Role, on_delete=models.CASCADE, related_name="role_permissions"
     )
-    permission: models.ForeignKey = models.ForeignKey(
+    permission = models.ForeignKey(
         Permission, on_delete=models.CASCADE, related_name="role_permissions"
     )
-    granted_at: models.DateTimeField = models.DateTimeField(auto_now_add=True)
+    granted_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         unique_together = ["role", "permission"]
 
-    def __str__(self):
-        return f"{self.role.name} -> {self.permission.codename}"
+    def __str__(self) -> str:
+        role_name = getattr(self.role, "name", "Unknown Role")
+        permission_codename = getattr(self.permission, "codename", "Unknown Permission")
+        return f"{role_name} -> {permission_codename}"
 
 
 class User(AbstractUser):
     """Modelo de usuario extendido con roles y campos adicionales."""
 
-    roles: models.ManyToManyField = models.ManyToManyField(
-        Role, related_name="users", blank=True
-    )
-    university: models.CharField = models.CharField(
-        max_length=255, blank=True, default=""
-    )
-    created_at: models.DateTimeField = models.DateTimeField(auto_now_add=True)
-    updated_at: models.DateTimeField = models.DateTimeField(auto_now=True)
+    roles = models.ManyToManyField(Role, related_name="users", blank=True)
+    university = models.CharField(max_length=255, blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def has_permission(self, resource: str, action: str) -> bool:
         """
@@ -98,9 +96,12 @@ class User(AbstractUser):
             action=action,
         ).exists()
 
-    def get_all_permissions(self):
+    def get_all_permissions(self, obj=None):
         """
         Obtiene todos los permisos del usuario a través de sus roles.
+
+        Args:
+            obj: Objeto (no usado en nuestra implementación)
 
         Returns:
             QuerySet de Permission: Permisos únicos del usuario
@@ -130,18 +131,12 @@ class UserToken(models.Model):
         ("password_reset", "Recuperación de Contraseña"),
     ]
 
-    user: models.ForeignKey = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="tokens"
-    )
-    token: models.CharField = models.CharField(
-        max_length=100, unique=True, db_index=True
-    )
-    token_type: models.CharField = models.CharField(
-        max_length=20, choices=TOKEN_TYPE_CHOICES
-    )
-    created_at: models.DateTimeField = models.DateTimeField(auto_now_add=True)
-    expires_at: models.DateTimeField = models.DateTimeField()
-    used_at: models.DateTimeField = models.DateTimeField(null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="tokens")
+    token = models.CharField(max_length=100, unique=True, db_index=True)
+    token_type = models.CharField(max_length=20, choices=TOKEN_TYPE_CHOICES)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    used_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ["-created_at"]
@@ -150,8 +145,9 @@ class UserToken(models.Model):
             models.Index(fields=["user", "token_type"]),
         ]
 
-    def __str__(self):
-        return f"{self.user.username} - {self.token_type} - {self.token[:8]}..."
+    def __str__(self) -> str:
+        username = getattr(self.user, "username", "Unknown User")
+        return f"{username} - {self.token_type} - {self.token[:8]}..."
 
     @classmethod
     def generate_token(

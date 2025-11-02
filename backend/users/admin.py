@@ -5,6 +5,8 @@ Registra modelos de usuarios, roles, permisos y sus relaciones,
 extendiendo el UserAdmin de Django para incluir campos personalizados.
 """
 
+from typing import Any
+
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.utils.translation import gettext_lazy as _
@@ -91,9 +93,12 @@ class UserTokenAdmin(admin.ModelAdmin):
     readonly_fields = ("token", "created_at", "used_at")
     ordering = ("-created_at",)
 
-    def is_valid(self, obj):
+    def is_valid(self, obj: Any) -> bool:
         """Muestra si el token es válido."""
-        return obj.is_valid()
+        result: bool = obj.is_valid()
+        return result
 
-    is_valid.boolean = True
-    is_valid.short_description = "Válido"
+
+# Set Django admin display properties dynamically to avoid mypy attr-defined errors
+setattr(UserTokenAdmin.is_valid, "boolean", True)
+setattr(UserTokenAdmin.is_valid, "short_description", "Válido")

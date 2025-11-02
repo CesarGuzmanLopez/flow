@@ -60,8 +60,14 @@ class FlowCollaborationConsumer(AsyncWebsocketConsumer):
         """Maneja conexión de nuevo usuario"""
         # Obtener información del usuario
         user = self.scope["user"]
-        self.user_id = user.id if user.is_authenticated else None
-        self.username = user.username if user.is_authenticated else "anonymous"
+
+        # Rechazar usuarios no autenticados
+        if not user.is_authenticated:
+            await self.close()
+            return
+
+        self.user_id: int = user.id
+        self.username: str = user.username
         self.flow_id = int(self.scope["url_route"]["kwargs"]["flow_id"])
         self.room_group_name = f"flow_{self.flow_id}"
 
@@ -152,7 +158,11 @@ class FlowCollaborationConsumer(AsyncWebsocketConsumer):
 
     async def handle_node_changed(self, data: Dict[str, Any]):
         """Maneja cambios en nodos"""
-        node_id = data.get("node_id")
+        node_id_raw = data.get("node_id")
+        if not node_id_raw or not isinstance(node_id_raw, str):
+            await self.send_error("node_id is required and must be a string")
+            return
+        node_id: str = node_id_raw
         node_data = data.get("node_data")
         operation = data.get("operation")  # 'create', 'update', 'delete'
 
@@ -203,7 +213,11 @@ class FlowCollaborationConsumer(AsyncWebsocketConsumer):
 
     async def handle_lock_element(self, data: Dict[str, Any]):
         """Maneja lock de elemento (evitar edición simultánea)"""
-        element_id = data.get("element_id")
+        element_id_raw = data.get("element_id")
+        if not element_id_raw or not isinstance(element_id_raw, str):
+            await self.send_error("element_id is required and must be a string")
+            return
+        element_id: str = element_id_raw
 
         # Verificar si ya está lockeado
         if self.is_locked_by_other(element_id):
@@ -236,7 +250,10 @@ class FlowCollaborationConsumer(AsyncWebsocketConsumer):
 
     async def handle_unlock_element(self, data: Dict[str, Any]):
         """Maneja unlock de elemento"""
-        element_id = data.get("element_id")
+        element_id_raw = data.get("element_id")
+        if not element_id_raw or not isinstance(element_id_raw, str):
+            return  # Silently ignore invalid unlock requests
+        element_id: str = element_id_raw
 
         # Liberar lock
         if (

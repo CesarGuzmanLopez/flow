@@ -6,7 +6,7 @@ Implementa IEmailSender simulando el envío de emails.
 """
 
 import logging
-from typing import List
+from typing import List, Optional
 
 from notifications.domain.entities import Notification
 from notifications.domain.ports import IEmailSender
@@ -72,7 +72,7 @@ class MockEmailSender(IEmailSender):
         subject: str,
         html_content: str,
         plain_content: str = "",
-        from_email: str = None,
+        from_email: Optional[str] = None,
     ) -> bool:
         """
         Simula envío de email HTML.

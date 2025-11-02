@@ -12,7 +12,7 @@ fall back gracefully to the mock engine for dev/test.
 from typing import Literal, Union, overload
 
 from chemistry.providers.interface import ChemEngineInterface
-from chemistry.types import (
+from chemistry.type_definitions import (
     InvalidSmilesError,
     MolecularProperties,
     MolecularPropertiesDict,
@@ -25,7 +25,7 @@ from chemistry.types import (
 
 try:
     from rdkit import Chem
-    from rdkit.Chem import Crippen, Descriptors, rdMolDescriptors
+    from rdkit.Chem import Descriptors, rdMolDescriptors
     from rdkit.Chem.inchi import MolToInchi, MolToInchiKey
 except Exception as exc:  # pragma: no cover - handled by provider selector
     raise ImportError(
@@ -96,8 +96,8 @@ class RDKitChemEngine(ChemEngineInterface):
 
         try:
             # Calculate properties
-            mol_wt = float(Descriptors.MolWt(mol))  # type: ignore[attr-defined]
-            log_p = float(Crippen.MolLogP(mol))  # type: ignore[attr-defined]
+            mol_wt = float(Descriptors.MolWt(mol))
+            log_p = float(Descriptors.MolLogP(mol))
             tpsa = float(rdMolDescriptors.CalcTPSA(mol))
             hba = float(rdMolDescriptors.CalcNumHBA(mol))
             hbd = float(rdMolDescriptors.CalcNumHBD(mol))

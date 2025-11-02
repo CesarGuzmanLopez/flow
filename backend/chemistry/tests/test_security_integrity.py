@@ -598,7 +598,7 @@ class TestMoleculeFlowIntegration:
 
         # Crear flow (si está disponible)
         try:
-            flow = Flow.objects.create(name="Test Flow", created_by=user)
+            flow = Flow.objects.create(name="Test Flow", owner=user)
 
             mf = MoleculeFlow.objects.create(molecule=mol, flow=flow, role="generated")
 

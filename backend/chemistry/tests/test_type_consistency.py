@@ -6,11 +6,12 @@ return the exact types specified in the interface.
 """
 
 import pytest
+
 from chemistry.providers.interface import ChemEngineInterface
 
 # Import implementations
 from chemistry.providers.mock_chem import MockChemEngine
-from chemistry.types import (
+from chemistry.type_definitions import (
     InvalidSmilesError,
     MolecularProperties,
     MolecularPropertiesDict,
@@ -292,7 +293,7 @@ class TestChemEngineTypeConsistency:
             )
 
 
-def test_type_validation_imports():
+def test_type_validation_imports() -> None:
     """Test that all type imports work correctly."""
     # This test ensures the module structure is correct
     assert StructureIdentifiers is not None

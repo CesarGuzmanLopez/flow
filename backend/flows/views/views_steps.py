@@ -2,6 +2,8 @@
 Vistas de gestión de pasos (steps) en flujos.
 """
 
+from typing import cast
+
 from back.envelope import StandardEnvelopeMixin
 from drf_spectacular.openapi import OpenApiParameter
 from drf_spectacular.types import OpenApiTypes
@@ -81,7 +83,7 @@ class StepViewSet(BaseFlowViewSet):
     search_fields = ["name", "step_type", "description"]
     ordering_fields = ["id", "order", "flow_version__id"]
 
-    def get_queryset(self):  # type: ignore[override]
+    def get_queryset(self):
         qs = super().get_queryset()
         if self.request.query_params.get("mine") == "true":
             return qs.filter(flow_version__flow__owner=self.request.user)
@@ -144,7 +146,8 @@ class StepViewSet(BaseFlowViewSet):
         tags=["Steps", "Executions"],
     )
     def run(self, request, pk=None):
-        step = self.get_object()
+        step_obj = self.get_object()
+        step = cast(Step, step_obj)
         flow = step.flow_version.flow
         if not FlowPermissionService.can_user_execute_flow(request.user, flow):
             return Response(status=status.HTTP_403_FORBIDDEN)

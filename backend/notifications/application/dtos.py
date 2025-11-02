@@ -5,7 +5,7 @@ Los DTOs son objetos simples para transferir datos entre capas,
 desacoplando la API REST de las entidades de dominio.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
 
@@ -18,19 +18,11 @@ class SendEmailDTO:
     message: str
     html_message: Optional[str] = None
     from_email: Optional[str] = None
-    cc: List[str] = None
-    bcc: List[str] = None
+    cc: List[str] = field(default_factory=list)
+    bcc: List[str] = field(default_factory=list)
     template_name: Optional[str] = None
     context: Optional[Dict[str, Any]] = None
     priority: str = "normal"
-
-    def __post_init__(self):
-        if self.cc is None:
-            self.cc = []
-        if self.bcc is None:
-            self.bcc = []
-        if self.context is None:
-            self.context = {}
 
 
 @dataclass
@@ -44,7 +36,7 @@ class SendWebhookDTO:
     timeout: int = 30
     priority: str = "normal"
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.headers is None:
             self.headers = {}
 

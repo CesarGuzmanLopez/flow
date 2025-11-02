@@ -18,7 +18,7 @@ from typing import Any, Dict, List, Optional
 
 from rdkit import Chem, RDLogger
 
-from chemistry.types import (
+from chemistry.type_definitions import (
     DescriptorValue,
     InvalidSmilesError,
     SyntheticAccessibilityDescriptors,
@@ -26,7 +26,13 @@ from chemistry.types import (
 )
 
 # Suppress RDKit warnings for cleaner output
-RDLogger.DisableLog("rdApp.*")
+try:
+    if hasattr(RDLogger, "DisableLog"):
+        DisableLog = getattr(RDLogger, "DisableLog")
+        DisableLog("rdApp.*")
+except AttributeError:
+    # Some RDKit versions might not have DisableLog
+    pass
 
 # Try to import BR-SAScore
 try:
@@ -300,7 +306,7 @@ def calculate_synthetic_accessibility_brsascore(
     provider = get_brsascore_provider()
     try:
         result = provider.calculate_sa(smiles, verbose=verbose)
-        return result.to_dict()
+        return dict(result.to_dict())  # Convert to regular dict for mypy
     except InvalidSmilesError as e:
         # Structured error response for clients
         return {

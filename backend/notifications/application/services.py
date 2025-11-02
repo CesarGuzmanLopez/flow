@@ -82,18 +82,19 @@ class NotificationService:
             cc=dto.cc,
             bcc=dto.bcc,
             template_name=dto.template_name,
-            context=dto.context,
+            context=dto.context or {},
             priority=NotificationPriority[dto.priority.upper()],
         )
 
         # Renderizar template si se especifica
         if dto.template_name and self._template_renderer:
             try:
+                context = dto.context or {}
                 notification.message = self._template_renderer.render(
-                    dto.template_name, dto.context
+                    dto.template_name, context
                 )
                 notification.html_message = self._template_renderer.render_html(
-                    dto.template_name, dto.context
+                    dto.template_name, context
                 )
             except Exception as e:
                 return NotificationResponseDTO(
@@ -102,7 +103,9 @@ class NotificationService:
                 )
 
         # Persistir antes de enviar
-        notification = self._repository.save(notification)
+        saved_notification = self._repository.save(notification)
+        if isinstance(saved_notification, EmailNotification):
+            notification = saved_notification
 
         # Intentar enviar
         try:
@@ -148,13 +151,15 @@ class NotificationService:
             recipient=dto.webhook_url,
             webhook_url=dto.webhook_url,
             payload=dto.payload,
-            headers=dto.headers,
+            headers=dto.headers or {},
             http_method=dto.http_method,
             timeout=dto.timeout,
             priority=NotificationPriority[dto.priority.upper()],
         )
 
-        notification = self._repository.save(notification)
+        saved_notification = self._repository.save(notification)
+        if isinstance(saved_notification, WebhookNotification):
+            notification = saved_notification
 
         try:
             success = self._webhook_sender.send(notification)
@@ -204,7 +209,9 @@ class NotificationService:
             priority=NotificationPriority[dto.priority.upper()],
         )
 
-        notification = self._repository.save(notification)
+        saved_notification = self._repository.save(notification)
+        if isinstance(saved_notification, RealtimeNotification):
+            notification = saved_notification
 
         try:
             if dto.user_id:

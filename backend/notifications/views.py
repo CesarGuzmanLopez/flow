@@ -4,6 +4,8 @@ Views para la API REST de notificaciones.
 Implementa los endpoints para gestionar notificaciones de usuario.
 """
 
+from typing import cast
+
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -77,7 +79,13 @@ class UserNotificationViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Retorna solo las notificaciones del usuario autenticado."""
-        return UserNotification.objects.filter(user=self.request.user)
+        user = self.request.user
+        if user.is_authenticated:
+            # Cast to int to satisfy type checker - pk is always an int for authenticated users
+            user_id = int(user.pk) if user.pk is not None else None
+            if user_id is not None:
+                return UserNotification.objects.filter(user=user_id)
+        return UserNotification.objects.none()
 
     def update(self, request, *args, **kwargs):
         """PUT method disabled for security reasons. Use PATCH instead."""
@@ -106,7 +114,8 @@ class UserNotificationViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"])
     def mark_as_read(self, request, id=None):
         """Marca una notificación específica como leída."""
-        notification = self.get_object()
+        notification_obj = self.get_object()
+        notification = cast(UserNotification, notification_obj)
         notification.mark_as_read()
         serializer = self.get_serializer(notification)
         return Response(serializer.data)

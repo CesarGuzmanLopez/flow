@@ -1,6 +1,6 @@
 from typing import Literal, Union, overload
 
-from ..types import (
+from ..type_definitions import (
     InvalidSmilesError,
     MolecularProperties,
     MolecularPropertiesDict,

@@ -81,7 +81,7 @@ class FlowBranchViewSet(BaseFlowViewSet):
         else:
             return FlowBranchSerializer
 
-    def get_queryset(self):  # type: ignore[override]
+    def get_queryset(self):
         qs = super().get_queryset()
         if self.request.query_params.get("mine") == "true":
             return qs.filter(flow__owner=self.request.user)
@@ -185,7 +185,7 @@ class FlowNodeViewSet(StandardEnvelopeMixin, viewsets.ReadOnlyModelViewSet):
     def get_serializer_class(self):
         return FlowNodeSerializer
 
-    def get_queryset(self):  # type: ignore[override]
+    def get_queryset(self):
         qs = super().get_queryset()
         if self.request.query_params.get("mine") == "true":
             return qs.filter(flow__owner=self.request.user)

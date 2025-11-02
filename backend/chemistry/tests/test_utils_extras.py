@@ -10,7 +10,7 @@ from django.test import TestCase, override_settings
 
 from chemistry.providers import utils as provider_utils
 from chemistry.services.utils import _compute_property_statistics
-from chemistry.types import MolecularProperties
+from chemistry.type_definitions import MolecularProperties
 
 
 class TestComputePropertyStatistics(TestCase):

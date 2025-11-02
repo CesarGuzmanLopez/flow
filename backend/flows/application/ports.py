@@ -35,9 +35,15 @@ class IChemistryPort(ABC):
         pass
 
     @abstractmethod
-    def generate_admetsa_properties(self, family_id: int) -> Dict[str, Any]:
+    def generate_admetsa_properties(
+        self, family_id: int, created_by: Any
+    ) -> Dict[str, Any]:
         """
         Genera propiedades ADMETSA para una familia.
+
+        Args:
+            family_id: ID de la familia
+            created_by: Usuario que inicia la generación
 
         Returns:
             dict con resultados de propiedades

@@ -114,7 +114,7 @@ class FlowViewSet(StandardEnvelopeMixin, viewsets.ModelViewSet):
             # Si ya existe, ignorar (no debería pasar en creación)
             pass
 
-    def get_permissions(self):  # type: ignore[override]
+    def get_permissions(self):
         """Permit 'mine' action to any authenticated user regardless of app ACL.
 
         Tests and API semantics expect the `/mine/` endpoint to be available to
@@ -179,7 +179,7 @@ class FlowViewSet(StandardEnvelopeMixin, viewsets.ModelViewSet):
             status=status.HTTP_201_CREATED,
         )
 
-    def get_queryset(self):  # type: ignore[override]
+    def get_queryset(self):
         """Soporta filtrado por propiedad del usuario y query param ?mine=true.
 
         - Si ?mine=true, devuelve solo flows del usuario.
@@ -361,7 +361,7 @@ class FlowVersionViewSet(StandardEnvelopeMixin, viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
 
-    def get_queryset(self):  # type: ignore[override]
+    def get_queryset(self):
         qs = super().get_queryset()
         return flow_services.filter_versions_for_user(qs, self.request.user)
 
@@ -451,7 +451,7 @@ class StepViewSet(StandardEnvelopeMixin, viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, HasAppPermission]
     permission_resource = "flows"
 
-    def get_queryset(self):  # type: ignore[override]
+    def get_queryset(self):
         qs = super().get_queryset()
         return flow_services.filter_steps_for_user(qs, self.request.user)
 
@@ -661,7 +661,7 @@ class ArtifactViewSet(StandardEnvelopeMixin, viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
 
-    def get_queryset(self):  # type: ignore[override]
+    def get_queryset(self):
         qs = super().get_queryset()
         return flow_services.filter_artifacts_for_user(qs, self.request.user)
 
@@ -721,7 +721,7 @@ class ExecutionSnapshotViewSet(StandardEnvelopeMixin, viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, HasAppPermission]
     permission_resource = "flows"
 
-    def get_queryset(self):  # type: ignore[override]
+    def get_queryset(self):
         qs = super().get_queryset()
         return flow_services.filter_snapshots_for_user(qs, self.request.user)
 
@@ -768,7 +768,7 @@ class StepExecutionViewSet(StandardEnvelopeMixin, viewsets.ModelViewSet):
         description="Retorna el estado actual, timestamps y salida de la ejecución.",
         tags=["Step Executions"],
     )
-    def status(self, request, pk=None):  # type: ignore[override]
+    def status(self, request, pk=None):
         step_exec = self.get_object()
         flow = step_exec.step.flow_version.flow
         if not FlowPermissionService.can_user_read_flow(request.user, flow):
@@ -792,7 +792,7 @@ class StepExecutionViewSet(StandardEnvelopeMixin, viewsets.ModelViewSet):
         ),
         tags=["Step Executions"],
     )
-    def cancel(self, request, pk=None):  # type: ignore[override]
+    def cancel(self, request, pk=None):
         step_exec = self.get_object()
         flow = step_exec.step.flow_version.flow
         if not FlowPermissionService.can_user_execute_flow(request.user, flow):
@@ -835,7 +835,7 @@ class StepExecutionViewSet(StandardEnvelopeMixin, viewsets.ModelViewSet):
         )
     ],
 )
-def step_execution_logs_stream(request, pk: str):  # type: ignore[override]
+def step_execution_logs_stream(request, pk: str):
     """Endpoint SSE para consumir logs en tiempo real de un StepExecution."""
     if not request.user or not request.user.is_authenticated:
         # Forzamos auth; si se requiere público, cambiar a AllowAny + tokens firmados
@@ -882,7 +882,7 @@ def step_execution_logs_stream(request, pk: str):  # type: ignore[override]
     ),
     tags=["Executions", "SSE"],
 )
-def step_execution_logs_append(request, pk: str):  # type: ignore[override]
+def step_execution_logs_append(request, pk: str):
     """Endpoint para publicar logs a un StepExecution (solo usuarios autorizados)."""
     if request.method != "POST":
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
@@ -972,7 +972,7 @@ class FlowBranchViewSet(viewsets.ModelViewSet):
 
             return FlowBranchSerializer
 
-    def get_queryset(self):  # type: ignore[override]
+    def get_queryset(self):
         qs = super().get_queryset()
         # Filtrar ramas de flows propios
         if not flow_services.user_can_read_all_flows(self.request.user):
@@ -1067,7 +1067,7 @@ class FlowNodeViewSet(viewsets.ReadOnlyModelViewSet):
 
         return FlowNodeSerializer
 
-    def get_queryset(self):  # type: ignore[override]
+    def get_queryset(self):
         qs = super().get_queryset()
         # Filtrar nodos de flows propios
         if not flow_services.user_can_read_all_flows(self.request.user):

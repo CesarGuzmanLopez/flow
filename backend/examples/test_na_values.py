@@ -9,7 +9,7 @@ import sys
 from pathlib import Path
 
 
-def setup_django():
+def setup_django() -> None:
     """Setup Django environment."""
     backend_dir = Path(__file__).parent.parent
     if str(backend_dir) not in sys.path:
@@ -21,7 +21,7 @@ def setup_django():
     django.setup()
 
 
-def test_na_values():
+def test_na_values() -> None:
     """Test NA value handling."""
     from chemistry.services.synthetic_accessibility import get_sa_service
 
@@ -65,7 +65,7 @@ def test_na_values():
                 if desc and desc.get("value") is not None:
                     value = desc["value"]
                     score = desc["score"]
-                    if score > 0:
+                    if score is not None and score > 0:
                         status = f"✓ value={value:.2f}, score={score:.2f}"
                     else:
                         status = (
@@ -86,7 +86,7 @@ def test_na_values():
     print("=" * 80)
 
 
-def main():
+def main() -> None:
     """Run NA value tests."""
     setup_django()
 

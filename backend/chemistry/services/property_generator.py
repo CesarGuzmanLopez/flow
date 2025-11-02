@@ -67,7 +67,7 @@ from typing import Any, Dict, List, Optional
 from ..models import Family, FamilyMember, FamilyProperty, MolecularProperty
 from ..providers import registry as default_registry
 from ..providers.interfaces import PropertyProviderInterface
-from ..types import PropertyGenerationResult
+from ..type_definitions import PropertyGenerationResult
 
 logger = logging.getLogger(__name__)
 

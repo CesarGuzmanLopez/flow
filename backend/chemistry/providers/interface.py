@@ -7,7 +7,7 @@ with precise type annotations and detailed documentation for each method.
 
 from typing import Literal, Protocol, Union, overload, runtime_checkable
 
-from ..types import (
+from ..type_definitions import (
     MolecularProperties,
     MolecularPropertiesDict,
     StructureIdentifiers,
