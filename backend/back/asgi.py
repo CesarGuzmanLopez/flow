@@ -20,7 +20,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "back.settings")
 django_asgi_app = get_asgi_application()
 
 # Importar enrutamiento WebSocket después de configurar Django
-from back.routing import websocket_urlpatterns  # noqa: E402
+from back.routing import websocket_urlpatterns
 
 application = ProtocolTypeRouter(
     {

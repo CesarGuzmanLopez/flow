@@ -4,10 +4,12 @@ from typing import Any, List, Optional, TypeVar
 
 from django.db.models import Model, QuerySet
 from django.http import HttpRequest
-from rest_framework.response import Response
-from rest_framework.serializers import Serializer
 
-T = TypeVar("T", bound=Model)
+from .response import Response
+from .serializers import Serializer
+
+_MT = TypeVar("_MT", bound=Model)
+
 
 class ViewSetMixin:
     """Mixin for ViewSet support."""

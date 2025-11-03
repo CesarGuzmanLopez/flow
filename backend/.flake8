@@ -4,3 +4,4 @@ exclude = .git,__pycache__,env,**/migrations/**
 ignore = E203
 #ignorar //whitespace before ':'Flake8(E203)
 ignore = E203
+ignore = E302

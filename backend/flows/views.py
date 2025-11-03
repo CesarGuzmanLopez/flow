@@ -24,16 +24,16 @@ from rest_framework.response import Response
 from users.permissions import HasAppPermission
 
 from . import services as flow_services
-from .domain.flujo import predefined_cadma  # noqa: F401 - ensure registration
+from .domain.flujo import predefined_cadma  #  - ensure registration
 from .domain.flujo.builder import create_flow_from_definition
 from .domain.flujo.definitions import get_definition, list_definitions
 from .domain.services import FlowExecutionService, FlowPermissionService
-from .domain.steps import (  # noqa: F401
+from .domain.steps import (
     create_reference_family,  # side-effect: register step
     create_reference_molecule_family,  # side-effect: register step
-    generate_admetsa_family_aggregates,  # noqa: F401 - side-effect import
+    generate_admetsa_family_aggregates,  #  - side-effect import
     generate_admetsa_properties,  # side-effect: register step
-    generate_substitution_permutations_family,  # noqa: F401 - side-effect import
+    generate_substitution_permutations_family,  #  - side-effect import
 )
 from .domain.steps.interface import (
     DataStack,
@@ -610,7 +610,7 @@ class StepViewSet(StandardEnvelopeMixin, viewsets.ModelViewSet):
                 StepExecutionSerializer(step_exec).data,
                 status=status.HTTP_201_CREATED,
             )
-        except Exception as e:  # noqa: BLE001 - registramos el error textual
+        except Exception as e:  #  - registramos el error textual
             FlowExecutionService.fail_step_execution(
                 step_exec, str(e), webhook_url=webhook_url
             )

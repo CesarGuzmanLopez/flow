@@ -216,7 +216,7 @@ class StepViewSet(BaseFlowViewSet):
                 StepExecutionSerializer(step_exec).data,
                 status=status.HTTP_201_CREATED,
             )
-        except Exception as e:  # noqa: BLE001 - registramos el error textual
+        except Exception as e:  #  - registramos el error textual
             FlowExecutionService.fail_step_execution(
                 step_exec, str(e), webhook_url=webhook_url
             )

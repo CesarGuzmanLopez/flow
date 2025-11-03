@@ -96,7 +96,7 @@ class RDKitChemEngine(ChemEngineInterface):
 
         try:
             # Calculate properties
-            mol_wt = float(Descriptors.MolWt(mol))
+            mol_wt = float(Descriptors.ExactMolWt(mol))
             log_p = float(Descriptors.MolLogP(mol))
             tpsa = float(rdMolDescriptors.CalcTPSA(mol))
             hba = float(rdMolDescriptors.CalcNumHBA(mol))

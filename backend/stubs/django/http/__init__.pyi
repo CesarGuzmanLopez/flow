@@ -24,7 +24,6 @@ class HttpRequest(DjangoHttpRequest):
     """Extended HttpRequest with DRF query_params."""
 
     query_params: QueryDict
-
 __all__ = [
     "HttpRequest",
     "HttpResponse",

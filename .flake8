@@ -1,3 +1,5 @@
 [flake8]
 max-line-length = 140
 exclude = .git,__pycache__,env
+#hay que ignorar el E203  y el E302 para que no de errores con black
+ignore = E203,E302,E305,E704

@@ -15,7 +15,7 @@ import warnings
 from typing import List, Optional
 
 from rdkit import Chem, RDLogger
-from rdkit.Chem import Descriptors, GraphDescriptors
+from rdkit.Chem import Descriptors, GraphDescriptors, rdMolDescriptors
 
 from chemistry.type_definitions import (
     DescriptorValue,
@@ -164,16 +164,16 @@ class RDKitSAProvider:
         score = 100.0
 
         # Penalties for complexity factors
-        mw = Descriptors.MolWt(mol)
+        mw = Descriptors.ExactMolWt(mol)
         score -= min(30, (mw - 150) / 15)  # Penalty for high MW
 
         num_rings = mol.GetRingInfo().NumRings()
         score -= min(20, num_rings * 5)  # Penalty for multiple rings
 
-        num_rot_bonds = Descriptors.NumRotatableBonds(mol)
+        num_rot_bonds = rdMolDescriptors.CalcNumRotatableBonds(mol)
         score -= min(15, num_rot_bonds * 2)  # Penalty for flexibility
 
-        num_hetero = Descriptors.NumHeteroatoms(mol)
+        num_hetero = rdMolDescriptors.CalcNumHeteroatoms(mol)
         score -= min(10, (num_hetero - 2) * 2)  # Penalty for heteroatoms
 
         # Chiral centers (stereo complexity)

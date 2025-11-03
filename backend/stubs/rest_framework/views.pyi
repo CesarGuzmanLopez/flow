@@ -1,0 +1,23 @@
+"""Type stubs for rest_framework.views."""
+
+from typing import Any
+
+from django.http import HttpRequest
+
+from .response import Response
+
+class APIView:
+    """Base API view class."""
+
+    request: HttpRequest
+
+    def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> Response: ...
+    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> Response: ...
+    def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> Response: ...
+    def put(self, request: HttpRequest, *args: Any, **kwargs: Any) -> Response: ...
+    def patch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> Response: ...
+    def delete(self, request: HttpRequest, *args: Any, **kwargs: Any) -> Response: ...
+
+def exception_handler(exc: Exception, context: Any) -> Response | None: ...
+
+__all__ = ["APIView", "exception_handler"]

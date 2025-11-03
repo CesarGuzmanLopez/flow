@@ -17,7 +17,7 @@ def ensure_flows_migrations(django_db_setup: Any, django_db_blocker: Any) -> Non
     with django_db_blocker.unblock():
         try:
             # Simple import check
-            from flows.models import Flow  # noqa: F401
+            from flows.models import Flow
         except Exception:
             # Try to apply migrations for the flows app and re-import
             from django.core.management import call_command
@@ -26,6 +26,6 @@ def ensure_flows_migrations(django_db_setup: Any, django_db_blocker: Any) -> Non
             call_command("migrate", "flows", verbosity=0)
 
             # Re-import to ensure model is available
-            from flows.models import Flow  # noqa: F401
+            from flows.models import Flow
 
         # No return value needed; if anything fails an exception will bubble up

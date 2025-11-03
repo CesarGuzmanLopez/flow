@@ -14,7 +14,7 @@ from notifications.domain.ports import IRealtimeSender
 logger = logging.getLogger(__name__)
 
 
-class MockRealtimeSender(IRealtimeSender):  # noqa: F821
+class MockRealtimeSender(IRealtimeSender):
     """
     Adaptador mock para notificaciones en tiempo real.
 
