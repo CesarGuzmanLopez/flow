@@ -14,9 +14,6 @@ import sys
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from chemistry.services.synthetic_accessibility import ProviderType
-from chemistry.type_definitions import SyntheticAccessibilityResultDict
-
 
 def setup_django():
     """Setup Django environment."""
@@ -114,7 +111,8 @@ def compare_basic_scores():
 
 def compare_descriptors():
     """Compare descriptor availability across providers."""
-    from chemistry.services.synthetic_accessibility import get_sa_service
+    from chemistry.services.synthetic_accessibility import ProviderType, get_sa_service
+    from chemistry.type_definitions import SyntheticAccessibilityResultDict
 
     print_section("Descriptor Availability Comparison")
 
@@ -217,7 +215,7 @@ def compare_descriptors():
 
 def compare_complex_molecules():
     """Compare SA scores for complex molecules across providers."""
-    from chemistry.services.synthetic_accessibility import get_sa_service
+    from chemistry.services.synthetic_accessibility import ProviderType, get_sa_service
 
     print_section("Complex Molecules Comparison")
 
@@ -271,7 +269,7 @@ def compare_complex_molecules():
 
 def compare_ranking():
     """Compare ranking of molecules across providers."""
-    from chemistry.services.synthetic_accessibility import get_sa_service
+    from chemistry.services.synthetic_accessibility import ProviderType, get_sa_service
 
     print_section("Ranking Comparison (Easiest to Hardest)")
 
