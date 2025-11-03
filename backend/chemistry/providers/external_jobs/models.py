@@ -1,3 +1,4 @@
+
 """
 Modelos Django para ejecuciones duraderas, checkpoints y transactional outbox.
 Incluye Execution, Checkpoint, OutboxEntry.
@@ -7,6 +8,7 @@ from __future__ import annotations
 
 import uuid
 
+# from typing import TYPE_CHECKING
 from django.db import models
 from django.utils import timezone
 
@@ -22,7 +24,25 @@ class ExecutionStatus(models.TextChoices):
     BROKEN = "broken"
 
 
+# (TYPE_CHECKING import moved inside class for mypy only)
+
+
 class Execution(models.Model):
+    # Explicitly declare the default manager for mypy
+    objects: models.Manager["Execution"] = models.Manager()
+
+    # For type checking: declare related manager for checkpoints
+    # For type checking: declare related manager for checkpoints
+    # (import TYPE_CHECKING at the top if not already present)
+    try:
+        from typing import TYPE_CHECKING
+    except ImportError:
+        TYPE_CHECKING = False
+    if TYPE_CHECKING:
+        from django.db.models import Manager
+
+        checkpoints: "Manager[Checkpoint]"
+        outbox_entries: "Manager[OutboxEntry]"
     execution_id = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False
     )
@@ -52,6 +72,8 @@ class Execution(models.Model):
 
 
 class Checkpoint(models.Model):
+    # Explicitly declare the default manager for mypy
+    objects: models.Manager["Checkpoint"] = models.Manager()
     execution = models.ForeignKey(
         Execution, on_delete=models.CASCADE, related_name="checkpoints"
     )
@@ -67,6 +89,8 @@ class Checkpoint(models.Model):
 
 
 class OutboxEntry(models.Model):
+    # Explicitly declare the default manager for mypy
+    objects: models.Manager["OutboxEntry"] = models.Manager()
     execution = models.ForeignKey(
         Execution, on_delete=models.CASCADE, related_name="outbox_entries"
     )

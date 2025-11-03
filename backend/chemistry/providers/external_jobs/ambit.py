@@ -68,7 +68,7 @@ def _to_metadata(exec_obj: Execution) -> ExecutionMetadata:
         provider_name=exec_obj.provider_name,
         created_at=exec_obj.created_at,
         updated_at=exec_obj.updated_at,
-        status=status_map[exec_obj.status],
+        status=status_map[DBStatus(exec_obj.status)],
         last_checkpoint=cp_val,
         payload=exec_obj.payload,
         error=exec_obj.error,
@@ -163,7 +163,9 @@ def run_ambit_execution(execution_id: str) -> None:
         # Paso 2: ejecución AMBIT
         smiles = exec_obj.payload.get("smiles")
         provider = get_ambit_provider()
-        result: SyntheticAccessibilityResultDict = provider.calculate(smiles)
+        result: SyntheticAccessibilityResultDict = provider.calculate_sa(
+            smiles
+        ).to_dict()
         # Paso 3: persistir resultados
         new_payload = dict(exec_obj.payload)
         new_payload["result"] = result
