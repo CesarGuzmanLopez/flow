@@ -164,6 +164,9 @@ class ChemistryServicesTests(TestCase):
         )
 
         self.assertEqual(result.family_id, family.id)
+        self.assertIsNotNone(result.properties_created)
+        # mypy: properties_created is Optional[int]; verified not None above
+        assert result.properties_created is not None
         self.assertGreater(result.properties_created, 0)
         self.assertEqual(len(result.molecule_results), 2)
         self.assertTrue(result.success)
@@ -190,7 +193,10 @@ class ChemistryServicesTests(TestCase):
         self.assertEqual(family.name, "Aspirin Family")
         self.assertEqual(family.provenance, "reference")
         self.assertEqual(family.members.count(), 1)
-        self.assertEqual(family.members.first().molecule, molecule)
+        member = family.members.first()
+        self.assertIsNotNone(member)
+        assert member is not None
+        self.assertEqual(member.molecule, molecule)
 
     def test_generate_substituted_family(self):
         """Test generación de familia de sustituciones."""

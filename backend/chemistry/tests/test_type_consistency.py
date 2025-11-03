@@ -87,9 +87,7 @@ class TestChemEngineTypeConsistency:
             )
 
             # Test conversion between formats
-            converted = StructureIdentifiers.from_dict(
-                cast(StructureIdentifiersDict, result_dict)
-            )
+            converted = StructureIdentifiers.from_dict(result_dict)
             reconverted = converted.to_dict()
             assert "inchi" in reconverted, f"{engine_name}: Conversion failed"
             assert "inchikey" in reconverted, f"{engine_name}: Conversion failed"
@@ -137,9 +135,7 @@ class TestChemEngineTypeConsistency:
                 )
 
             # Test conversion between formats
-            converted = MolecularProperties.from_dict(
-                cast(MolecularPropertiesDict, result_dict)
-            )
+            converted = MolecularProperties.from_dict(result_dict)
             reconverted = converted.to_dict()
             assert isinstance(reconverted, dict), f"{engine_name}: Conversion failed"
 
@@ -282,6 +278,8 @@ class TestChemEngineTypeConsistency:
 
             # Check that key properties match (if they exist)
             if dc_props.log_p is not None and "LogP" in dict_props:
+                # converted_dc_props.log_p should be present when 'LogP' in dict_props
+                assert converted_dc_props.log_p is not None
                 assert abs(dc_props.log_p - converted_dc_props.log_p) < 1e-6, (
                     f"{engine_name}: LogP mismatch"
                 )

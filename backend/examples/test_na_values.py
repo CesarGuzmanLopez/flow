@@ -23,14 +23,17 @@ def setup_django() -> None:
 
 def test_na_values() -> None:
     """Test NA value handling."""
-    from chemistry.services.synthetic_accessibility import get_sa_service
+    from chemistry.services.synthetic_accessibility import (
+        SyntheticAccessibilityService,
+        get_sa_service,
+    )
     from chemistry.type_definitions import SyntheticAccessibilityResultDict
 
     print("=" * 80)
     print("Testing NA (Not Available) Values in BR-SAScore Provider")
     print("=" * 80)
 
-    service = get_sa_service(provider="brsascore")
+    service: SyntheticAccessibilityService = get_sa_service(provider="brsascore")
 
     test_molecules = [
         ("CCO", "Ethanol (simple, no rings, no stereo)"),
@@ -65,9 +68,9 @@ def test_na_values() -> None:
 
             for key, display_name in desc_names:
                 desc = descriptors.get(key)
-                if desc and desc.get("value") is not None:
+                if desc and isinstance(desc, dict) and desc.get("value") is not None:
                     value = desc["value"]
-                    score = desc["score"]
+                    score = desc.get("score")
                     if score is not None and score > 0:
                         status = f"✓ value={value:.2f}, score={score:.2f}"
                     else:

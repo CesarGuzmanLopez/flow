@@ -45,7 +45,7 @@ class ChemflowTokenObtainPairSerializer(TokenObtainPairSerializer):
         Returns:
             dict: Datos del token (access, refresh) más objeto 'user' serializado
         """
-        data = super().validate(attrs)
+        data: dict = super().validate(attrs)
         # Attach user serialized data for frontend convenience
         data["user"] = UserSerializer(self.user).data
         return data
@@ -88,7 +88,7 @@ class ChemflowTokenObtainPairView(StandardEnvelopeMixin, TokenObtainPairView):
         responses={
             status.HTTP_200_OK: OpenApiResponse(
                 description="Autenticación exitosa",
-                response={"type": "object"},
+                response=dict,
                 examples=[
                     OpenApiExample(
                         "Ejemplo de respuesta exitosa",

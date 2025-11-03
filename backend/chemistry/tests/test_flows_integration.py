@@ -169,7 +169,9 @@ class TestMoleculeFlowTracking:
             # Query by role
             input_mols = MoleculeFlow.objects.filter(flow=flow, role="input")
             assert input_mols.count() == 1
-            assert input_mols.first().molecule == mol_input
+            first_input = input_mols.first()
+            assert first_input is not None
+            assert first_input.molecule == mol_input
 
             generated_mols = MoleculeFlow.objects.filter(flow=flow, role="generated")
             assert generated_mols.count() == 1

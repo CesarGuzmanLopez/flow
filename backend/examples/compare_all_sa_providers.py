@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 from chemistry.services.synthetic_accessibility import ProviderType
+from chemistry.type_definitions import SyntheticAccessibilityResultDict
 
 
 def setup_django():
@@ -139,7 +140,7 @@ def compare_descriptors():
     ]
 
     # Collect all results
-    all_results: Dict[ProviderType, Optional[dict]] = {}
+    all_results: Dict[ProviderType, Optional[SyntheticAccessibilityResultDict]] = {}
     for provider in providers:
         try:
             service = get_sa_service(provider=provider)
@@ -154,8 +155,10 @@ def compare_descriptors():
     print("-" * 80)
     for provider in providers:
         if all_results[provider]:
-            score = all_results[provider]["sa_score"]
-            print(f"  {provider_names[provider]:<15} {score:.2f}")
+            res = all_results[provider]
+            assert res is not None
+            sa_score = res["sa_score"]
+            print(f"  {provider_names[provider]:<15} {sa_score:.2f}")
         else:
             print(f"  {provider_names[provider]:<15} N/A")
 
@@ -169,12 +172,22 @@ def compare_descriptors():
         row = [desc_name.replace("_", " ").title()]
 
         for provider in providers:
-            result = all_results[provider]
-            if result and isinstance(result.get("descriptors"), dict):
-                desc = result["descriptors"].get(desc_name)
-                if desc and desc.get("value") is not None:
-                    value = desc["value"]
-                    score = desc.get("score")
+            provider_result: Optional[SyntheticAccessibilityResultDict] = all_results[
+                provider
+            ]
+            if (
+                provider_result
+                and isinstance(provider_result, dict)
+                and isinstance(provider_result.get("descriptors"), dict)
+            ):
+                descriptors_dict = provider_result["descriptors"]
+                desc = descriptors_dict.get(desc_name)
+                if desc and isinstance(desc, dict) and desc.get("value") is not None:
+                    value: float = float(desc["value"])
+                    score_val = desc.get("score")
+                    score: Optional[float] = (
+                        float(score_val) if score_val is not None else None
+                    )
                     if score is not None and score > 0:
                         cell = f"v:{value:.1f} s:{score:.1f}"
                     elif score is not None:
@@ -225,7 +238,8 @@ def compare_complex_molecules():
     for smiles, name in complex_molecules:
         scores: List[Optional[float]] = []
 
-        for provider in ["ambit", "rdkit", "brsascore"]:
+        providers2: List[ProviderType] = ["ambit", "rdkit", "brsascore"]
+        for provider in providers2:
             try:
                 # provider literals match ProviderType
                 service = get_sa_service(provider=provider)
@@ -272,7 +286,7 @@ def compare_ranking():
     smiles_list = [s for s, _ in test_molecules]
     name_dict = {s: n for s, n in test_molecules}
 
-    providers = ["ambit", "rdkit", "brsascore"]
+    providers: List[ProviderType] = ["ambit", "rdkit", "brsascore"]
     provider_names = {
         "ambit": "AMBIT-SA",
         "rdkit": "RDKit",
