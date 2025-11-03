@@ -28,4 +28,28 @@ router.register(r"family-members", FamilyMemberViewSet, basename="familymember")
 
 urlpatterns = [
     path("", include(router.urls)),
+    # Telemetría para external jobs (providers pesados)
+    path(
+        "external-jobs/health",
+        __import__(
+            "chemistry.providers.external_jobs.telemetry",
+            fromlist=["health_check"],
+        ).health_check,
+        name="external_jobs_health",
+    ),
+    path(
+        "external-jobs/readiness",
+        __import__(
+            "chemistry.providers.external_jobs.telemetry",
+            fromlist=["readiness_check"],
+        ).readiness_check,
+        name="external_jobs_readiness",
+    ),
+    path(
+        "external-jobs/metrics",
+        __import__(
+            "chemistry.providers.external_jobs.telemetry", fromlist=["metrics"]
+        ).metrics,
+        name="external_jobs_metrics",
+    ),
 ]
