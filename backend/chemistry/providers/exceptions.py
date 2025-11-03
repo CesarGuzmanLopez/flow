@@ -1,16 +1,8 @@
-"""Compatibility exceptions module for chemistry providers.
+"""Backward-compat shim for exceptions module.
 
-Some code (including tests) imports exceptions from
-`chemistry.providers.exceptions`. Historically exception classes lived
-near the providers; they are now defined in `chemistry.type_definitions`. This
-module re-exports the relevant exception classes for backwards
-compatibility.
+Re-exports exceptions from core.exceptions.
 """
 
-from __future__ import annotations
-
-from ..type_definitions import (
-    InvalidSmilesError,  # re-export for backwards compatibility
-)
+from .core.exceptions import InvalidSmilesError
 
 __all__ = ["InvalidSmilesError"]

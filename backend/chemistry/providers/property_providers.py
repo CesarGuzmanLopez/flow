@@ -31,14 +31,14 @@ import logging
 import random
 from typing import Dict
 
-from .. import providers as chem_providers
-from ..type_definitions import MolecularProperties
-from .interfaces import (
+from chemistry import providers as chem_providers
+from chemistry.providers.core.interfaces import (
     AbstractPropertyProvider,
     PropertyCategoryInfo,
     PropertyInfo,
     PropertyProviderInfo,
 )
+from chemistry.type_definitions import MolecularProperties
 
 logger = logging.getLogger(__name__)
 

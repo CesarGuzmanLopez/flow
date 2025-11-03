@@ -16,7 +16,8 @@ class ChemistryConfig(AppConfig):
 
     def ready(self):
         """Initialize app - register property providers."""
-        from .providers.factory import auto_register_providers
+        # Import from package root (re-exported by providers/__init__.py)
+        from .providers import auto_register_providers
 
         # Auto-register all built-in providers (RDKit, Manual, Random)
         auto_register_providers()

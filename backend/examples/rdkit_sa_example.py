@@ -180,7 +180,7 @@ def main():
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     django.setup()
 
-    from chemistry.providers.rdkit_sa import get_rdkit_sa_provider
+    from chemistry.providers.synthetic_accessibility.rdkit import get_rdkit_sa_provider
     from chemistry.services.synthetic_accessibility import get_sa_service
 
     example_basic_rdkit(get_rdkit_sa_provider)

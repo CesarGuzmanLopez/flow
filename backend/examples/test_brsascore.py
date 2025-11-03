@@ -17,7 +17,9 @@ print("Testing BR-SAScore Provider")
 print("=" * 60)
 
 try:
-    from chemistry.providers.brsascore_sa import get_brsascore_provider
+    from chemistry.providers.synthetic_accessibility.brsascore import (
+        get_brsascore_provider,
+    )
 
     provider = get_brsascore_provider()
 

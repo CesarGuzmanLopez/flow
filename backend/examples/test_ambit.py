@@ -19,7 +19,7 @@ def main() -> None:
     django.setup()
 
     # Import provider after Django setup
-    from chemistry.providers.ambit_sa import get_ambit_provider
+    from chemistry.providers.synthetic_accessibility.ambit import get_ambit_provider
 
     print("Testing AMBIT-SA provider...")
     provider = get_ambit_provider()

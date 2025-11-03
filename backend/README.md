@@ -232,6 +232,38 @@ backend/
 
 ---
 
+## ⚙️ AMBIT-SA (Java) – Configuración rápida
+
+Algunos ejemplos y el proveedor de Accesibilidad Sintética (SA) basados en **AMBIT-SA** requieren una JRE 8 y el JAR `SyntheticAccessibilityCli.jar`.
+
+Opciones de configuración:
+
+- Vía variables de entorno o archivo `.env` en `backend/`:
+  - `AMBIT_JAVA_PATH`: ruta al binario de Java (ej. `.../jre8/bin/java`)
+  - `AMBIT_JAR_PATH`: ruta al JAR `SyntheticAccessibilityCli.jar`
+
+Valores por defecto (si no defines variables):
+
+- `AMBIT_JAVA_PATH = backend/tools/java/jre8/bin/java`
+- `AMBIT_JAR_PATH = backend/tools/external/ambitSA/SyntheticAccessibilityCli.jar`
+
+Descarga automática (Linux):
+
+- Descarga JRE 8 portable (local a este repo)
+  - Ejecuta: `scripts/download_java_runtimes.sh` → instala en `tools/java/jre8/`
+- Descarga herramientas externas (incluye AMBIT-SA)
+  - Ejecuta: `scripts/download_external_tools.sh` → instala en `tools/external/ambitSA/`
+
+Luego puedes verificar AMBIT con los ejemplos:
+
+- `python backend/examples/test_ambit.py`
+- `python backend/examples/rdkit_sa_example.py`
+- `python backend/examples/brsascore_example.py`
+
+Si el JAR o Java no están disponibles, verás un error claro indicando qué ruta falta. Ajusta las variables en `.env` o coloca los binarios en las rutas por defecto indicadas arriba.
+
+---
+
 ## 🔄 Diagrama de Flujo de Datos
 
 ### 1️⃣ Creación de un Flujo (CADMA)

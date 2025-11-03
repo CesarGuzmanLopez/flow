@@ -49,47 +49,94 @@ class AmbitSAProvider:
         self._validate_setup()
 
     def _get_java_path(self) -> str:
-        """Get Java 8 path from settings or project structure."""
-        # Try settings first
+        """Get Java 8 path from settings or common repo locations.
+
+        Order of candidates:
+        1) settings.AMBIT_JAVA_PATH (if exists)
+        2) <backend>/tools/java/jre8/bin/java
+        3) <repo-root>/tools/java/jre8/bin/java
+        4) "java" (from PATH)
+        """
+        candidates: list[str] = []
+
+        # Candidate 1: Explicit settings override
         java_path_from_settings: Optional[str] = getattr(
             settings, "AMBIT_JAVA_PATH", None
         )
         if java_path_from_settings:
-            return java_path_from_settings
+            candidates.append(java_path_from_settings)
 
-        # Try project portable Java 8
-        project_root = Path(__file__).parent.parent.parent.parent
-        portable_java = project_root / "tools" / "java" / "jre8" / "bin" / "java"
-        if portable_java.exists():
-            return str(portable_java)
+        # Derive backend BASE_DIR and repo root
+        try:
+            backend_base = Path(getattr(settings, "BASE_DIR"))
+        except Exception:
+            backend_base = Path(__file__).resolve().parents[5]  # best-effort
+        repo_root = backend_base.parent
+
+        # Candidate 2: backend/tools/java/jre8/bin/java
+        candidates.append(
+            str(backend_base / "tools" / "java" / "jre8" / "bin" / "java")
+        )
+        # Candidate 3: repo-root/tools/java/jre8/bin/java
+        candidates.append(str(repo_root / "tools" / "java" / "jre8" / "bin" / "java"))
+
+        # Validate candidates
+        for path in candidates:
+            if Path(path).exists():
+                return path
 
         # Fallback to system java
         return "java"
 
     def _get_jar_path(self) -> str:
-        """Get AMBIT-SA jar path from settings or project structure."""
-        # Try settings first
+        """Get AMBIT-SA jar path from settings or common repo locations.
+
+        Order of candidates:
+        1) settings.AMBIT_JAR_PATH (if exists)
+        2) <backend>/tools/external/ambitSA/SyntheticAccessibilityCli.jar
+        3) <repo-root>/tools/external/ambitSA/SyntheticAccessibilityCli.jar
+        """
+        candidates: list[Path] = []
+
+        # Candidate 1: Explicit settings override
         jar_path_from_settings: Optional[str] = getattr(
             settings, "AMBIT_JAR_PATH", None
         )
         if jar_path_from_settings:
-            return jar_path_from_settings
+            candidates.append(Path(jar_path_from_settings))
 
-        # Try project structure
-        project_root = Path(__file__).parent.parent.parent.parent
-        jar_path = (
-            project_root
-            / "tools"
-            / "external"
-            / "ambitSA"
-            / "SyntheticAccessibilityCli.jar"
-        )
-        if jar_path.exists():
-            return str(jar_path)
+        # Derive backend BASE_DIR and repo root
+        try:
+            backend_base = Path(getattr(settings, "BASE_DIR"))
+        except Exception:
+            backend_base = Path(__file__).resolve().parents[5]  # best-effort
+        repo_root = backend_base.parent
 
-        raise FileNotFoundError(
-            "AMBIT-SA jar not found. Run scripts/download_external_tools.sh"
+        # Candidate 2: backend/tools/external/ambitSA/SyntheticAccessibilityCli.jar
+        candidates.append(
+            backend_base.joinpath(
+                "tools", "external", "ambitSA", "SyntheticAccessibilityCli.jar"
+            )
         )
+        # Candidate 3: repo-root/tools/external/ambitSA/SyntheticAccessibilityCli.jar
+        candidates.append(
+            repo_root.joinpath(
+                "tools", "external", "ambitSA", "SyntheticAccessibilityCli.jar"
+            )
+        )
+
+        for p in candidates:
+            if p.exists():
+                return str(p)
+
+        # If not found, raise with helpful message listing searched locations
+        searched = "\n - ".join(str(p) for p in candidates)
+        message = (
+            "AMBIT-SA jar not found. Looked in:\n - "
+            f"{searched}\n"
+            "Configure AMBIT_JAR_PATH or run scripts/download_external_tools.sh"
+        )
+        raise FileNotFoundError(message)
 
     def _validate_setup(self) -> None:
         """Validate that Java and the jar file are accessible."""
@@ -318,11 +365,8 @@ class AmbitSAProvider:
         # Skip header and parse data lines
         for line in lines:
             # Skip headers and empty lines
-            if (
-                not line.strip()
-                or line.startswith("#")
-                or line.startswith("Calculating")
-                or line.startswith("Reading")
+            if not line.strip() or any(
+                line.startswith(prefix) for prefix in ("#", "Calculating", "Reading")
             ):
                 continue
 

@@ -8,9 +8,9 @@ Supports multiple providers:
 
 from typing import Dict, List, Literal, Union
 
-from chemistry.providers.ambit_sa import AmbitSAProvider
-from chemistry.providers.brsascore_sa import BRSAScoreProvider
-from chemistry.providers.rdkit_sa import RDKitSAProvider
+from chemistry.providers.synthetic_accessibility.ambit import AmbitSAProvider
+from chemistry.providers.synthetic_accessibility.brsascore import BRSAScoreProvider
+from chemistry.providers.synthetic_accessibility.rdkit import RDKitSAProvider
 from chemistry.type_definitions import SyntheticAccessibilityResultDict
 
 ProviderType = Literal["ambit", "rdkit", "brsascore"]

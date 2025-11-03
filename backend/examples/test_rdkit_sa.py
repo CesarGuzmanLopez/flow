@@ -7,13 +7,13 @@ import os
 import sys
 
 import django
+from chemistry.providers.synthetic_accessibility.rdkit import (
+    get_rdkit_sa_provider,
+)
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "back.settings")
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 django.setup()
-
-# Import after Django setup
-from chemistry.providers.rdkit_sa import get_rdkit_sa_provider  # noqa: E402
 
 print("Testing RDKit SA Provider")
 print("=" * 60)

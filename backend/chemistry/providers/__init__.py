@@ -18,6 +18,20 @@ You can also import specific engines directly:
 import os
 from typing import Any
 
+# Import new architecture components
+from .core.interfaces import (
+    AbstractPropertyProvider,
+    PropertyInfo,
+    PropertyProviderInfo,
+    PropertyProviderInterface,
+)
+from .infrastructure import auto_register_providers, factory, registry
+from .property_providers import (
+    ManualProvider,
+    RandomProvider,
+    RDKitProvider,
+)
+
 """Provider selection module.
 
 This exposes `engine` as a lazy proxy that resolves the actual provider at
@@ -47,18 +61,20 @@ def _resolve_engine() -> Any:
     ).lower()
 
     if provider_choice == "mock":
-        from .mock_chem import mock_engine as mock_eng
+        from .engines.mock import mock_engine as mock_eng
 
         return mock_eng
 
     # Try to load requested provider (rdkit by default)
     try:
         if provider_choice == "rdkit":
-            from .rdkit_chem import engine as rdkit_eng
+            from .engines.rdkit import engine as rdkit_eng
 
             return rdkit_eng
         else:
-            mod = __import__(f"chemistry.providers.{provider_choice}", fromlist=["*"])
+            mod = __import__(
+                f"chemistry.providers.engines.{provider_choice}", fromlist=["*"]
+            )
             eng = getattr(mod, "engine", None)
             if eng is not None:
                 return eng
@@ -67,7 +83,7 @@ def _resolve_engine() -> Any:
 
     # Last resort: try to return mock provider
     try:
-        from .mock_chem import mock_engine as mock_eng
+        from .engines.mock import mock_engine as mock_eng
 
         return mock_eng
     except Exception as exc:
@@ -93,20 +109,6 @@ engine: Any = _EngineProxy()
 __all__ = ["engine"]
 
 # ========== New Property Generation System Exports ==========
-
-# Import new architecture components
-from .factory import auto_register_providers, factory, registry
-from .interfaces import (
-    AbstractPropertyProvider,
-    PropertyInfo,
-    PropertyProviderInfo,
-    PropertyProviderInterface,
-)
-from .property_providers import (
-    ManualProvider,
-    RandomProvider,
-    RDKitProvider,
-)
 
 # Mark imports as used for re-export
 _ = (

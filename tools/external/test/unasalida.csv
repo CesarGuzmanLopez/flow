@@ -1,2 +1,5 @@
-SMILES,LD50
-c1ccccc1,"1,07"
+SMILES,LD50,LC50DM
+CCO,"1,77","1,55"
+NNCNO,"2,17","1,87"
+CCCNNCNO,"1,96","2,54"
+c1ccccc1,"1,07","3,47"

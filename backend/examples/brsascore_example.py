@@ -201,7 +201,9 @@ def main():
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     django.setup()
 
-    from chemistry.providers.brsascore_sa import get_brsascore_provider
+    from chemistry.providers.synthetic_accessibility.brsascore import (
+        get_brsascore_provider,
+    )
     from chemistry.services.synthetic_accessibility import get_sa_service
 
     print("\n🧪 BR-SAScore Provider Examples")

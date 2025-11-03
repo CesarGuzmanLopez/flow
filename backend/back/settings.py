@@ -318,3 +318,15 @@ DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@chemflow.com")
 
 # URL del frontend para enlaces en emails
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:4200")
+
+# External tools configuration (AMBIT-SA Java provider)
+# You can override these via environment variables or a .env file.
+# If not provided, we default to the expected locations inside the repo.
+AMBIT_JAR_PATH = os.getenv(
+    "AMBIT_JAR_PATH",
+    str(BASE_DIR / "tools" / "external" / "ambitSA" / "SyntheticAccessibilityCli.jar"),
+)
+AMBIT_JAVA_PATH = os.getenv(
+    "AMBIT_JAVA_PATH",
+    str(BASE_DIR / "tools" / "java" / "jre8" / "bin" / "java"),
+)
