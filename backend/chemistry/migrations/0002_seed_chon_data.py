@@ -76,7 +76,7 @@ def create_chon_family_and_molecules(apps: Any, schema_editor: Any) -> None:
         try:
             from chemistry.providers.utils import enrich_smiles
 
-            structure = enrich_smiles(mol_data["smiles"])
+            structure, descriptors = enrich_smiles(mol_data["smiles"])
             inchi_val = structure.get("inchi") or None
             name = structure.get("name") or mol_data["name"]
             inchikey_val = structure.get("inchikey") or None

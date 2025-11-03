@@ -5,6 +5,8 @@ This module validates that all chemistry engine implementations
 return the exact types specified in the interface.
 """
 
+from typing import List, Tuple, cast
+
 import pytest
 
 from chemistry.providers.interface import ChemEngineInterface
@@ -43,11 +45,11 @@ class TestChemEngineTypeConsistency:
         self.valid_smiles = "CCO"  # ethanol
         self.invalid_smiles = "invalid_smiles_string"
 
-    def get_engines(self):
+    def get_engines(self) -> List[Tuple[str, ChemEngineInterface]]:
         """Get available engines for testing."""
-        engines = [("Mock", self.mock_engine)]
+        engines: List[Tuple[str, ChemEngineInterface]] = [("Mock", self.mock_engine)]
         if RDKIT_AVAILABLE:
-            engines.append(("RDKit", self.rdkit_engine))
+            engines.append(("RDKit", cast(ChemEngineInterface, self.rdkit_engine)))
         return engines
 
     def test_smiles_to_inchi_return_types(self):
@@ -85,7 +87,9 @@ class TestChemEngineTypeConsistency:
             )
 
             # Test conversion between formats
-            converted = StructureIdentifiers.from_dict(result_dict)
+            converted = StructureIdentifiers.from_dict(
+                cast(StructureIdentifiersDict, result_dict)
+            )
             reconverted = converted.to_dict()
             assert "inchi" in reconverted, f"{engine_name}: Conversion failed"
             assert "inchikey" in reconverted, f"{engine_name}: Conversion failed"
@@ -133,7 +137,9 @@ class TestChemEngineTypeConsistency:
                 )
 
             # Test conversion between formats
-            converted = MolecularProperties.from_dict(result_dict)
+            converted = MolecularProperties.from_dict(
+                cast(MolecularPropertiesDict, result_dict)
+            )
             reconverted = converted.to_dict()
             assert isinstance(reconverted, dict), f"{engine_name}: Conversion failed"
 

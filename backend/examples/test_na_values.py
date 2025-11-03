@@ -23,9 +23,8 @@ def setup_django() -> None:
 
 def test_na_values() -> None:
     """Test NA value handling."""
-    from typing import Any, Dict
-
     from chemistry.services.synthetic_accessibility import get_sa_service
+    from chemistry.type_definitions import SyntheticAccessibilityResultDict
 
     print("=" * 80)
     print("Testing NA (Not Available) Values in BR-SAScore Provider")
@@ -46,7 +45,7 @@ def test_na_values() -> None:
         print("-" * 80)
 
         # Calculate with details
-        result: Dict[str, Any] = service.calculate_for_molecule(
+        result: SyntheticAccessibilityResultDict = service.calculate_for_molecule(
             smiles, include_details=True
         )
 

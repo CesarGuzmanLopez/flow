@@ -2,6 +2,8 @@
 Vistas de gestión de ramas (branches) y nodos (nodes).
 """
 
+from typing import cast
+
 from back.envelope import StandardEnvelopeMixin
 from drf_spectacular.openapi import OpenApiParameter
 from drf_spectacular.types import OpenApiTypes
@@ -99,7 +101,7 @@ class FlowBranchViewSet(BaseFlowViewSet):
     )
     def add_step(self, request, pk=None):
         """Añade un paso a la rama."""
-        branch = self.get_object()
+        branch = cast(FlowBranch, self.get_object())
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -125,7 +127,7 @@ class FlowBranchViewSet(BaseFlowViewSet):
     )
     def path(self, request, pk=None):
         """Retorna el camino de nodos de la rama."""
-        branch = self.get_object()
+        branch = cast(FlowBranch, self.get_object())
         try:
             path_nodes = flow_services.get_path(branch.name, branch.flow)
             return Response(FlowNodeSerializer(path_nodes, many=True).data)
@@ -134,7 +136,7 @@ class FlowBranchViewSet(BaseFlowViewSet):
 
     def destroy(self, request, *args, **kwargs):
         """DELETE /api/flows/branches/{id}/ - Elimina la rama y subramas recursivamente."""
-        branch = self.get_object()
+        branch = cast(FlowBranch, self.get_object())
         if branch.name == "principal":
             return Response(
                 {"error": "No se puede eliminar la rama principal"},

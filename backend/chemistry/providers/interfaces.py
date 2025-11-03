@@ -20,6 +20,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Dict, List, Protocol, runtime_checkable
 
+from ..type_definitions import ProviderPropertyValueDict
+
 # ========== Value Objects ==========
 
 
@@ -186,7 +188,7 @@ class PropertyProviderInterface(Protocol):
 
     def calculate_properties(
         self, smiles: str, category: str | None = None, **kwargs
-    ) -> Dict[str, Dict[str, object]]:
+    ) -> Dict[str, ProviderPropertyValueDict]:
         """Calculate properties for a molecule.
 
         Args:
@@ -346,7 +348,7 @@ class AbstractPropertyProvider(ABC):
 
     def calculate_properties(
         self, smiles: str, category: str | None = None, **kwargs
-    ) -> Dict[str, Dict[str, object]]:
+    ) -> Dict[str, ProviderPropertyValueDict]:
         """Calculate properties (implements interface with validation and BC output).
 
         If category is None (legacy calls), a reasonable default is chosen:
@@ -383,27 +385,37 @@ class AbstractPropertyProvider(ABC):
         info = self.get_info()
         props_index = {p.name: p for p in cat_info.properties}
 
-        result: Dict[str, Dict[str, object]] = {}
+        result: Dict[str, ProviderPropertyValueDict] = {}
         for key, raw_val in (raw or {}).items():
             pinfo = props_index.get(key) or self._properties.get(key)
-            # Try to coerce to numeric types based on declared value_type
-            val: object = raw_val
-            if pinfo and isinstance(raw_val, str):
-                try:
-                    if pinfo.value_type == "int":
-                        val = int(float(raw_val))
-                    elif pinfo.value_type == "float":
-                        val = float(raw_val)
-                except Exception:
-                    # keep as string if conversion fails
-                    val = raw_val
+            # Coerce to a limited, typed set for 'value'
+            # Ensure the final value is one of (float|int|str) to match ProviderPropertyValueDict
+            if isinstance(raw_val, (int, float)):
+                val_out: float | int | str = raw_val
+            elif isinstance(raw_val, str):
+                # Try to coerce based on declared value_type; otherwise keep string
+                if pinfo:
+                    try:
+                        if pinfo.value_type == "int":
+                            val_out = int(float(raw_val))
+                        elif pinfo.value_type == "float":
+                            val_out = float(raw_val)
+                        else:
+                            val_out = raw_val
+                    except Exception:
+                        val_out = raw_val
+                else:
+                    val_out = raw_val
+            else:
+                # Fallback: stringify unknown types
+                val_out = str(raw_val)
 
             units = pinfo.units if pinfo else ""
             method = "user_input" if info.requires_external_data else info.name
             source = info.name
 
             result[key] = {
-                "value": val,
+                "value": val_out,
                 "units": units,
                 "source": source,
                 "method": method,

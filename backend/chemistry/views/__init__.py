@@ -7,8 +7,8 @@ removed once tests validate the split.
 
 from drf_spectacular.views import SpectacularAPIView
 
-from .families import FamilyDetailView, FamilyListCreateView
-from .family_members import FamilyMemberDetailView, FamilyMemberListCreateView
+from .families import FamilyPropertyViewSet, FamilyViewSet
+from .family_members import FamilyMemberViewSet
 from .molecules import BaseChemistryViewSet, MoleculeViewSet
 from .properties import MolecularPropertyViewSet
 
@@ -16,10 +16,9 @@ from .properties import MolecularPropertyViewSet
 schema_view = SpectacularAPIView.as_view()
 
 __all__ = [
-    "FamilyDetailView",
-    "FamilyListCreateView",
-    "FamilyMemberDetailView",
-    "FamilyMemberListCreateView",
+    "FamilyViewSet",
+    "FamilyPropertyViewSet",
+    "FamilyMemberViewSet",
     "BaseChemistryViewSet",
     "MoleculeViewSet",
     "MolecularPropertyViewSet",

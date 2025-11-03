@@ -1,3 +1,5 @@
+from typing import Any, cast
+
 from drf_spectacular.utils import (
     OpenApiExample,
     OpenApiResponse,
@@ -149,10 +151,10 @@ class MolecularPropertyViewSet(BaseChemistryViewSet):
     )
     def partial_update(self, request, *args, **kwargs):
         """Partial update (PATCH) with invariant protection."""
-        instance = self.get_object()
+        instance = cast(MolecularProperty, self.get_object())
 
         # Check if trying to modify invariant property value
-        new_value = request.data.get("value")
+        new_value: Any = request.data.get("value")
         if (
             instance.is_invariant
             and new_value is not None

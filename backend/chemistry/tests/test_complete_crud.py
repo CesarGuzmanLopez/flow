@@ -26,7 +26,7 @@ from chemistry.models import (
 User = get_user_model()
 
 
-def content_of(resp: Response) -> Any:
+def content_of(resp: Response | Any) -> Any:
     """Return the 'content' of the standard envelope or the raw data if not enveloped."""
     try:
         d = resp.data

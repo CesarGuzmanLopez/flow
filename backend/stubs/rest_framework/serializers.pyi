@@ -3,6 +3,7 @@
 from typing import Any, Dict, Generic, TypeVar
 
 from django.db.models import Model
+from rest_framework.exceptions import ValidationError as ValidationError
 
 _MT = TypeVar("_MT", bound=Model)
 
@@ -17,6 +18,8 @@ class Serializer(Generic[_MT]):
     data: Dict[str, Any]
     validated_data: Dict[str, Any]
     instance: _MT | None
+    context: Dict[str, Any]
+    errors: Dict[str, Any]
 
     def __init__(
         self,
@@ -28,12 +31,14 @@ class Serializer(Generic[_MT]):
     def save(self, **kwargs: Any) -> _MT: ...
     def create(self, validated_data: Dict[str, Any]) -> _MT: ...
     def update(self, instance: _MT, validated_data: Dict[str, Any]) -> _MT: ...
+    def to_representation(self, instance: _MT) -> Dict[str, Any]: ...
+    def to_internal_value(self, data: Dict[str, Any]) -> Dict[str, Any]: ...
 
 class ModelSerializer(Serializer[_MT]):
     """Model serializer class."""
 
     class Meta:
-        model: type[_MT]
+        model: type[Model]
         fields: str | list[str]
         read_only_fields: list[str]
 
@@ -93,4 +98,5 @@ __all__ = [
     "JSONField",
     "PrimaryKeyRelatedField",
     "SerializerMethodField",
+    "ValidationError",
 ]

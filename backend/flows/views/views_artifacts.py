@@ -2,6 +2,8 @@
 Vistas de gestión de artefactos (artifacts).
 """
 
+from typing import cast
+
 from back.envelope import StandardEnvelopeMixin
 from drf_spectacular.openapi import OpenApiParameter
 from drf_spectacular.types import OpenApiTypes
@@ -98,16 +100,16 @@ class ArtifactViewSet(BaseFlowViewSet):
             status=status.HTTP_405_METHOD_NOT_ALLOWED,
         )
 
-    @action(detail=True, methods=["get"])
+    @action(detail=True, methods=["get"], url_path="download")
     @extend_schema(
-        summary="Obtener URL de descarga de artefacto",
-        description="Genera o devuelve la URL de descarga para acceder al contenido del artefacto "
+        summary="Descargar artefacto",
+        description="Obtiene la URL para descargar el archivo del artefacto almacenado "
         "desde el almacenamiento externo (S3/MinIO). Actualmente retorna metadata.",
         tags=["Artifacts"],
     )
     def download(self, request, pk=None):
         """Obtiene la URL de descarga del archivo del artefacto."""
-        artifact = self.get_object()
+        artifact = cast(Artifact, self.get_object())
         return Response(
             {
                 "download_url": f"/media/{artifact.storage_path}",

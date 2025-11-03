@@ -2,8 +2,9 @@
 Vistas de gestión de flujos y versiones.
 """
 
+from typing import cast
+
 from back.envelope import StandardEnvelopeMixin
-from django.db import models
 from drf_spectacular.openapi import OpenApiParameter
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, extend_schema_view
@@ -134,7 +135,7 @@ class FlowViewSet(BaseFlowViewSet):
     )
     def versions(self, request, pk=None):
         """Obtiene todas las versiones de un flujo."""
-        flow = self.get_object()
+        flow = cast(Flow, self.get_object())
         versions = flow.versions.all()
         serializer = FlowVersionSerializer(versions, many=True)
         return Response(serializer.data)
@@ -149,7 +150,7 @@ class FlowViewSet(BaseFlowViewSet):
     )
     def create_branch(self, request, pk=None):
         """Crea una nueva rama en el flujo."""
-        flow = self.get_object()
+        flow = cast(Flow, self.get_object())
         serializer = CreateBranchSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -170,7 +171,7 @@ class FlowViewSet(BaseFlowViewSet):
     @action(detail=True, methods=["post"])
     def create_version(self, request, pk=None):
         """Create a new version for a flow"""
-        flow = self.get_object()
+        flow = cast(Flow, self.get_object())
         data = request.data.copy()
         data["flow"] = flow.id
         data["created_by"] = request.user.id
@@ -357,7 +358,7 @@ class FlowVersionViewSet(BaseFlowViewSet):
     )
     def freeze(self, request, pk=None):
         """Congela una versión de flujo (la hace inmutable)."""
-        version = self.get_object()
+        version = cast(FlowVersion, self.get_object())
         if version.is_frozen:
             return Response(
                 {"error": "Version is already frozen"},
@@ -377,7 +378,7 @@ class FlowVersionViewSet(BaseFlowViewSet):
     )
     def execute(self, request, pk=None):
         """Ejecuta una versión de flujo creando un snapshot de ejecución."""
-        version = self.get_object()
+        version = cast(FlowVersion, self.get_object())
         inputs = request.data.get("inputs", {})
 
         snapshot = ExecutionSnapshot.objects.create(
@@ -397,24 +398,24 @@ class FlowVersionViewSet(BaseFlowViewSet):
         tags=["Flow Versions", "Steps"],
     )
     def append_step(self, request, pk=None):
-        version = self.get_object()
+        version = cast(FlowVersion, self.get_object())
         payload = request.data or {}
         step_type = payload.get("step_type")
         params = payload.get("params") or {}
-        order = (version.steps.aggregate(_max=models.Max("order")).get("_max") or 0) + 1
-        if not step_type:
-            return Response({"error": "step_type is required"}, status=400)
 
-        # Ejecutar paso en un contexto nuevo (se podría rehidratar desde ejecución previa)
-        ctx = StepContext(user=request.user, data_stack=DataStack())
-        result = execute_step(step_type, ctx, params)
+        if not step_type:
+            return Response(
+                {"error": "step_type requerido"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Obtenemos el último orden
+        last_step = version.steps.order_by("-order").first()
+        next_order = (last_step.order + 1) if last_step else 1
 
         step = Step.objects.create(
             flow_version=version,
-            name=payload.get("name", step_type.replace("_", " ").title()),
-            description=payload.get("description", ""),
             step_type=step_type,
-            order=order,
-            config={"params": params, "metadata": result.metadata},
+            config=params,
+            order=next_order,
         )
         return Response(StepSerializer(step).data, status=status.HTTP_201_CREATED)

@@ -12,6 +12,8 @@ Define los endpoints REST API para:
 Incluye control de acceso basado en roles y permisos personalizados.
 """
 
+from typing import TYPE_CHECKING, cast
+
 from back.envelope import StandardEnvelopeMixin
 from django.contrib.auth import get_user_model
 from drf_spectacular.utils import extend_schema, extend_schema_view
@@ -39,7 +41,11 @@ from .serializers import (
     UserSerializer,
 )
 
-User = get_user_model()
+if TYPE_CHECKING:
+    # Use the concrete project User model for typing to match services expectations
+    from .models import User as User
+else:
+    User = get_user_model()
 
 
 @extend_schema_view(
@@ -95,6 +101,10 @@ class UserViewSet(StandardEnvelopeMixin, viewsets.ModelViewSet):
         "destroy": ("users", "write"),
     }
 
+    def get_object_typed(self) -> User:
+        """Helper method para obtener el objeto con el tipo correcto."""
+        return cast(User, self.get_object())
+
     def get_serializer_class(self):
         if self.action == "create":
             return UserCreateSerializer
@@ -109,7 +119,7 @@ class UserViewSet(StandardEnvelopeMixin, viewsets.ModelViewSet):
     )
     def permissions(self, request, pk=None):
         """Obtiene todos los permisos de un usuario a través de sus roles."""
-        user = self.get_object()
+        user = cast(User, self.get_object())
         permissions_qs = user.get_all_permissions()
         serializer = PermissionSerializer(permissions_qs, many=True)
         return Response(serializer.data)
@@ -126,14 +136,16 @@ class UserViewSet(StandardEnvelopeMixin, viewsets.ModelViewSet):
     )
     def resources(self, request, pk=None):
         """Retorna flujos y familias asociados al usuario especificado."""
-        target_user = self.get_object()
+        target_user = cast(User, self.get_object())
 
         # Control de acceso: propio usuario, superuser o permiso users:read
-        if not (
-            request.user.id == target_user.id
-            or getattr(request.user, "is_superuser", False)
-            or getattr(request.user, "has_permission", lambda: False)("users", "read")
-        ):
+        is_own_user = request.user.id == target_user.id
+        is_superuser = getattr(request.user, "is_superuser", False)
+        has_read_perm = getattr(
+            request.user, "has_permission", lambda *args, **kwargs: False
+        )("users", "read")
+
+        if not (is_own_user or is_superuser or has_read_perm):
             return Response(
                 {"detail": "No tienes permisos para ver estos recursos."},
                 status=status.HTTP_403_FORBIDDEN,
@@ -210,7 +222,7 @@ class UserViewSet(StandardEnvelopeMixin, viewsets.ModelViewSet):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        user = self.get_object()
+        user = cast(User, self.get_object())
         serializer = AdminUpdateUserSerializer(user, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -274,7 +286,7 @@ class UserViewSet(StandardEnvelopeMixin, viewsets.ModelViewSet):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        user = self.get_object()
+        user = cast(User, self.get_object())
         serializer = ChangePasswordSerializer(
             data=request.data, context={"request": request}
         )
@@ -313,7 +325,7 @@ class UserViewSet(StandardEnvelopeMixin, viewsets.ModelViewSet):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        user = self.get_object()
+        user = cast(User, self.get_object())
 
         # Usar el servicio para activar
         success = UserActivationService.activate_user(user)
@@ -344,7 +356,7 @@ class UserViewSet(StandardEnvelopeMixin, viewsets.ModelViewSet):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        user = self.get_object()
+        user = cast(User, self.get_object())
 
         # Verificar si el usuario puede desactivarse a sí mismo
         if not UserActivationService.can_user_deactivate_self(request.user, user):

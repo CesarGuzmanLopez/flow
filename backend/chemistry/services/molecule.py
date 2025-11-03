@@ -323,6 +323,10 @@ def create_or_get_molecule(
                 if force_create:
                     from ..type_definitions import MoleculeAlreadyExistsError
 
+                    # mol.inchikey cannot be None here because we're inside the
+                    # branch where structure_info.inchikey is truthy and get_or_create
+                    # was called with that non-empty value. Assert to satisfy type checker.
+                    assert mol.inchikey is not None
                     raise MoleculeAlreadyExistsError(
                         inchikey=mol.inchikey,
                         molecule_id=mol.id,

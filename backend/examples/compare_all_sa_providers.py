@@ -12,6 +12,9 @@ Shows SA scores and descriptor availability across providers.
 import os
 import sys
 from pathlib import Path
+from typing import Dict, List, Optional
+
+from chemistry.services.synthetic_accessibility import ProviderType
 
 
 def setup_django():
@@ -56,7 +59,8 @@ def compare_basic_scores():
     print("-" * 100)
 
     for smiles, name in test_molecules:
-        scores = {}
+        # values can be numeric scores or error strings
+        scores: Dict[str, float | str] = {}
 
         # AMBIT-SA
         try:
@@ -120,7 +124,7 @@ def compare_descriptors():
     print(f"\nMolecule: {molecule_name}")
     print(f"SMILES: {smiles}\n")
 
-    providers = ["ambit", "rdkit", "brsascore"]
+    providers: List[ProviderType] = ["ambit", "rdkit", "brsascore"]
     provider_names = {
         "ambit": "AMBIT-SA",
         "rdkit": "RDKit",
@@ -135,7 +139,7 @@ def compare_descriptors():
     ]
 
     # Collect all results
-    all_results = {}
+    all_results: Dict[ProviderType, Optional[dict]] = {}
     for provider in providers:
         try:
             service = get_sa_service(provider=provider)
@@ -166,7 +170,7 @@ def compare_descriptors():
 
         for provider in providers:
             result = all_results[provider]
-            if result and result.get("descriptors"):
+            if result and isinstance(result.get("descriptors"), dict):
                 desc = result["descriptors"].get(desc_name)
                 if desc and desc.get("value") is not None:
                     value = desc["value"]
@@ -219,10 +223,11 @@ def compare_complex_molecules():
     print("-" * 80)
 
     for smiles, name in complex_molecules:
-        scores = []
+        scores: List[Optional[float]] = []
 
         for provider in ["ambit", "rdkit", "brsascore"]:
             try:
+                # provider literals match ProviderType
                 service = get_sa_service(provider=provider)
                 result = service.calculate_for_molecule(smiles)
                 scores.append(result["sa_score"])

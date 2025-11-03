@@ -2,6 +2,8 @@
 Vistas de gestión de ejecuciones (executions y SSE).
 """
 
+from typing import cast
+
 from back.envelope import StandardEnvelopeMixin
 from django.http import Http404, StreamingHttpResponse
 from django.utils.timezone import now
@@ -79,14 +81,14 @@ class ExecutionSnapshotViewSet(BaseFlowViewSet):
 
     @action(detail=True, methods=["get"])
     @extend_schema(
-        summary="Listar ejecuciones de pasos",
+        summary="Obtener ejecuciones de pasos",
         description="Obtiene todas las ejecuciones de pasos individuales dentro de un snapshot "
         "de ejecución, incluyendo inputs, outputs, estado y artefactos generados.",
         tags=["Executions"],
     )
     def steps(self, request, pk=None):
         """Obtiene las ejecuciones de pasos de un snapshot."""
-        snapshot = self.get_object()
+        snapshot = cast(ExecutionSnapshot, self.get_object())
         executions = snapshot.step_executions.all()
         serializer = StepExecutionSerializer(executions, many=True)
         return Response(serializer.data)
@@ -143,7 +145,7 @@ class StepExecutionViewSet(BaseFlowViewSet):
         tags=["Step Executions"],
     )
     def status(self, request, pk=None):
-        step_exec = self.get_object()
+        step_exec = cast(StepExecution, self.get_object())
         flow = step_exec.step.flow_version.flow
         if not FlowPermissionService.can_user_read_flow(request.user, flow):
             return Response(status=status.HTTP_403_FORBIDDEN)
@@ -167,7 +169,7 @@ class StepExecutionViewSet(BaseFlowViewSet):
         tags=["Step Executions"],
     )
     def cancel(self, request, pk=None):
-        step_exec = self.get_object()
+        step_exec = cast(StepExecution, self.get_object())
         flow = step_exec.step.flow_version.flow
         if not FlowPermissionService.can_user_execute_flow(request.user, flow):
             return Response(status=status.HTTP_403_FORBIDDEN)

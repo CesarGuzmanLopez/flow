@@ -28,6 +28,10 @@ from .services.properties import (
     PropertyAlreadyExistsError,
     validate_property_uniqueness,
 )
+from .type_definitions import (
+    MolecularPropertiesDict,
+    StructureIdentifiersDict,
+)
 
 
 class MolecularPropertySerializer(serializers.ModelSerializer):
@@ -152,28 +156,30 @@ class MoleculeSerializer(serializers.ModelSerializer):
             "computed_properties",
         ]
 
-    def get_structure_identifiers(self, obj: Molecule) -> Dict[str, Any]:
+    def get_structure_identifiers(self, obj: Molecule) -> StructureIdentifiersDict:
         """Get structure identifiers using type-safe interface."""
         try:
             identifiers = get_molecule_structure_info(obj)
             return identifiers.to_dict()
         except Exception:
             # Fallback to direct field access
-            return {
+            result: StructureIdentifiersDict = {
                 "inchi": obj.inchi or "",
                 "inchikey": obj.inchikey or "",
                 "canonical_smiles": obj.canonical_smiles or obj.smiles or "",
                 "molecular_formula": obj.molecular_formula or None,
             }
+            return result
 
-    def get_computed_properties(self, obj: Molecule) -> Dict[str, Any]:
+    def get_computed_properties(self, obj: Molecule) -> MolecularPropertiesDict:
         """Get computed properties using type-safe interface."""
         try:
             properties = rehydrate_molecule_properties(obj)
             return properties.to_dict()
         except Exception:
-            # Fallback to empty dict
-            return {}
+            # Fallback to empty dict with correct keys
+            result: MolecularPropertiesDict = {}
+            return result
 
 
 class FamilyPropertySerializer(serializers.ModelSerializer):

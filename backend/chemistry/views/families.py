@@ -1,3 +1,5 @@
+from typing import Any, Dict, List, Optional, cast
+
 from drf_spectacular.utils import (
     OpenApiExample,
     OpenApiParameter,
@@ -172,7 +174,7 @@ class FamilyViewSet(BaseChemistryViewSet):
     )
     @action(detail=True, methods=["post"], url_path="members/add")
     def add_members(self, request, pk=None):
-        family = self.get_object()
+        family = cast(Family, self.get_object())
         payload = AddMembersSerializer(data=request.data)
         payload.is_valid(raise_exception=True)
         try:
@@ -201,7 +203,7 @@ class FamilyViewSet(BaseChemistryViewSet):
     )
     @action(detail=True, methods=["post"], url_path="members/remove")
     def remove_members(self, request, pk=None):
-        family = self.get_object()
+        family = cast(Family, self.get_object())
         payload = RemoveMembersSerializer(data=request.data)
         payload.is_valid(raise_exception=True)
         try:
@@ -256,7 +258,7 @@ class FamilyViewSet(BaseChemistryViewSet):
 
         Composite key: (family, property_type, method, relation, source_id)
         """
-        family = self.get_object()
+        family = cast(Family, self.get_object())
         serializer = AddPropertySerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = dict(serializer.validated_data)
@@ -420,7 +422,7 @@ class FamilyViewSet(BaseChemistryViewSet):
                 "molecules": [...]
             }
         """
-        family = self.get_object()
+        family = cast(Family, self.get_object())
         serializer = PropertyGenerationRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
@@ -535,7 +537,7 @@ class FamilyViewSet(BaseChemistryViewSet):
 
         Note: Response does NOT include 'properties_created' since nothing was saved.
         """
-        family = self.get_object()
+        family = cast(Family, self.get_object())
         serializer = PropertyGenerationRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
@@ -695,7 +697,7 @@ class FamilyViewSet(BaseChemistryViewSet):
         """
         try:
             # Get all unique categories from all providers
-            categories_dict = {}
+            categories_dict: Dict[str, Dict[str, object]] = {}
 
             for provider_name in provider_registry.list_provider_names():
                 provider = provider_registry.get_provider(provider_name)
@@ -712,7 +714,9 @@ class FamilyViewSet(BaseChemistryViewSet):
                         }
 
             # Sort by name
-            categories_list = sorted(categories_dict.values(), key=lambda x: x["name"])
+            categories_list = sorted(
+                categories_dict.values(), key=lambda x: str(x.get("name", ""))
+            )
 
             return Response({"categories": categories_list}, status=status.HTTP_200_OK)
 

@@ -1,6 +1,8 @@
 import logging
+from typing import cast
 
 from back.envelope import StandardEnvelopeMixin
+from django.contrib.auth.models import AbstractUser
 from drf_spectacular.utils import (
     OpenApiExample,
     OpenApiResponse,
@@ -112,7 +114,7 @@ class MoleculeViewSet(BaseChemistryViewSet):
 
     def get_queryset(self):
         qs = super().get_queryset()
-        user = getattr(self.request, "user", None)
+        user = cast(AbstractUser, getattr(self.request, "user", None))
         if user and (
             getattr(user, "is_superuser", False) or getattr(user, "is_staff", False)
         ):
@@ -243,7 +245,7 @@ class MoleculeViewSet(BaseChemistryViewSet):
     def partial_update(self, request, *args, **kwargs):
         from django.core.exceptions import ValidationError
 
-        molecule = self.get_object()
+        molecule = cast(Molecule, self.get_object())
         serializer = MoleculeUpdateSerializer(data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         try:
@@ -308,7 +310,7 @@ class MoleculeViewSet(BaseChemistryViewSet):
 
         Composite key: (molecule, property_type, method, relation, source_id)
         """
-        molecule = self.get_object()
+        molecule = cast(Molecule, self.get_object())
         serializer = AddPropertySerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = dict(serializer.validated_data)

@@ -518,3 +518,22 @@ class PropertyGenerationResult:
             return all("error" not in m for m in (self.molecules or []))
         except Exception:
             return False
+
+
+# Structured provider result entry for calculate_properties()
+class ProviderPropertyValueDict(TypedDict):
+    """Standardized value + metadata structure used by providers.
+
+    This mirrors what AbstractPropertyProvider.calculate_properties returns
+    when wrapping raw provider outputs with metadata fields.
+
+    - value: numeric or string (string preserved for non-numeric like 'NA')
+    - units: textual units for the property
+    - source: provider source identifier
+    - method: provider method or computation tag
+    """
+
+    value: float | int | str
+    units: str
+    source: str
+    method: str
