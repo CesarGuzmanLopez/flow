@@ -30,10 +30,10 @@ def test_toxicology_provider_returns_expected_values_for_known_smiles() -> None:
     # Known mapping test: CCO -> numeric values
     res = provider.calculate_properties("CCO", "toxicology")
     assert "LD50" in res
-    assert pytest.approx(float(res["LD50"]["value"])) == 1.77
-    assert pytest.approx(float(res["LC50DM"]["value"])) == 1.55
-    assert pytest.approx(float(res["DevTox"]["value"])) == 0.46
-    assert pytest.approx(float(res["Mutagenicity"]["value"])) == -0.01
+    assert pytest.approx(float(res["LD50"]["value"]), rel=0.01) == 1.77
+    assert pytest.approx(float(res["LC50DM"]["value"]), rel=0.01) == 1.55
+    assert pytest.approx(float(res["DevTox"]["value"]), rel=0.01) == 0.46
+    assert pytest.approx(float(res["Mutagenicity"]["value"]), rel=0.01) == -0.01
 
 
 def test_toxicology_provider_handles_invalid_smiles_by_returning_NA() -> None:

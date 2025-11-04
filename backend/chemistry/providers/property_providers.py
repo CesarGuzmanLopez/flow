@@ -38,6 +38,7 @@ from chemistry.providers.core.interfaces import (
     PropertyInfo,
     PropertyProviderInfo,
 )
+from chemistry.providers.external_tools.test_runner import run_test as run_webtest
 from chemistry.type_definitions import MolecularProperties
 
 logger = logging.getLogger(__name__)
@@ -351,7 +352,7 @@ class RDKitProvider(AbstractPropertyProvider):
 
     def _calculate_properties_impl(
         self, smiles: str, category: str, **kwargs
-    ) -> Dict[str, str]:
+    ) -> Dict[str, object]:
         """Calculate properties using RDKit engine.
 
         Args:
@@ -715,3 +716,146 @@ class ToxicologyProvider(AbstractPropertyProvider):
         # For unknown smiles, return NA for all properties
         props = create_toxicology_properties()
         return {p.name: "NA" for p in props}
+
+
+# ========== WebTEST Provider (invokes external T.E.S.T. runner) ==========
+
+
+class WebTESTProvider(AbstractPropertyProvider):
+    """Provider that calls the local T.E.S.T. runner to compute endpoints.
+
+    Supports a minimal set of endpoints used by our examples/tests:
+    - Toxicology: LD50, DevTox, Mutagenicity
+    - Physics: Density
+    Returns values as strings (or 'NA') for compatibility with existing patterns.
+    """
+
+    def _initialize_metadata(self) -> None:
+        self._provider_info = PropertyProviderInfo(
+            name="webtest",
+            display_name="WebTEST (External Tool)",
+            description=(
+                "External T.E.S.T. runner adapter (invokes tools/external/test/test/run_test.py)."
+            ),
+            supported_categories=["toxicology", "physics"],
+            requires_external_data=True,
+            is_computational=True,
+        )
+
+        self._category_definitions = {
+            "toxicology": PropertyCategoryInfo(
+                name="toxicology",
+                display_name="Toxicology Endpoints (WebTEST)",
+                description="LD50, Mutagenicity, DevTox from T.E.S.T.",
+                properties=[
+                    PropertyInfo(
+                        name="LD50",
+                        description="Dosis letal oral para el 50% de ratas.",
+                        units="mg/kg",
+                        value_type="float",
+                    ),
+                    PropertyInfo(
+                        name="Mutagenicity",
+                        description="Potencial mutagénico (prueba de Ames).",
+                        units="Binario",
+                        value_type="float",
+                    ),
+                    PropertyInfo(
+                        name="DevTox",
+                        description="Probabilidad de toxicidad del desarrollo (sí/no).",
+                        units="Binario",
+                        value_type="float",
+                    ),
+                ],
+                available_providers=["webtest"],
+            ),
+            "physics": PropertyCategoryInfo(
+                name="physics",
+                display_name="Physical Properties (WebTEST)",
+                description="Subset of physical properties from T.E.S.T.",
+                properties=[
+                    PropertyInfo(
+                        name="Density",
+                        description="Densidad a 25°C.",
+                        units="g/cm³",
+                        value_type="float",
+                    )
+                ],
+                available_providers=["webtest"],
+            ),
+        }
+
+    def _calculate_properties_impl(
+        self, smiles: str, category: str, **kwargs
+    ) -> Dict[str, str]:
+        # Choose endpoints for the category
+        if category == "toxicology":
+            endpoints = ["LD50", "Mutagenicity", "DevTox"]
+        elif category == "physics":
+            endpoints = ["Density"]
+        else:
+            raise ValueError(f"Unsupported category for webtest: {category}")
+
+        data = run_webtest([smiles], endpoints, timeout_sec=kwargs.get("timeout"))
+        # Expect structure: { "molecules": [ { "smiles": ..., "properties": { name: { value, error, ... } } } ] }
+        mols = data.get("molecules") or []
+        if not mols:
+            # Return all NA
+            return {name: "NA" for name in endpoints}
+        props = mols[0].get("properties") or {}
+        result: Dict[str, object] = {}
+
+        def _parse_float_locale(x: object) -> float | None:
+            """Parse float with locale-safe handling of comma decimals."""
+            if x is None:
+                return None
+            if isinstance(x, (int, float)):
+                return float(x)
+            s = str(x).strip()
+            if not s or s.upper() == "N/A":
+                return None
+            # Normalize common locale decimal comma to dot, remove spaces
+            s = s.replace(" ", "").replace(",", ".")
+            try:
+                return float(s)
+            except Exception:
+                return None
+
+        # Preferred keys per endpoint. For categorical endpoints we prefer Pred_Result
+        pref_keys = {
+            "LD50": "Pred_Value:_mg/kg",
+            "Density": "Pred_Value:_g/cm³",
+            "Mutagenicity": "Pred_Value",  # numeric score if no Pred_Result present
+            "DevTox": "Pred_Value",        # numeric score if no Pred_Result present
+        }
+
+        categorical_endpoints = {"Mutagenicity", "DevTox"}
+
+        for name in endpoints:
+            p = props.get(name, {}) or {}
+            raw = p.get("raw_data") or {}
+            entry: dict = {"raw_data": raw}
+
+            # For categorical endpoints, prefer textual Pred_Result when available
+            if name in categorical_endpoints:
+                pred_res = raw.get("Pred_Result")
+                if pred_res and str(pred_res).strip():
+                    entry["value"] = str(pred_res).strip()
+                else:
+                    preferred_key = pref_keys.get(name)
+                    preferred_val = raw.get(preferred_key) if preferred_key else None
+                    val = _parse_float_locale(preferred_val)
+                    if val is None:
+                        val = _parse_float_locale(p.get("value"))
+                    entry["value"] = "NA" if val is None else f"{val:.2f}"
+            else:
+                # Numeric endpoints: prefer configured Pred_Value key
+                preferred_key = pref_keys.get(name)
+                preferred_val = raw.get(preferred_key) if preferred_key else None
+                val = _parse_float_locale(preferred_val)
+                if val is None:
+                    val = _parse_float_locale(p.get("value"))
+                entry["value"] = "NA" if val is None else f"{val:.2f}"
+
+            result[name] = entry
+        return result

@@ -13,6 +13,7 @@ Design Patterns:
 """
 
 import logging
+import os
 from typing import Dict, List
 
 from chemistry.providers.core.interfaces import (
@@ -341,12 +342,14 @@ def auto_register_providers() -> None:
             RandomProvider,
             RDKitProvider,
             ToxicologyProvider,
+            WebTESTProvider,
         )
 
         # Register built-in providers
         registry.register("rdkit", RDKitProvider())
         registry.register("manual", ManualProvider())
         registry.register("toxicology", ToxicologyProvider())
+        registry.register("webtest", WebTESTProvider())
         registry.register("random", RandomProvider())
         registry.register("provider-extra", RandomProvider())  # Alias
 
@@ -358,3 +361,14 @@ def auto_register_providers() -> None:
     except ImportError as e:
         logger.error(f"Failed to auto-register providers: {e}")
         raise
+
+
+# Optional: Auto-register providers on import for non-Django usage.
+# Can be disabled by setting CHEM_AUTO_REGISTER=0 in the environment.
+if os.getenv("CHEM_AUTO_REGISTER", "1") == "1":
+    try:
+        auto_register_providers()
+    except Exception as _e:
+        logger.warning(
+            "Provider auto-registration on import skipped due to error: %s", _e
+        )

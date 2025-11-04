@@ -1,22 +1,16 @@
 #!/usr/bin/env python3
-"""Example: use the registered `toxicology` property provider and print results.
+"""Example: call the WebTEST provider (real tool) and print results.
 
-This example follows the style of other `backend/examples/*` scripts: it sets up
-the Django environment, imports the provider from the registry, computes the
-requested endpoints for a small set of SMILES and prints values together with
-their units so you can verify the unit labels used by the provider.
-
-This script does not call the external Java-based T.E.S.T. runner and does not
-write temporary files; it uses the in-process `ToxicologyProvider` added to the
-providers registry.
+This example uses the chemistry providers registry to obtain the 'webtest'
+provider, which wraps the local runner under `tools/external/test/run_test.py`.
+It prints a compact table of results for LD50 (mg/kg), Mutagenicity, DevTox,
+and Density. LD50 is reported as the predicted value in mg/kg (not log), and
+all raw details are preserved in metadata under `raw_data` if you need them.
 """
 
 import os
 import sys
-from typing import TYPE_CHECKING, List
-
-if TYPE_CHECKING:
-    from chemistry.providers.interfaces import PropertyProviderInterface
+from typing import List
 
 SMILES = [
     "CCO",
@@ -25,77 +19,65 @@ SMILES = [
     "c1ccccc1NNCNO",
     "smilefalso",
     "CCNc1ccOccc1",
+    # exametilciclohexano
+    "C1(C(C(C(C(C1C)C)C)C)C)C",
+    # ibuprofeno
+    "CC(C)CC1=CC=C(C=C1)C(C)C(O)=O",
+    # cafeina
+    "CN1C=NC2=C1C(=O)N(C(=O)N2C)C",
+    # aspirina
+    "CC(OC1=CC=CC=C1C(O)=O)=O",
+    # fluorouracilo
+    "C1=CN(C(=O)NC1=O)C(F)(F)F",
 ]
+def print_provider_results(smiles_list: List[str]) -> None:
+    print("=" * 80)
+    print("WebTEST provider outputs (LD50 mg/kg, Mutagenicity, DevTox, Density)")
+    print("=" * 80)
 
+    from chemistry.providers.factory import auto_register_providers, registry
 
-def print_provider_results(
-    provider: "PropertyProviderInterface", smiles_list: List[str]
-) -> None:
-    print("=" * 60)
-    print("Toxicology provider outputs (values with units)")
-    print("=" * 60)
+    auto_register_providers()
+    provider = registry.get_provider("webtest")
+
+    # Header
+    print(
+        f"{'SMILES':<24} {'LD50(mg/kg)':>12} {'Mutag':>8} {'DevTox':>8} {'Density':>8}"
+    )
+    print("-" * 80)
 
     for s in smiles_list:
-        print(f"SMILES: {s}")
         try:
-            props = provider.calculate_properties(s, "toxicology")
-        except Exception as e:
-            print(f"  ERROR calculating properties: {e}")
-            continue
+            tox = provider.calculate_properties(s, "toxicology")
+            phys = provider.calculate_properties(s, "physics")
+        except FileNotFoundError as e:
+            print("Runner not available:", e)
+            return
 
-        # props is a mapping property -> {value, units, source, method, raw_data?}
-        for name, info in props.items():
-            val = info.get("value")
-            units = info.get("units") or ""
-            source = info.get("source")
-            method = info.get("method")
-            raw = info.get("raw_data") or info.get("row_data") or info.get("raw")
+        ld50 = tox.get("LD50", {}).get("value")
+        muta = tox.get("Mutagenicity", {}).get("value")
+        dev = tox.get("DevTox", {}).get("value")
+        dens = phys.get("Density", {}).get("value")
 
-            # Pretty-format the value: floats with 2 decimals, otherwise str()
-            pretty_val = None
-            if isinstance(val, float):
-                pretty_val = f"{val:.2f}"
-            else:
-                # Try to coerce numeric-looking strings
-                try:
-                    fv = float(str(val))
-                    pretty_val = f"{fv:.2f}"
-                except Exception:
-                    pretty_val = str(val)
+        def fmt(v):
+            return (
+                f"{v:.2f}"
+                if isinstance(v, (int, float))
+                else (v if v is not None else "NA")
+            )
 
-            print(f"  {name}: {pretty_val} {units}  (source={source}, method={method})")
-            if raw is not None:
-                # Compactly show a few keys from raw data if it's a dict
-                if isinstance(raw, dict):
-                    sample = {k: raw[k] for k in list(raw.keys())[:6]}
-                    print(f"    raw_data sample: {sample}")
-                else:
-                    print(f"    raw_data: {raw}")
-        print()
+        smile_cell = s[:21] + ("…" if len(s) > 24 else "")
+        print(
+            f"{smile_cell:<24} {fmt(ld50):>12} {fmt(muta):>8} {fmt(dev):>8} {fmt(dens):>8}"
+        )
 
 
 def main() -> None:
-    # Setup Django and project path like other examples
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "back.settings")
+    # Ensure project path is importable
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-    import django
-
-    django.setup()
-
-    # Import the registry and obtain the toxicology provider
-    from chemistry.providers.factory import auto_register_providers, registry
-
-    # Ensure providers are auto-registered (AppConfig.ready normally does this)
-    auto_register_providers()
-
-    if not registry.has_provider("toxicology"):
-        print("Toxicology provider not registered", file=sys.stderr)
-        sys.exit(2)
-
-    provider = registry.get_provider("toxicology")
-
-    print_provider_results(provider, SMILES)
+    # Call provider and print results (first 10 to keep output short)
+    print_provider_results(SMILES[:10])
 
 
 if __name__ == "__main__":

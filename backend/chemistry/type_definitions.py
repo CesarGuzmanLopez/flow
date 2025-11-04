@@ -521,7 +521,7 @@ class PropertyGenerationResult:
 
 
 # Structured provider result entry for calculate_properties()
-class ProviderPropertyValueDict(TypedDict):
+class ProviderPropertyValueDict(TypedDict, total=False):
     """Standardized value + metadata structure used by providers.
 
     This mirrors what AbstractPropertyProvider.calculate_properties returns
@@ -531,9 +531,11 @@ class ProviderPropertyValueDict(TypedDict):
     - units: textual units for the property
     - source: provider source identifier
     - method: provider method or computation tag
+    - raw_data: optional raw metadata/details coming from the underlying tool
     """
 
     value: float | int | str
     units: str
     source: str
     method: str
+    raw_data: Dict[str, Any]

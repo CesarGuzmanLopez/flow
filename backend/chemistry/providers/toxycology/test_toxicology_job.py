@@ -2,11 +2,14 @@ import os
 from typing import Any
 
 import pytest
-from chemistry.providers.background_jobs.models import Execution
-from chemistry.providers.background_jobs.toxicology import (
+
+pytest.importorskip("django")
+
+from chemistry.providers.background_jobs.models import Execution  # noqa: E402
+from chemistry.providers.background_jobs.toxicology import (  # noqa: E402
     ToxicologyExternalJobProvider,
 )
-from django.utils import timezone
+from django.utils import timezone  # noqa: E402
 
 
 def setup_function(func: Any) -> None:

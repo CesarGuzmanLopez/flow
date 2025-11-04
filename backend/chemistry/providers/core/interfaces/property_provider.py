@@ -388,6 +388,15 @@ class AbstractPropertyProvider(ABC):
         result: Dict[str, ProviderPropertyValueDict] = {}
         for key, raw_val in (raw or {}).items():
             pinfo = props_index.get(key) or self._properties.get(key)
+
+            raw_meta: dict | None = None
+            # If provider returned a structured dict, extract value and keep metadata
+            if isinstance(raw_val, dict) and (
+                "value" in raw_val or "raw_data" in raw_val
+            ):
+                raw_meta = raw_val
+                raw_val = raw_val.get("value")
+
             # Coerce to a limited, typed set for 'value'
             # Ensure the final value is one of (float|int|str) to match ProviderPropertyValueDict
             if isinstance(raw_val, (int, float)):
@@ -414,12 +423,24 @@ class AbstractPropertyProvider(ABC):
             method = "user_input" if info.requires_external_data else info.name
             source = info.name
 
-            result[key] = {
+            # Allow provider overrides from raw metadata
+            if isinstance(raw_meta, dict):
+                units = (raw_meta.get("units") or units) if units is not None else units
+                method = raw_meta.get("method", method) or method
+                source = raw_meta.get("source", source) or source
+
+            entry: ProviderPropertyValueDict = {
                 "value": val_out,
                 "units": units,
                 "source": source,
                 "method": method,
             }
+
+            if isinstance(raw_meta, dict) and raw_meta.get("raw_data") is not None:
+                # Attach arbitrary raw metadata from provider
+                entry["raw_data"] = raw_meta.get("raw_data")  # type: ignore[index]
+
+            result[key] = entry
 
         return result
 
