@@ -48,6 +48,8 @@ def compare_basic_scores():
         ("CC(OC1=CC=CC=C1C(O)=O)=O", "Aspirin"),
         ("CN1C=NC2=C1C(=O)N(C(=O)N2C)C", "Caffeine"),
         ("CC12CCC3C(C1CCC2O)CCC4=CC(=O)CCC34C", "Testosterone"),
+        ("CC(=O)NCCc1c[nH]c2c1cc(cc2)OC", "Melatonin"),
+        ("CC1=NN(C(=O)C1)C1=CC=CC=C1", "Edaravone"),
     ]
 
     # Table header
@@ -117,8 +119,8 @@ def compare_descriptors():
     print_section("Descriptor Availability Comparison")
 
     # Test with a complex molecule
-    smiles = "CC(OC1=CC=CC=C1C(O)=O)=O"  # Aspirin
-    molecule_name = "Aspirin"
+    smiles = "CC(=O)NCCc1c[nH]c2c1cc(cc2)OC"  # Melatonin
+    molecule_name = "Melatonin"
 
     print(f"\nMolecule: {molecule_name}")
     print(f"SMILES: {smiles}\n")
@@ -226,6 +228,8 @@ def compare_complex_molecules():
         ),
         ("CC12CCC3C(C1CCC2O)CCC4=CC(=O)CCC34C", "Testosterone (steroid)"),
         ("CC(=O)OC1=CC=CC=C1C(=O)O", "Aspirin"),
+        ("CC(=O)NCCc1c[nH]c2c1cc(cc2)OC", "Melatonin"),
+        ("CC1=NN(C(=O)C1)C1=CC=CC=C1", "Edaravone"),
         ("CCCCCCCCCCCCCCCCCC", "Octadecane (long chain)"),
         ("C1CCC2=C(C1)C=CC=C2", "Tetralin (fused rings)"),
     ]
@@ -270,6 +274,7 @@ def compare_complex_molecules():
 def compare_ranking():
     """Compare ranking of molecules across providers."""
     from chemistry.services.synthetic_accessibility import ProviderType, get_sa_service
+    from rdkit import Chem
 
     print_section("Ranking Comparison (Easiest to Hardest)")
 
@@ -279,10 +284,24 @@ def compare_ranking():
         ("CC(=O)O", "Acetic acid"),
         ("CC(OC1=CC=CC=C1C(O)=O)=O", "Aspirin"),
         ("CN1C=NC2=C1C(=O)N(C(=O)N2C)C", "Caffeine"),
+        ("CC12CCC3C(C1CCC2O)CCC4=CC(=O)CCC34C", "Testosterone"),
+        ("CC(=O)NCCc1c[nH]c2c1cc(cc2)OC", "Melatonin"),
+        ("CC1=NN(C(=O)C1)C1=CC=CC=C1", "Edaravone"),
     ]
 
     smiles_list = [s for s, _ in test_molecules]
     name_dict = {s: n for s, n in test_molecules}
+
+    # Create canonical SMILES mapping for robust lookup
+    canonical_to_name = {}
+    for smiles, name in test_molecules:
+        try:
+            mol = Chem.MolFromSmiles(smiles)
+            if mol:
+                canonical_smiles = Chem.MolToSmiles(mol)
+                canonical_to_name[canonical_smiles] = name
+        except Exception:
+            pass
 
     providers: List[ProviderType] = ["ambit", "rdkit", "brsascore"]
     provider_names = {
@@ -316,8 +335,27 @@ def compare_ranking():
         for provider in providers:
             if i < len(rankings.get(provider, [])):
                 smiles, score = rankings[provider][i]
-                name = name_dict.get(smiles, smiles[:20])
-                cell = f"{i + 1}. {name:<20} ({score:.1f})"
+
+                # Try direct match first
+                name = name_dict.get(smiles)
+
+                # If not found, try canonical SMILES match
+                if not name:
+                    try:
+                        mol = Chem.MolFromSmiles(smiles)
+                        if mol:
+                            canonical_smiles = Chem.MolToSmiles(mol)
+                            name = canonical_to_name.get(canonical_smiles)
+                    except Exception:
+                        pass
+
+                # Fallback to "Unknown" if still not found
+                if not name:
+                    name = "Unknown"
+
+                # Truncate name if too long to fit in column
+                display_name = name[:20] if len(name) > 20 else name
+                cell = f"{i + 1}. {display_name:<20} ({score:.1f})"
             else:
                 cell = ""
             print(f"{cell:<35}", end=" | ")
